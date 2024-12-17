@@ -17,8 +17,8 @@ ROCStoppingTargetMonitorInterface::ROCStoppingTargetMonitorInterface(
 {
 	INIT_MF("." /*directory used is USER_DATA/LOG/.*/);
 
-	__MCOUT_INFO__("ROCStoppingTargetMonitorInterface instantiated with link: "
-	               << linkID_ << " and EventWindowDelayOffset = " << delay_ << __E__);
+	__COUT_INFO__ << "ROCStoppingTargetMonitorInterface instantiated with link: "
+	               << linkID_ << " and EventWindowDelayOffset = " << delay_ << __E__;
 
 	ConfigurationTree rocTypeLink =
 	    Configurable::getSelfNode().getNode("ROCTypeLinkTable");
@@ -68,35 +68,35 @@ uint16_t ROCStoppingTargetMonitorInterface::readEmulatorRegister(uint16_t addres
 
 //==================================================================================================
 void ROCStoppingTargetMonitorInterface::configure(void) try {
-  __MCOUT_INFO__(".... STM parameter 1 = " << STMParameter_1_<<__E__);
-  __MCOUT_INFO__(".... STM parameter 2 = " << STMParameter_2_<<__E__);
-  __MCOUT_INFO__(".... STM parameter 3 = " << STMParameter_3_<<__E__);
+  __COUT_INFO__ << ".... STM parameter 1 = " << STMParameter_1_<< __E__;
+  __COUT_INFO__ << ".... STM parameter 2 = " << STMParameter_2_<< __E__;
+  __COUT_INFO__ << ".... STM parameter 3 = " << STMParameter_3_<< __E__;
   
   this->writeRegister(0,STMParameter_1_);
-  __MCOUT_INFO__("... STM ROC Register 0, Write par1, Read " << this->readRegister(0) << __E__);
+  __COUT_INFO__ << "... STM ROC Register 0, Write par1, Read " << this->readRegister(0) << __E__;
 
   this->writeRegister(0,1);
-  __MCOUT_INFO__("... STM ROC Register 0, Write 1, Read " << this->readRegister(0) << __E__);
+  __COUT_INFO__ << "... STM ROC Register 0, Write 1, Read " << this->readRegister(0) << __E__;
 
   this->writeRegister(1,2);
-  __MCOUT_INFO__("... STM ROC Register 1, Write 2, Read " << this->readRegister(1) << __E__);
+  __COUT_INFO__ << "... STM ROC Register 1, Write 2, Read " << this->readRegister(1) << __E__;
 
   this->writeRegister(2,3);
-  __MCOUT_INFO__("... STM ROC Register 2, Write 3, Read " << this->readRegister(2) << __E__);
+  __COUT_INFO__ << "... STM ROC Register 2, Write 3, Read " << this->readRegister(2) << __E__;
 
   this->writeRegister(3,4);
-  __MCOUT_INFO__("... STM ROC Register 3, Write 4, Read " << this->readRegister(3) << __E__);
+  __COUT_INFO__ << "... STM ROC Register 3, Write 4, Read " << this->readRegister(3) << __E__;
 
 
 
-  // __MCOUT_INFO__("......... Clear DCS FIFOs" << __E__);
+  // __COUT_INFO__ << "......... Clear DCS FIFOs" << __E__;
   // this->writeRegister(0,1);
   // this->writeRegister(0,0);
 
   // setup needToResetAlignment using rising edge of register 22
   // (i.e., force synchronization of ROC clock with 40MHz system clock)
-  //__MCOUT_INFO__("......... setup to synchronize ROC clock with 40 MHz clock
-  // edge" << __E__);  this->writeRegister(22,0);  this->writeRegister(22,1);
+  //__COUT_INFO__ << "......... setup to synchronize ROC clock with 40 MHz clock
+  // edge" << __E__;  this->writeRegister(22,0);  this->writeRegister(22,1);
 
   // this->writeDelay(delay_);
   // usleep(100);
@@ -113,7 +113,7 @@ void ROCStoppingTargetMonitorInterface::configure(void) try {
   //{
   //	val = this->readRegister(6);
   //
-  //	//__MCOUT_INFO__(i << " read register 6 = " << val << __E__);
+  //	//__COUT_INFO__ << i << " read register 6 = " << val << __E__;
   //	if(val != 4860)
   //	{
   //		__FE_SS__ << "Bad read not 4860! val = " << val << __E__;
@@ -121,7 +121,7 @@ void ROCStoppingTargetMonitorInterface::configure(void) try {
   //	}
   //
   //	val = this->readDelay();
-  //	//__MCOUT_INFO__(i << " read register 7 = " << val << __E__);
+  //	//__COUT_INFO__ << i << " read register 7 = " << val << __E__;
   //	if(val != delay_)
   //	{
   //		__FE_SS__ << "Bad read not " << delay_ << "! val = " << val <<
@@ -139,29 +139,29 @@ void ROCStoppingTargetMonitorInterface::configure(void) try {
   // resetDTCLinkLossCounter();
 
 } catch (const std::runtime_error &e) {
-  __FE_MOUT__ << "Error caught: " << e.what() << __E__;
+  __FE_COUT__ << "Error caught: " << e.what() << __E__;
   throw;
 } catch (...) {
   __FE_SS__ << "Unknown error caught. Check printouts!" << __E__;
-  __FE_MOUT__ << ss.str();
+  __FE_COUT__ << ss.str();
   __FE_SS_THROW__;
 }
 
 //==============================================================================
 void ROCStoppingTargetMonitorInterface::halt(void) {
-  __MCOUT_INFO__("In ::halt()"<<event_number_);
+  __COUT_INFO__ << "In ::halt()"<<event_number_<< __E__;
   return;
 }
 
 //==============================================================================
 void ROCStoppingTargetMonitorInterface::pause(void) {
-  __MCOUT_INFO__("In ::pause()"<<event_number_);
+  __COUT_INFO__ << "In ::pause()"<<event_number_<< __E__;
   return;
 }
 
 //==============================================================================
 void ROCStoppingTargetMonitorInterface::resume(void) {
-  __MCOUT_INFO__("In ::resume()"<<event_number_);
+  __COUT_INFO__ << "In ::resume()"<<event_number_<< __E__;
   return;
 }
 
@@ -172,14 +172,14 @@ void ROCStoppingTargetMonitorInterface::start(std::string runNumber)
   number_of_bad_events_ = 0;
   number_of_empty_events_ = 0;
   event_number_ = 0;
-  __MCOUT_INFO__("In ::start() "<<event_number_<<"  runNo.="<<runNumber);
+  __COUT_INFO__ << "In ::start() "<<event_number_<<"  runNo.="<<runNumber<< __E__;
   return;
 }
 
 //==============================================================================
 void ROCStoppingTargetMonitorInterface::stop(void) {
-  __MCOUT_INFO__("Stopping run " << std::dec << event_number_ << __E__);
-  __MCOUT_INFO__("Stopping run reset nGood=0 from " << std::dec << number_of_good_events_ << __E__);
+  __COUT_INFO__ << "Stopping run " << std::dec << event_number_ << __E__;
+  __COUT_INFO__ << "Stopping run reset nGood=0 from " << std::dec << number_of_good_events_ << __E__;
   number_of_good_events_ = 0;
   event_number_=0;
   return;
@@ -193,7 +193,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 	unsigned DTCFDVR=readRegister(0x9000);
 	unsigned VVR=readRegister(0x900C);
 	
-	  __MCOUT_INFO__("Running event number " << std::dec << event_number_ << "  Par1="<<STMParameter_1_<<"  Par2="<<STMParameter_2_<<"  Par3="<<STMParameter_3_<<"  temprature: "<<FPGA_Te*503.975/4096<<"  ADC="<<FPGA_Te<<" DTCFDVR="<<DTCFDVR<<" VVR="<<VVR<<__E__);
+	  __COUT_INFO__ << "Running event number " << std::dec << event_number_ << "  Par1="<<STMParameter_1_<<"  Par2="<<STMParameter_2_<<"  Par3="<<STMParameter_3_<<"  temprature: "<<FPGA_Te*503.975/4096<<"  ADC="<<FPGA_Te<<" DTCFDVR="<<DTCFDVR<<" VVR="<<VVR<< __E__;
 
 	//datafile_ << "# Event " << event_number_;
 /*
@@ -248,7 +248,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 		//	    	      fail++;
 		//	    	      __MCOUT__("... fail on read " << rr 
 		//	    			<< ":  read = " << val[rr] 
-		//	    			<< ", expected = " << correct[j] << __E__);
+		//	    			<< ", expected = " << correct[j] << __E__;
 		//	    	      // __SS__ << roc->interfaceUID_ << i << "\tx " << r << " :\t "
 		//	    //	    //	    //	    //	    //	    //	    //	    //	    	      //	   << "read register " << baseAddress + j << ". Mismatch on read " << val[rr]
 		//	   << " vs " << correct[j] << ". Read failed on read number "
@@ -264,7 +264,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 	    fail++;
 	        
 	    //	    __MCOUT__("... DTC returns " << val.size() << " words instead of " 
-	    //	  		<< r << "... punt on this event" << __E__); 
+	    //	  		<< r << "... punt on this event" << __E__; 
 
 	  }
 
@@ -312,7 +312,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 	    //	    r = (rand() % 100) + 1;  //avoid calling block reads "0" times by adding 1
 	    //
 	    //	    //__MCOUT__(interfaceUID_ << " :\t read register " << baseAddress + j 
-	    //	      << " " << r << " times" << __E__);
+	    //	      << " " << r << " times" << __E__;
 	    //
 	    //	    readBlock(val, baseAddress + j,r,0);
 	    //
@@ -338,7 +338,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 	    //	    	      fail++;
 	    //	    	      __MCOUT__("... fail on read " << rr 
 	    //	    			<< ":  read = " << val[rr] 
-	    //	    			<< ", expected = " << correct[j] << __E__);
+	    //	    			<< ", expected = " << correct[j] << __E__;
 	    //	    	      // __SS__ << roc->interfaceUID_ << i << "\tx " << r << " :\t "
 	    //	    //	    //	    //	    //	    //	    //	    //	    //	    	      //	   << "read register " << baseAddress + j << ". Mismatch on read " << val[rr]
 		      //	   << " vs " << correct[j] << ". Read failed on read number "
@@ -354,7 +354,7 @@ bool ROCStoppingTargetMonitorInterface::running(void) {
 	    //	    fail++;
 	    //	    
 	    //	    __MCOUT__("... DTC returns " << val.size() << " words instead of " 
-	    //	    		<< r << "... punt on this event" << __E__); 
+	    //	    		<< r << "... punt on this event" << __E__; 
 	    //	    
 	    //	  }
 
