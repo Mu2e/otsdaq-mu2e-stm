@@ -34,7 +34,7 @@ find_package(otsdaq_mu2e 1.02.00 REQUIRED)
 
 
  # XDAQ Extra setup
- include_directories($ENV{XDAQ_ROOT}/include/linux $ENV{XDAQ_ROOT}/include)
+include_directories($ENV{XDAQ_ROOT}/include/linux $ENV{XDAQ_ROOT}/include)
 link_directories($ENV{XDAQ_ROOT}/lib)
 
 
@@ -42,6 +42,9 @@ include(BuildPlugins)
 
 # Code
 add_subdirectory(otsdaq-mu2e-stm)
+
+# Main STM DAQ
+add_subdirectory(STMDAQ-TestBeam)
 
 # Useful scripts
 #add_subdirectory(tools)
