@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(STMDAQ)
 
-# Ensure STMDAQ_ROOT is set
-if(NOT DEFINED ENV{STMDAQ_ROOT})
-    message(FATAL_ERROR "STMDAQ_ROOT not set. Please source setup.sh")
-endif()
-
 # Define the build directories
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
 
