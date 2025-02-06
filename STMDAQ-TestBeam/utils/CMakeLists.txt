@@ -4,15 +4,6 @@ cmake_minimum_required(VERSION 3.10)
 # Project name
 project(UtilsLibrary)
 
-# Check for STMDAQ_ROOT environment variable
-if (NOT DEFINED ENV{STMDAQ_ROOT})
-    message(FATAL_ERROR "STMDAQ_ROOT not set, must source setup.sh")
-endif()
-
-# Include STMDAQ_ROOT Makefile.inc logic, if needed (not directly translatable in CMake)
-# Include directory from STMDAQ_ROOT (assuming Makefile.inc defines some variables or dependencies)
-set(STMDAQ_ROOT $ENV{STMDAQ_ROOT})
-
 # Compiler warning flags
 set(WARNING_FLAGS 
     -Wall 
@@ -46,38 +37,18 @@ set(CCOPTS -O3)
 set(SYSOPTS -DRMEM_MAX=${RMEM_MAX} -DWMEM_MAX=${WMEM_MAX})
 
 # Determine database usage
-if (USE_SQL)
-    set(INCLUDE_CC 
-        -I${BOOST_INC} 
-        -I${PQXX_INC} 
-        -I${STM_INC}
-    )
-    set(LIB_CC 
-        ziggurat.cc 
-        UDPsocket.cc 
-        queue.cc 
-        EnvVars.cc 
-        dbase.cc 
-        dataVars.cc 
-        Random.cc 
-        Logger.cc
-    )
-else()
-    set(INCLUDE_CC 
-        -I${BOOST_INC} 
-        -I${STM_INC}
-    )
-    set(LIB_CC 
-        ziggurat.cc 
-        UDPsocket.cc 
-        queue.cc 
-        queue_write.cc 
-        EnvVars.cc 
-        dataVars.cc 
-        Random.cc 
-        Logger.cc
-    )
-endif()
+set(INCLUDE_CC 
+  )
+set(LIB_CC 
+  ziggurat.cc 
+  UDPsocket.cc 
+  queue.cc 
+  queue_write.cc 
+  EnvVars.cc 
+  dataVars.cc 
+  Random.cc 
+  Logger.cc
+  )
 
 # Object and library files
 set(LIB_OBJ "")
@@ -86,9 +57,6 @@ foreach(SRC ${LIB_CC})
     list(APPEND LIB_OBJ "${CMAKE_BINARY_DIR}/obj/${OBJ_FILE}")
 endforeach()
 set(LIB ${CMAKE_BINARY_DIR}/lib/libUtils.so)
-
-# Include directories
-include_directories(${BOOST_INC} ${STM_INC} ${PQXX_INC})
 
 # Create the library
 add_library(UtilsLibrary SHARED ${LIB_CC})

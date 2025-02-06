@@ -97,7 +97,7 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs &frags)//getNext_packet
 	recvCount += retval;
 	// Reset timeout counter
 	udp.timeout_counter = 0;
-	return true;
+	//return true;
       }
     } // End if not timedout
   } // End infinite loop
