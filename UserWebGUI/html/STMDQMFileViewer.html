@@ -22,7 +22,6 @@
     import { draw, httpRequest, redraw, decodeUrl, registerForResize, GridDisplay } from 'https://root.cern/js/latest/modules/main.mjs';
     import { buildGUI } from 'https://root.cern/js/latest/modules/gui.mjs';
 
-    console.log("HERE");
     window.buildGUI = buildGUI; // export buildGUI so that it can be used later
    </script>   
 
@@ -32,7 +31,7 @@
 	//	init called once body has loaded
 	function init() 
 	  {
-            // Get a list of file
+        // Get a list of file
     const xhr = new XMLHttpRequest();
     xhr.open("GET", "/WebPath/UserWebPath/dqm_files/");
     xhr.send();
@@ -69,11 +68,6 @@
 	<h1>STM DQM File Viewer Loading...</h1>
 
   <div id="simpleGUI", path="/WebPath/UserWebPath/dqm_files/", files=""></div>
-
-  <script>
-    //    console.log(document.getElementById('simpleGUI'))
-  </script>
-
 
   <!-- Run Number:  -->
   <!-- <input type="text" id="run_number" value=""/> -->
