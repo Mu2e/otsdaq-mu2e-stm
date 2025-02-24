@@ -57,7 +57,6 @@ public:
 //  std::ofstream datafile_;
   unsigned int event_number_;
 
-
 	// clang-format on
 };
 }  // namespace ots
