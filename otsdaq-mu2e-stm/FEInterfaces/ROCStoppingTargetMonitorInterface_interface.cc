@@ -173,6 +173,10 @@ void ROCStoppingTargetMonitorInterface::start(std::string runNumber)
   number_of_empty_events_ = 0;
   event_number_ = 0;
   __COUT_INFO__ << "In ::start() "<<event_number_<<"  runNo.="<<runNumber << __E__;
+
+  std::string execCmd = "ssh mu2estm@mu2edaq11 bash start.sh";
+  std::string execCmdResult = StringMacros::exec(execCmd.c_str());
+  __FE_COUTV__(execCmdResult);
   return;
 }
 

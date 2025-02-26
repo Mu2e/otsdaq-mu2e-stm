@@ -34,49 +34,56 @@
 #include "dtcInterfaceLib/DTCSoftwareCFO.h"
 
 namespace mu2e {
-class STMUDPReceiver : public artdaq::CommandableFragmentGenerator
-{
-public:
-	explicit STMUDPReceiver(fhicl::ParameterSet const& ps);
-	virtual ~STMUDPReceiver();
+  class STMUDPReceiver : public artdaq::CommandableFragmentGenerator
+  {
+  public:
+    explicit STMUDPReceiver(fhicl::ParameterSet const& ps);
+    virtual ~STMUDPReceiver();
 
-	FragmentType GetFragmentType() { return fragment_type_; }
+    FragmentType GetFragmentType() { return fragment_type_; }
   
-private:
-	// The "getNext_" function is used to implement user-specific
-	// functionality; it's a mandatory override of the pure virtual
-	// getNext_ function declared in CommandableFragmentGenerator
+  private:
+    // The "getNext_" function is used to implement user-specific
+    // functionality; it's a mandatory override of the pure virtual
+    // getNext_ function declared in CommandableFragmentGenerator
 
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+    bool getNext_(artdaq::FragmentPtrs& output) override;
 
-	void start() override {}
+    void start() override {}
 
-	void stopNoMutex() override {}
+    void stopNoMutex() override {}
 
-	void stop() override {}
+    void stop() override;
 		
-	// FHiCL-configurable variables. Note that the C++ variable names
-	// are the FHiCL variable names with a "_" appended
+    // FHiCL-configurable variables. Note that the C++ variable names
+    // are the FHiCL variable names with a "_" appended
 
-	FragmentType fragment_type_{FragmentType::STM};  // Type of fragment (see FragmentType.hh)
+    FragmentType fragment_type_{FragmentType::STM};  // Type of fragment (see FragmentType.hh)
 
-  //  // Number of data channels (Maximum of 2: HPGe = 0, LaBr = 1)
-  //  static const uint chNum = 2;
+    size_t current_timestamp_offset_{0};
+    size_t first_timestamp_seen_{size_t(-1)}, last_fragment_timestamp_{size_t(-1)};
 
-  // Istance of UDP socket class
-  int i_ch;
-  std::string ip_address;
-  int port;
-  UDPsocket udp;//[chNum];
-  int recvSock;//[chNum];
-  int16_t* rcv_buffer; // from UDP socket
+    //  // Number of data channels (Maximum of 2: HPGe = 0, LaBr = 1)
+    //  static const uint chNum = 2;
 
-  int gNextCounter;
+    // Istance of UDP socket class
+    int i_ch;
+    std::string ip_address;
+    int port;
+    UDPsocket udp;//[chNum];
+    int recvSock;//[chNum];
+    int16_t* rcv_buffer; // from UDP socket
+
+    int gNextCounter;
   
-  int verboseLevel_;
-  int retval; // the number of messages we receive per call
-  int recvCount; // the total number of messages we received
-};
+    int verboseLevel_;
+    int retval; // the number of messages we receive per call
+    int recvCount; // the total number of messages we received
+
+    std::unique_ptr<DTCLib::DTC> theInterface_;
+
+
+  };
 }  // namespace mu2e
 
 #endif /* mu2e_artdaq_Generators_STMUDPReceiver_hh */
