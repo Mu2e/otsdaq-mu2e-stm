@@ -11,11 +11,8 @@ artdaq_plugin_types::CommandableFragmentGenerator
   )
 
 include(artdaq::commandableGenerator)
-
-include_directories(/home/mu2estm/)
-link_directories(/home/mu2estm/STMDAQ-TestBeam/build/lib)
   
-cet_build_plugin(STMUDPReceiver artdaq::commandableGenerator LIBRARIES REG otsdaq_mu2e_stm::otsdaq-mu2e-stm_Generators_Mu2eReceiverBase libUtils.so)
+cet_build_plugin(STMUDPReceiver artdaq::commandableGenerator LIBRARIES REG otsdaq_mu2e_stm::otsdaq-mu2e-stm_Generators_Mu2eReceiverBase otsdaq_mu2e_stm::UtilsLibrary)
 
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})

@@ -52,7 +52,7 @@ uint64_t queue_write::try_push(int chan, int16_t *data, int n){
   write_num[chan] = occupancy[chan].load();
 
   // Get the available space in the buffer
-  uint64_t space = RING_BUFFER_LEN - write_num[chan];
+  int space = RING_BUFFER_LEN - write_num[chan];
 
   // If space is zero
   if(space <= n){
@@ -117,7 +117,7 @@ void queue_write::push(int chan, int16_t *data, int n){
 uint64_t queue_write::try_write_file(int chan){
 
   // Initialise the pull values
-  uint64_t pull_size = 0;
+  //uint64_t pull_size = 0;
   uint64_t pull_len = 0;
   
   // Load the current head pointers
@@ -137,7 +137,7 @@ uint64_t queue_write::try_write_file(int chan){
   }
   // Get pull length and pull size
   pull_len = read_num[chan];
-  pull_size = pull_len*sizeof(int16_t);
+  //pull_size = pull_len*sizeof(int16_t);
   
   // Get subrun buffer number                                             
   subrun_buff_index[chan] = current_subrun[chan] % file_num;
@@ -211,8 +211,6 @@ uint64_t queue_write::try_write_file(int chan){
 
 // Write data from queue
 void queue_write::write_file(bool *timeout, int chan){
-  
-  int pull_len = 0;
   
   // Wait until...
   while( !*timeout ) {

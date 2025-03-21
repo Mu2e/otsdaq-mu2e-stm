@@ -9,25 +9,9 @@ file(MAKE_DIRECTORY ${BUILD_DIR}/obj)
 file(MAKE_DIRECTORY ${BUILD_DIR}/bin)
 file(MAKE_DIRECTORY ${BUILD_DIR}/dep)
 
-# Custom targets for submodules
-add_custom_target(utils_code
-    COMMAND ${CMAKE_COMMAND} -E echo "<**Building utils directory**>"
-    COMMAND make -C ${CMAKE_SOURCE_DIR}/utils all
-)
+add_subdirectory(utils)
 
-## Clean-up
-#add_custom_target(clean
-#    COMMAND ${CMAKE_COMMAND} -E rm -rf ${BUILD_DIR}/bin ${BUILD_DIR}/obj ${BUILD_DIR}/lib ${BUILD_DIR}/dep
-#    COMMENT "Cleaning build directories"
-#)
+add_subdirectory(processData)
 
-# Define all target to build everything
-#add_custom_target(all
-#    DEPENDS utils_code
-#)
+add_subdirectory(frontEnd)
 
-# Uncomment below for optional targets
-# add_custom_target(online_code
-#     COMMAND ${CMAKE_COMMAND} -E echo "<**Building online directory**>"
-#     COMMAND make -C ${CMAKE_SOURCE_DIR}/online all
-# )

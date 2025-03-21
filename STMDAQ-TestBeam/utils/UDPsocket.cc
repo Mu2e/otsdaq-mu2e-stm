@@ -271,7 +271,7 @@ int UDPsocket::setupClient(int CHAN, int FW_or_SW){
 // Bind socket to port
 int UDPsocket::bindSocket(int socket){
 
-  if(int retval = bind(socket , (struct sockaddr*)&servaddr, sizeof(servaddr) ) == -1){
+  if(bind(socket , (struct sockaddr*)&servaddr, sizeof(servaddr) ) == -1){
     perror("bind");    
     Logger::Instance()->write(0,"Unable to bind socket");
   }
@@ -389,9 +389,9 @@ int UDPsocket::sendOne(int16_t* data, uint16_t size, int socket){
 int UDPsocket::send(int16_t** data, uint16_t* size, int MSG_NUM, int socket){
 
   // Define mmsg varaibles as array of number of messages to receive
-  struct mmsghdr msgvec[MSG_NUM];
-  struct iovec msg_iovec[MSG_NUM];
-  memset(msgvec,0,sizeof(msgvec));
+  struct mmsghdr* msgvec = new struct mmsghdr[MSG_NUM];
+  struct iovec* msg_iovec = new struct iovec[MSG_NUM];
+  memset(msgvec,0,sizeof(*msgvec));
   // Loop over number of messages to receive
   for (int i = 0; i < MSG_NUM; i++){
     msg_iovec[i] = {data[i],size[i]};
@@ -461,10 +461,9 @@ int UDPsocket::recvOne(int16_t* data, int socket, int CHAN){
 int UDPsocket::recv(int16_t *data, int socket, int CHAN){
 
   // Define mmsg varaibles as array of number of messages to receive
-  struct mmsghdr msgvec[RECVMMSG_NUM];
-  struct iovec msg_iovec[RECVMMSG_NUM];
-  struct msghdr msg[RECVMMSG_NUM];
-  memset(msgvec,0,sizeof(msgvec));
+  struct mmsghdr* msgvec = new struct mmsghdr[RECVMMSG_NUM];
+  struct iovec* msg_iovec = new struct iovec[RECVMMSG_NUM];
+  memset(msgvec,0,sizeof(*msgvec));
 
   // Set the timeout
   struct timespec timeout = {read_timeout.tv_sec,
