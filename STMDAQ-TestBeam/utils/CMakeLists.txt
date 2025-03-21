@@ -1,44 +1,3 @@
-# Minimum CMake version
-cmake_minimum_required(VERSION 3.10)
-
-# Project name
-project(UtilsLibrary)
-
-# Compiler warning flags
-set(WARNING_FLAGS 
-    -Wall 
-    -Wformat=2 
-    -Wno-format-nonliteral 
-    -Wno-strict-aliasing 
-    -Wuninitialized 
-    -Wno-unused-function 
-    -Wextra 
-    -Wno-unused-parameter 
-    -Wno-missing-field-initializers 
-    -Wno-pointer-arith 
-    -Wno-unused-variable 
-    -Wno-unused-local-typedefs 
-    -Wno-parentheses 
-    -Wno-deprecated-declarations 
-    -Wno-conversion-null 
-    -Wno-unused-but-set-variable 
-    -Wno-type-limits 
-    -Wno-unused-but-set-parameter 
-    -Wno-catch-value 
-    -fPIC 
-    -Wno-deprecated 
-    -Wno-sign-compare
-)
-
-# Compiler optimization flags (adapt these as needed)
-set(CCOPTS -O3)
-
-# System options
-set(SYSOPTS -DRMEM_MAX=${RMEM_MAX} -DWMEM_MAX=${WMEM_MAX})
-
-# Determine database usage
-set(INCLUDE_CC 
-  )
 set(LIB_CC 
   ziggurat.cc 
   UDPsocket.cc 
@@ -49,19 +8,14 @@ set(LIB_CC
   Random.cc 
   Logger.cc
   )
+cet_make_library(LIBRARY_NAME UtilsLibrary
+                 SOURCE
+                 ${LIB_CC}
+                 LIBRARIES PUBLIC
+                 rt
+)
 
-# Object and library files
-set(LIB_OBJ "")
-foreach(SRC ${LIB_CC})
-    string(REPLACE ".cc" ".o" OBJ_FILE ${SRC})
-    list(APPEND LIB_OBJ "${CMAKE_BINARY_DIR}/obj/${OBJ_FILE}")
-endforeach()
-set(LIB ${CMAKE_BINARY_DIR}/lib/libUtils.so)
+install_headers()
+install_source()
 
-# Create the library
-add_library(UtilsLibrary SHARED ${LIB_CC})
-target_compile_options(UtilsLibrary PRIVATE ${CCOPTS} ${WARNING_FLAGS} ${SYSOPTS} ${INCLUDE_CC})
-target_link_libraries(UtilsLibrary rt)
 
-# Custom clean target
-add_custom_target(clean COMMAND ${CMAKE_COMMAND} -E remove ${LIB_OBJ} ${DEPENDS})

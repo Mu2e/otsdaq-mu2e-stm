@@ -52,7 +52,7 @@ public :
   std::string file_date_time;
 
   // The data directory
-  std::string data_dir = mainOutDir+"data/Nov24_MiniGR/";
+  std::string data_dir = mainOutDir+"data/";
   
   // The maximum binary file size per subrun
   static const uint64_t max_bf_size = uint64_t(2e9); // 2 Gb   
@@ -83,7 +83,7 @@ public :
   int64_t read_num[CHNUM]; // in pull
 
   // The maximum number of datagrams to pull
-  int write_max = 0;
+  uint64_t write_max = 0;
 
   // Write data array
   int16_t* write_data[CHNUM];
