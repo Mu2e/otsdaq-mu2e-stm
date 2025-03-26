@@ -316,8 +316,8 @@ int main(){
   // Start threads
   std::cout << "Initialising " << thread_num << " threads..." << std::endl;
 
-  std::thread *write_monitor_thread[chNum];
-  std::thread *write_thread[chNum];
+  std::thread *write_monitor_thread[chNum] = {nullptr}; // Initialize to nullptr
+  std::thread *write_thread[chNum] = {nullptr}; // Initialize to nullptr
 
   // Start all other threads                                                                  
   std::thread ***process_thread = new std::thread**[process_num];
@@ -458,9 +458,15 @@ int main(){
  
   // Join write threads
   if (process[WRITE]){
-    for (int j = 0; j < chNum; j++){      
-      write_monitor_thread[j]->join();
-      write_thread[j]->join();
+    for (int j = 0; j < chNum; j++){
+      if(write_monitor_thread[j] != nullptr){
+	write_monitor_thread[j]->joinable();
+	write_monitor_thread[j]->join();
+      }
+      if(write_thread[j] != nullptr){
+	write_thread[j]->joinable();
+	write_thread[j]->join();
+      }
     }    
   }
 
