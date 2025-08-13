@@ -1,0 +1,21 @@
+Script started on Fri 06 May 2022 02:50:59 PM CDT
+]0;mu2ehwdev@mu2e-cfo-01:~/ots/srcs/otsdaq_mu2e_config/Data_HWDev[?1034h[mu2ehwdev@mu2e-cfo-01 Data_HWDev]$ script --help
+
+Usage:
+ script [options] [file]
+
+Options:
+ -a, --append            append the output
+ -c, --command <command> run command rather than interactive shell
+ -e, --return            return exit code of the child process
+ -f, --flush             run flush after each write
+     --force             use output file even when it is a link
+ -q, --quiet             be quiet
+ -t, --timing[=<file>]   output timing data to stderr (or to FILE)
+ -V, --version           output version information and exit
+ -h, --help              display this help and exit
+
+]0;mu2ehwdev@mu2e-cfo-01:~/ots/srcs/otsdaq_mu2e_config/Data_HWDev[mu2ehwdev@mu2e-cfo-01 Data_HWDev]$ script -[K[K[K[K[K[K[K[Kexit
+exit
+
+Script done on Fri 06 May 2022 02:51:09 PM CDT
