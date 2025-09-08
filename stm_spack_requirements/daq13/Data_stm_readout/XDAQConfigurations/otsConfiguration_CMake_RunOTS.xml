@@ -1,0 +1,171 @@
+<?xml version='1.0'?>
+<xc:Partition 	xmlns:xsi	= "http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:soapenc	= "http://schemas.xmlsoap.org/soap/encoding/"
+		xmlns:xc	= "http://xdaq.web.cern.ch/xdaq/xsd/2004/XMLConfiguration-30">
+
+	<!-- ContextUID='mainContext' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq05.fnal.gov:3055">
+
+		<!-- Application GroupID = 'mainContext' UID='Supervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::GatewaySupervisor" id="200" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:GatewaySupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libGatewaySupervisor.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='ChatSupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::ChatSupervisor" id="250" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:ChatSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libChat.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='ConsoleSupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::ConsoleSupervisor" id="260" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:ConsoleSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libConsole.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='LogbookSupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<!--
+		<xc:Application class="ots::LogbookSupervisor" id="261" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:LogbookSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libLogbook.so</xc:Module>
+		-->
+
+		<!-- Application GroupID = 'mainContext' UID='ConfigurationGUISupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::ConfigurationGUISupervisor" id="281" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:ConfigurationGUISupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libConfigurationGUI.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='MacroMakerSupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::MacroMakerSupervisor" id="300" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:MacroMakerSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libMacroMaker.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='CodeEditorSupervisor' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::CodeEditorSupervisor" id="314" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:CodeEditorSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCodeEditor.so</xc:Module>
+
+		<!-- Application GroupID = 'mainContext' UID='SlowControlsTest2' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<!--
+		<xc:Application class="ots::SlowControlsDashboardSupervisor" id="315" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:SlowControlsDashboardSupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_UTILITIES_LIB}/libSlowControlsDashboard.so</xc:Module>
+		-->
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextCAPTAN1' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<!--
+	<xc:Context id="0" url="http://mu2edaq06.fnal.gov:3059">
+
+		<xc:Application class="ots::FESupervisor" id="313" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+	-->
+
+	<!-- ContextUID='ContextCFO1' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq04.fnal.gov:3056">
+
+		<!-- Application GroupID = 'ContextCFO1' UID='FESupervisorCFO0' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="210" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC01' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq05.fnal.gov:3057">
+
+		<!-- Application GroupID = 'ContextDTC01' UID='FESupervisorDTC01' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="316" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC23' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq06.fnal.gov:3058">
+
+		<!-- Application GroupID = 'ContextDTC23' UID='FESupervisorDTC23' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="317" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC45' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq14.fnal.gov:3059">
+
+		<!-- Application GroupID = 'ContextDTC45' UID='FESupervisorDTC45' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="318" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC67' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq16.fnal.gov:3057">
+
+		<!-- Application GroupID = 'ContextDTC67' UID='FESupervisorDTC67' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="319" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC89' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<xc:Context id="0" url="http://mu2edaq17.fnal.gov:3060">
+
+		<!-- Application GroupID = 'ContextDTC89' UID='FESupervisorDTC89' sourceConfig='XDAQApplicationTable_v18 @ 1599232288' -->
+		<xc:Application class="ots::FESupervisor" id="320" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+
+	<!-- ContextUID='ContextDTC1011' sourceConfig='XDAQContextTable_v23 @ 1598984779' -->
+	<!--
+	<xc:Context id="0" url="http://mu2edaq12.fnal.gov:3061">
+
+		<xc:Application class="ots::FESupervisor" id="321" instance="1" network="local" group="daq">
+			<properties xmlns="urn:xdaq-application:FESupervisor" xsi:type="soapenc:Struct">
+			</properties>
+		</xc:Application>
+		<xc:Module>${OTSDAQ_LIB}/libCoreSupervisors.so</xc:Module>
+
+	</xc:Context>
+	-->
+
+</xc:Partition>
+
+

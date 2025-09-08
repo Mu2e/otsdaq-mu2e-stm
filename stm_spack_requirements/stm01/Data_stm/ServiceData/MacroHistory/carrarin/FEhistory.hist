@@ -1,0 +1,27 @@
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
