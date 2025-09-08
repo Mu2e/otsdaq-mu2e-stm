@@ -1,0 +1,21 @@
+udp: { 
+	type: 					UDP 
+	threshold: 				DEBUG 
+	filename_delimit: 		"/srcs/"
+	port: 					60351 
+	host: 					"127.0.0.1" 
+}
+
+console: { 
+	type: 					OTS
+	threshold: 				DEBUG
+	filename_delimit: 		"/srcs/"
+	format_string: 			"|%T:%L:%N: %f:%u |\t%m"
+}
+
+#file: {
+#	type: "file" 
+#	filename: "/dev/null" 
+#}
+file:""
+

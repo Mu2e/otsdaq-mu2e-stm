@@ -1,0 +1,61 @@
+CFO0: {
+	FEInterfacePluginName: 	"CFOFrontEndInterface"
+	LinkToFETypeTable_CFOInterfaceTable: 	{
+		CFO0: 	{
+			DeviceIndex: 				0
+			ConfigureClock: 				"Yes"
+			JitterAttenuatorInputSource: 				"Clock from RJ45"
+		} //end CFO0 record
+	} //end CFOInterfaceTable link record
+} //end CFO0
+
+
+DTC7: {
+	FEInterfacePluginName: 	"DTCFrontEndInterface"
+	LinkToFETypeTable_DTCInterfaceTable: 	{
+		DTC7: 	{
+			EmulatorMode: 				"False"
+			LocationInChain: 				0
+			DeviceIndex: 				1
+			EmulateCFO: 				"No"
+			ConfigureClock: 				"Yes"
+			JitterAttenuatorInputSource: 				"Clock from RJ45"
+			EnableROCConfigureStep: 				"No"
+			LinkToROCGroupTable_ROCInterfaceTable: 	{
+				STMROC0: 	{
+					Status: 						"On"
+					ROCGroupID: 						"DTC9ROCs"
+					ROCInterfacePluginName: 						"ROCPolarFireCoreInterface"
+					linkID: 						0
+					EventWindowDelayOffset: 						0
+					EmulateInDTCHardware: 						"False"
+					ROCTypeLinkTable_SubsystemSTMParametersTable: 	{
+						STMROC0: 	{
+							tempColumn2: 								"DEFAULT"
+							tempColumn1: 								"DEFAULT"
+							NumberParam1: 								"DEFAULT"
+							TrueFalseParam2: 								"False"
+							MustBeUniqueParam3: 								"DEFAULT"
+						} //end STMROC0 record
+					} //end SubsystemSTMParametersTable link record
+				} //end STMROC0 record
+
+				LoopbackROC1: 	{
+					Status: 						"On"
+					ROCGroupID: 						"DTC9ROCs"
+					ROCInterfacePluginName: 						"ROCPolarFireCoreInterface"
+					linkID: 						1
+					EventWindowDelayOffset: 						0
+					EmulateInDTCHardware: 						"False"
+				}
+			} //end ROCInterfaceTable group link record
+			EventBuilderDTCID: 				17
+			EventBuilderMode: 				85
+			EventBuilderPartitionID: 				1
+			EventBuilderMACIndex: 				1
+			EventBuilderNumBuff: 				0
+			EventBuilderStartNode: 				0
+			EventBuilderNumNodes: 				0
+		} //end DTC9 record
+	} //end DTCInterfaceTable link record
+} //end DTC9

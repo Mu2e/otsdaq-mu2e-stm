@@ -1,0 +1,18 @@
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"DTC Soft Reset",
+"inputArgs":"",
+"outputArgs":"",
+"saveOutputs":"0"
+}#

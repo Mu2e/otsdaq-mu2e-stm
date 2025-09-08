@@ -1,0 +1,11 @@
+4 4
+reader EventDataGenerator0 0 0
+reader EventDataGenerator1 0 1
+reader crvReader0 0 2
+builder CRVBuilder0 1 1
+builder EventBuilder* 1 3
+builder EventBuilder4 1 0
+logger logger0 2 1
+logger loggerLumi 2 0
+dispatcher dispatcher0 3 1
+artdaqSupervisor ARTDAQSupervisor 3 3

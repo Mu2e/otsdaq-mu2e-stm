@@ -1,0 +1,8 @@
+SET_TAG 1
+LOOP 16
+	HEARTBEAT event_mode= 1
+	MARKER
+	WAIT 100 us
+	INC_TAG //increment event window tag
+DO_LOOP
+END
