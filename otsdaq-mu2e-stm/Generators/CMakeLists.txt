@@ -16,6 +16,8 @@ cet_build_plugin(STMUDPReceiver artdaq::commandableGenerator LIBRARIES REG otsda
 
 cet_build_plugin(STMTCPReceiver artdaq::commandableGenerator LIBRARIES REG otsdaq_mu2e_stm::Generators_Mu2eReceiverBase otsdaq_mu2e_stm::UtilsLibrary)
 
+cet_build_plugin(STMTCPReceiverSim artdaq::commandableGenerator LIBRARIES REG otsdaq_mu2e_stm::Generators_Mu2eReceiverBase otsdaq_mu2e_stm::UtilsLibrary)
+
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})
 #    message(STATUS "${_variableName}=${${_variableName}}")

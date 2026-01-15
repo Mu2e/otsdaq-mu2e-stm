@@ -32,7 +32,7 @@
 // =====================================================================================
 // Header includes
 // =====================================================================================
-#include "STMTCPReceiver.hh"
+#include "STMTCPReceiverSim.hh"
 
 //////////////////////////////// - STMTCPReceiver - ////////////////////////////////////
 
@@ -310,7 +310,9 @@ namespace mu2e {
 
         evt.raw = {0, raw_len};
         evt.zs  = {raw_len, zs_len};
-        evt.mwd = {raw_len + zs_len, mwd_len};
+	size_t mwd_offset = static_cast<size_t>(raw_len) + static_cast<size_t>(zs_len);
+	size_t mwd_size   = static_cast<size_t>(mwd_len);
+	evt.mwd = {mwd_offset, mwd_size};
         evt.size_bytes = evt_total_bytes;
 
         while (!parser_to_consumer_queue_->push(evt)) {

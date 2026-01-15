@@ -104,13 +104,6 @@ inline void event_num_to_words(int64_t event_num, int16_t& w0, int16_t& w1, int1
   w2 = static_cast<int16_t>((event_num >> 32) & 0xFFFF);
 }
 
-// Convert back three network-order int16_t words into a uint64_t
-static inline uint64_t build_len_from_3_words(uint16_t w0, uint16_t w1, uint16_t w2) {
-  return static_cast<uint64_t>(w0) |
-    (static_cast<uint64_t>(w1) << 16) |
-    (static_cast<uint64_t>(w2) << 32);
-}
-
 // Helper: make header with last word = data length
 std::vector<int16_t> make_header(size_t header_size, int16_t data_len) {
   std::vector<int16_t> header(header_size, 0);
