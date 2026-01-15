@@ -48,7 +48,9 @@ namespace mu2e {
     , port_(ps.get<int>("port", 10010)) // Port of TCP socket
     , rcvbuf_bytes_(ps.get<int>("rcvbuf_bytes", 33554432)) // Buffer bytes
     , recv_buffer_size_(ps.get<int>("recv_buffer_size", 256000)) // Size of the temporary TCP receive buffer
-    , anchor_word_(ps.get<uint16_t>("anchor_word", 48879)) // Anchor word in header (0xBEEF)
+    , raw_anchor_word_(ps.get<uint16_t>("raw_anchor_word", 48879)) // Anchor word in RAW header (0xBEEF)
+    , zs_anchor_word_(ps.get<uint16_t>("zs_anchor_word", 57005)) // Anchor word in ZS header (0xDEAD)
+    , mwd_anchor_word_(ps.get<uint16_t>("mwd_anchor_word", 65261)) // Anchor word in MWD header (0xFEED)
     , start_fragment_id_(ps.get<uint64_t>("start_fragment_id", 100)) // Base fragment id
     , raw_stream_id_(ps.get<uint64_t>("raw_stream_id", 0)) // RAW fragment id
     , zs_stream_id_(ps.get<uint64_t>("zs_stream_id", 1)) // ZS fragment id

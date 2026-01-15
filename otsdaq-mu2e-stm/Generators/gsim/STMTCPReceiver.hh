@@ -71,7 +71,9 @@ namespace mu2e {
     int port_;                      // Port of TCP socket
     int rcvbuf_bytes_;              // Socket receive buffer bytes
     int recv_buffer_size_;          // Size of the temporary TCP receive buffer
-    uint16_t anchor_word_;          // Anchor word in header
+    uint16_t raw_anchor_word_;      // Anchor word in RAW header
+    uint16_t zs_anchor_word_;       // Anchor word in ZS header
+    uint16_t mwd_anchor_word_;      // Anchor word in MWD header
     uint64_t start_fragment_id_;    // Base fragment id
     uint64_t raw_stream_id_;        // RAW fragment id
     uint64_t zs_stream_id_;         // ZS fragment id
@@ -242,11 +244,25 @@ namespace mu2e {
     // Uses the ChunkRef vector to safely read the RAW/ZS/MWD length words
     bool computeDatasetView(const std::vector<ChunkRef>& chunks, EventView& evt) const
     {
+      uint16_t raw_first = 0, zs_first = 0, mwd_first = 0;
       uint16_t raw_last = 0, zs_last = 0, mwd_last = 0;
+
+      // RAW anchor word is at RAW_HEADER[0]
+      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES, raw_first)) {
+        TLOG(TLVL_ERROR) << "[PARSER] Failed to read RAW anchor word";
+        return false;
+      }
 
       // RAW length word is at RAW_HEADER_LEN-1
       if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + (RAW_HEADER_LEN - 1) * sizeof(uint16_t), raw_last)) {
         TLOG(TLVL_ERROR) << "[PARSER] Failed to read RAW length word";
+        return false;
+      }
+
+      // ZS anchor word is after RAW
+      size_t zs_offset_anchor_word = RAW_HEADER_LEN + raw_last;
+      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + zs_offset_anchor_word * sizeof(uint16_t), zs_first)) {
+        TLOG(TLVL_ERROR) << "[PARSER] Failed to read ZS anchor word";
         return false;
       }
 
@@ -257,6 +273,13 @@ namespace mu2e {
         return false;
       }
 
+      // MWD anchor word is after RAW + ZS
+      size_t mwd_offset_anchor_word = RAW_HEADER_LEN + raw_last + ZS_HEADER_LEN + zs_last;
+      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + mwd_offset_anchor_word * sizeof(uint16_t), mwd_first)) {
+        TLOG(TLVL_ERROR) << "[PARSER] Failed to read MWD anchor word";
+        return false;
+      }
+
       // MWD length word is after RAW + ZS + MWD_HEADER_LEN-1
       size_t mwd_offset_word = RAW_HEADER_LEN + raw_last + ZS_HEADER_LEN + zs_last + MWD_HEADER_LEN - 1;
       if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + mwd_offset_word * sizeof(uint16_t), mwd_last)) {
@@ -264,12 +287,22 @@ namespace mu2e {
         return false;
       }
 
-      // Sanity check
+      // Sanity checks //
+      
+      // Alignment anchors
+      if (raw_first != raw_anchor_word_ || zs_first != zs_anchor_word_  || mwd_first != mwd_anchor_word_) {
+        TLOG(TLVL_ERROR) << "[PARSER] Headers are misaligned: RAW=" 
+                         << raw_first << " ZS=" << zs_first << " MWD=" << mwd_first;
+        return false;
+      }
+      // Dataset sizes
       if (raw_last > MAX_RAW_WORDS || zs_last > MAX_ZS_WORDS || mwd_last > MAX_MWD_WORDS) {
         TLOG(TLVL_ERROR) << "[PARSER] Anomalous dataset length detected: RAW=" 
                          << raw_last << " ZS=" << zs_last << " MWD=" << mwd_last;
         return false;
       }
+
+      ///////////////////
 
       // Store in EventView (offsets in words relative to payload start)
       evt.raw = {0, RAW_HEADER_LEN + raw_last};
