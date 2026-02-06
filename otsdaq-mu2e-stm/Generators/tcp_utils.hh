@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
+#include "tcp_event_header.hh"  // Header defintion
+
 // Config
 constexpr size_t RAW_HEADER_LEN = 32; // length in words of RAW header
 constexpr size_t ZS_HEADER_LEN  = 6; // length in words of ZS header
@@ -27,10 +29,6 @@ constexpr size_t MAX_ZS_WORDS  = 35000;
 constexpr size_t MAX_EVENT_WORDS = 30032;   // maximum expected words per dataset for reserve
 constexpr size_t MAX_MWD_WORDS = 35000;
 constexpr size_t MAX_BYTE_BUFFER = 18000000; // Max number of bytes to recv per call
-
-// Event header constants
-constexpr size_t EVENT_HEADER_WORDS = 3;                   // 3 int16_t words
-constexpr size_t EVENT_HEADER_BYTES = EVENT_HEADER_WORDS * sizeof(int16_t);
 
 // ------------------ Spill Sequence ------------------
 // Spill lengths
@@ -71,6 +69,8 @@ struct DatasetView {
 struct EventView {
   std::vector<ChunkRef> buffer_chunks;
   size_t size_bytes;
+  const uint16_t* header = nullptr;
+  std::array<uint16_t, EVENT_HEADER_WORDS> header_copy{}; 
   int64_t event_num;
   int16_t template_id;
   int16_t spill_flag;

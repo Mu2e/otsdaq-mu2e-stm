@@ -44,7 +44,7 @@ include(BuildPlugins)
 add_subdirectory(otsdaq-mu2e-stm)
 
 # Main STM DAQ
-add_subdirectory(STMDAQ-TestBeam)
+add_subdirectory(Mu2e-STMDAQ)
 
 # Useful scripts
 #add_subdirectory(tools)

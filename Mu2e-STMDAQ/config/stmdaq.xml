@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<stm>
+  <!-- The data channel -->
+  <channel>0</channel> <!-- 0=HPGe,1=LaBr -->
+  <!-- Starting CPU core ID (for CPU utils) -->
+  <starting_core_id>18</starting_core_id> <!-- Core ID will wrap around from max -->
+  <!-- Firmware register parameters -->
+  <fw>
+    <fADC>300</fADC> <!-- ADC sampling frequency (MHz) -->
+  </fw>
+  <!-- Mu2e event parameters -->
+  <mu2e>
+    <min_event_period>1.675</min_event_period> <!-- Minimum event period (us) -->
+    <max_event_period>100.1</max_event_period> <!-- Minimum event period (us) -->
+    <on_spill_period>1.695</on_spill_period> <!-- On-spill event period (us) -->
+    <off_spill_period>100</off_spill_period>  <!-- Off-spill event period (us) -->
+  </mu2e>
+  <!-- Paramaters for data buffers and memory allocation -->
+  <buffers>
+    <!-- <raw_size>16777216</raw_size> <!-\- Set each raw buffer size in bytes -\-> -->
+    <raw_size>1024000</raw_size> <!-- Set each raw buffer size in bytes -->
+    <baseline_size>4096</baseline_size> <!-- Set each noise buffer size in bytes -->
+    <extra>5</extra>  <!-- % allowance for metadata, etc -->
+    <queue_capacity>32</queue_capacity> <!-- Number of structs per ring buffer -->
+    <buffer_pool_size>32</buffer_pool_size> <!-- Maximum number of ring buffers -->
+  </buffers>
+  <!-- Parameters for file writing -->
+  <write_data>
+    <logfile>/stmdaq</logfile> <!-- Log file directory -->
+    <write_dir>/scratch/mu2e/mu2estm_stm_readout_spack_build/OutputData/stmdaq</write_dir> <!-- Binary file data write directory -->
+    <filename_prefix>mu2estm</filename_prefix> <!-- The filename prefix  -->
+    <max_file_size>2</max_file_size> <!-- Maximum file size for each stream (GB)  -->
+    <file_buffer>3</file_buffer> <!-- Number of buffered files -->
+    <log_interval>5</log_interval> <!-- Write logging frequency (s) -->
+  </write_data>
+  <!-- Operations: booleans to perform operation (0=false/1=true)-->
+  <operations>
+    <UDP>1 <!-- UDP class -->
+     <receive_data>1</receive_data> 
+    </UDP>        
+    <CheckData>1 <!-- CheckData class -->
+      <check_packets>1</check_packets>
+    </CheckData>
+    <FormEvents>1 <!-- FormEvents class -->
+      <get_events>1</get_events>
+    </FormEvents>
+    <Baseline>0 <!-- Baseline class -->
+     <calc_baseline>1</calc_baseline>
+    </Baseline>
+    <ZeroSuppress>1 <!-- ZeroSuppress class -->
+     <find_peaks>1</find_peaks>
+     <suppress_data>1</suppress_data>
+    </ZeroSuppress>
+    <MWD>1 <!-- MWD class -->
+     <subtract_baseline>1</subtract_baseline>
+     <deconv>1</deconv>
+     <diff>1</diff>
+     <averaging>1</averaging>
+     <find_peaks>1</find_peaks>
+   </MWD> 
+   <Prescale>1 <!-- Prescale class -->
+    <prescale_data>1</prescale_data>
+   </Prescale>
+   <TemplateClass>0 <!-- Template class -->
+      <temp_func_1>1</temp_func_1>
+      <temp_func_2>0</temp_func_2>
+    </TemplateClass>
+    <WriteManager>1 <!-- Write Manager class -->
+      <write_events>1</write_events>
+      <write_raw>1</write_raw>
+      <write_zs>1</write_zs>
+      <write_ph>1</write_ph>
+    </WriteManager>
+    <DQM>1 <!-- DQM class -->
+      <update_dqm>1</update_dqm>
+    </DQM>
+    <TestFuncs>0 <!-- Test Functions -->
+    <mod_prev_buffer>1</mod_prev_buffer>
+    <read_mod_buffer>1</read_mod_buffer>
+    <check_form_events>0</check_form_events>
+     <do_nothing>0</do_nothing>
+    </TestFuncs>
+  </operations>
+  <!-- UDP parameters -->
+  <udp>
+    <recv_timeout_secs>10</recv_timeout_secs> <!-- UDP receive timeout (seconds) -->
+    <recv_timeout_usecs>0</recv_timeout_usecs> <!-- UDP receive timeout (usecs) -->
+    <poll_timeout_ms>100</poll_timeout_ms> <!-- UDP receive timeout (ms) -->
+    <!-- HPGe UDP parameters -->
+    <hpge> 
+      <fw>  
+        <ip>192.168.34.12</ip>
+        <port>51872</port>
+      </fw>
+      <sw>
+        <ip>192.168.34.12</ip>
+        <port>51872</port>
+      </sw>
+    </hpge>
+    <!-- LaBr UDP parameters -->
+    <labr> 
+      <fw>
+        <ip>192.168.36.12</ip>
+        <port>51874</port>
+      </fw>
+      <sw>
+        <ip>127.0.0.3</ip>
+        <port>10012</port>
+      </sw>
+    </labr>
+  </udp>
+  <!-- ADC baseline -->
+  <baseline>
+    <hist> <!-- ADC data histogram -->
+      <bin_num>512</bin_num>
+      <min_adc>-2500</min_adc>
+      <max_adc>600</max_adc>
+      <window_period>1.4</window_period> <!-- Hist window period (s) -->
+    </hist>
+    <EM> <!-- Expectation-Maximization (EM) -->
+      <max_iters>1000</max_iters> <!-- Maximum EM iterations -->
+      <LL_tol>1e-6</LL_tol> <!-- Convergence tolerance for log-likelihood change -->
+      <var_floor>1e-6</var_floor> <!-- Minimum allowed variance -->
+    </EM>
+    <window_delay>0</window_delay> <!-- Bool: delay data taking to calculate baseline -->
+    <last_value>
+      <mean>-5.54</mean>
+      <sigma>20.07</sigma>
+    </last_value>
+  </baseline>
+  <!-- Zero Suppression -->
+  <zs>
+    <!-- HPGe ZS -->
+    <hpge>
+      <store_before_peak>1</store_before_peak> <!-- Time (us) to store before the peak -->
+      <store_after_peak>2</store_after_peak> <!-- Time (us) to store after the peak -->
+      <grad_threshold>-100</grad_threshold> <!-- Gradient threshold -->
+      <grad_window>100</grad_window> <!-- The gradient window in ADC values -->
+      <n_avg>5</n_avg> <!-- Number of ADC values to average in the gradient -->
+    </hpge>
+    <!-- LaBr ZS -->
+    <labr>
+      <store_before_peak>0.15</store_before_peak> <!-- Time (us) to store before the peak -->
+      <store_after_peak>0.3</store_after_peak> <!-- Time (us) to store after the peak -->
+      <grad_threshold>-100</grad_threshold> <!-- Gradient threshold -->
+      <grad_window>13</grad_window> <!-- The gradient window in ADC values -->
+      <n_avg>5</n_avg> <!-- Number of ADC values to average in the gradient -->
+    </labr>
+  </zs>
+  <!-- MWD -->
+  <mwd>
+    <baseline> <!-- Baseline subtraction -->
+      <use_manual_value>0</use_manual_value> <!-- Manual (user config) mean and sigma -->
+      <manual_value> <!-- Manual (user config) mean and sigma -->
+        <mean>0.00</mean>
+        <sigma>0.00</sigma>
+      </manual_value>
+      <use_window_value>0</use_window_value> <!-- If not manual, use dynamic sliding window baseline? -->
+    </baseline>
+    <deconv> <!-- Deconvolution -->
+      <hpge_tau>50</hpge_tau> <!-- HPGe decay time constant (us) -->
+    </deconv>
+    <diff> <!-- Differentiation -->
+      <M>512</M> <!-- M value (must be power of 2!) -->
+    </diff>
+    <avg> <!-- Averaging -->
+      <L>256</L> <!-- L value (must be power of 2!) -->
+    </avg>
+    <peak_finding> <!-- Peak finding -->
+      <peak_min_init>4000</peak_min_init> <!-- minimum peak value -->
+      <use_fixed_cut>1</use_fixed_cut> <!-- Boolean: use fixed threshold cut? -->
+      <fixed_cut_value>-500</fixed_cut_value> <!-- Fixed threshold cut value -->
+      <nsigma_cut>3</nsigma_cut> <!-- Dynamic cut: number of sigma below baseline -->      
+    </peak_finding>
+  </mwd>  
+  <!-- Prescale -->
+  <prescale>
+    <raw>
+      <on_spill>
+        <prescale_num>7</prescale_num>
+        <store_consecutive>3</store_consecutive>
+      </on_spill>
+      <off_spill>
+        <prescale_num>97</prescale_num>
+        <store_consecutive>1</store_consecutive>
+      </off_spill>
+    </raw>
+    <zs>
+      <on_spill>
+        <prescale_num>3</prescale_num>
+        <store_consecutive>2</store_consecutive>
+      </on_spill>
+      <off_spill>
+        <prescale_num>3</prescale_num>
+        <store_consecutive>1</store_consecutive>
+      </off_spill>
+    </zs>
+  </prescale>
+  <!-- DQM -->
+  <dqm>
+    <raw_data>
+      <raw_length>1000</raw_length>
+    </raw_data>
+    <baseline>
+      <noise_length>10</noise_length>
+    </baseline>
+  </dqm>
+</stm>
