@@ -25,7 +25,7 @@
 #include "artdaq-core-mu2e/Overlays/STMFragment.hh"
 #include "artdaq-core-mu2e/Overlays/FragmentType.hh"
 
-#include "STMDAQ-TestBeam/utils/UDPsocket.hh"
+#include "Mu2e-STMDAQ/processing/udp.hh"
 
 #include <atomic>
 #include <vector>
@@ -70,7 +70,7 @@ namespace mu2e {
     int i_ch;
     std::string ip_address;
     int port;
-    UDPsocket udp;//[chNum];
+    UDP udp;//[chNum];
     int recvSock;//[chNum];
     int16_t* rcv_buffer; // from UDP socket
 

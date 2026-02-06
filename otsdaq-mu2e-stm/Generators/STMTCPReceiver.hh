@@ -1,4 +1,3 @@
-
 #ifndef STMTCPRECEIVER_HH
 #define STMTCPRECEIVER_HH
 
@@ -71,15 +70,11 @@ namespace mu2e {
     int port_;                      // Port of TCP socket
     int rcvbuf_bytes_;              // Socket receive buffer bytes
     int recv_buffer_size_;          // Size of the temporary TCP receive buffer
-    uint16_t raw_anchor_word_;      // Anchor word in RAW header
-    uint16_t zs_anchor_word_;       // Anchor word in ZS header
-    uint16_t mwd_anchor_word_;      // Anchor word in MWD header
+    uint16_t event_anchor_word_;    // Anchor word in Event header
     uint64_t start_fragment_id_;    // Base fragment id
     uint64_t raw_stream_id_;        // RAW fragment id
     uint64_t zs_stream_id_;         // ZS fragment id
     uint64_t mwd_stream_id_;        // MWD fragment id
-    size_t   recv_queue_capacity_;  // Capacity of the recv queue (fixed at compile time)
-    size_t   evt_queue_capacity_;   // Capacity of the event queue (fixed at compile time)
     int      debug_level_;          // Debug verbosity
     bool     pin_threads_;          // Pin thread to specific cores
     int      idle_timeout_ms_;      // Idle timeout after first packet (ms)
@@ -92,8 +87,11 @@ namespace mu2e {
     std::atomic<size_t> mwd_frag_count_{0}; // Number of MWD frags produced
     std::atomic<size_t> total_words_parsed_{0}; // Total number of words processed
     std::atomic<uint64_t> total_bytes_received_{0}; // Total bytes received over TCP
-    int gNextCounter; // Counter for getNext function
 
+    // getNext() wakeup control
+    std::mutex parser_cv_mutex_;
+    std::condition_variable parser_cv_;
+    
     // TCP sockets
     int listen_fd_{-1}; // Listening TCP socket fd (created in start())
     int client_fd_{-1}; // Accepted client connection fd
@@ -102,8 +100,8 @@ namespace mu2e {
     int tcpDebugLevel() const { return debug_level_ + 5; }
     
     // Queue capacity
-    static constexpr size_t DEFAULT_RECV_QCAP = 262144000;
-    static constexpr size_t DEFAULT_EVT_QCAP  = 262144000;
+    static constexpr size_t DEFAULT_RECV_QCAP = 28941;
+    static constexpr size_t DEFAULT_EVT_QCAP  = 28941;
 
     // Receiver -> Parser (raw bulk byte buffers)
     using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
@@ -124,100 +122,79 @@ namespace mu2e {
     // ----------------- Helpers -----------------
 
     // --- Header Fetch ---
-    bool getEventHeaderPtr(const uint8_t*& header_ptr,uint8_t* header_tmp,
-                           const std::deque<std::shared_ptr<std::vector<uint8_t>>>& chunks,size_t offset_in_first_chunk) const
+    bool getEventHeaderPtr(const uint8_t*& header_ptr,
+			   uint8_t* header_tmp,
+			   std::deque<std::shared_ptr<std::vector<uint8_t>>>& chunks,
+			   size_t& offset_in_first_chunk) const
     {
       if (chunks.empty()) return false;
-  
-      // How many bytes remain in the first chunk from current offset
+
+      // Compute available bytes in first chunk after offset
       size_t first_avail = chunks.front()->size() - offset_in_first_chunk;
 
-      // --- FAST PATH: header fully inside the first chunk ---
+      // FAST PATH: header fits entirely in first chunk
       if (first_avail >= EVENT_HEADER_BYTES) {
-        header_ptr = chunks.front()->data() + offset_in_first_chunk;
-        return true;
+        const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(chunks.front()->data() + offset_in_first_chunk);
+        if (hdr_words[anchor_start] == event_anchor_word_ &&
+            hdr_words[anchor_end]   == event_anchor_word_) 
+	  {
+            header_ptr = chunks.front()->data() + offset_in_first_chunk;
+            return true;
+	  }
+      }
+
+      // Anchor scan across chunks
+      size_t chunk_idx   = 0;
+      size_t scan_offset = offset_in_first_chunk;
+
+      while (chunk_idx < chunks.size()) {
+        auto& chunk = chunks[chunk_idx];
+        size_t avail = chunk->size() - scan_offset;
+
+        // Only scan new bytes since last check
+        for (size_t i = 0; i + EVENT_HEADER_BYTES <= avail; ++i) {
+	  const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(chunk->data() + scan_offset + i);
+	  if (hdr_words[anchor_start] == event_anchor_word_ &&
+	      hdr_words[anchor_end]   == event_anchor_word_) 
+            {
+	      offset_in_first_chunk = scan_offset + i;
+	      header_ptr = chunk->data() + offset_in_first_chunk;
+	      return true;
+            }
+        }
+
+        // Update scan_offset for next chunk (start at previously unscanned part)
+        scan_offset = 0;
+        ++chunk_idx;
       }
 
       // --- SLOW PATH: header spans multiple chunks ---
       size_t copied = 0;
       size_t local_off = offset_in_first_chunk;
       for (auto it = chunks.begin(); it != chunks.end() && copied < EVENT_HEADER_BYTES; ++it) {
-        size_t avail = (*it)->size() - local_off;
+        size_t avail = it->get()->size() - local_off;
         size_t take  = std::min(avail, EVENT_HEADER_BYTES - copied);
-        std::memcpy(header_tmp + copied, (*it)->data() + local_off, take);
+        std::memcpy(header_tmp + copied, it->get()->data() + local_off, take);
         copied += take;
-        local_off = 0;
+        local_off = 0; // only first chunk may have offset
       }
 
-      if (copied < EVENT_HEADER_BYTES) return false; // incomplete header
+      if (copied < EVENT_HEADER_BYTES) return false;
       header_ptr = header_tmp;
       return true;
-    }
-
-    // Builds a 64-bit length from three 16-bit words (Assumes little-endian)
-    static inline uint64_t build_len_from_3_words(uint16_t p1, uint16_t p2, uint16_t p3) {
-      return (static_cast<uint64_t>(p1) |
-              (static_cast<uint64_t>(p2) << 16) |
-              (static_cast<uint64_t>(p3) << 32));
-    }
-
-    // Read two bytes as uint16_t from a vector of ChunkRef at byte offset relative to event start (little-endian)
-    bool readU16FromChunks(const std::vector<ChunkRef>& chunks,
-                           size_t byte_offset,
-                           uint16_t& out) const
-    {
-      size_t rem = byte_offset;
-      size_t total_available = 0;
-      for (const auto& c : chunks) total_available += c.size;
-      
-      if (rem + 1 >= total_available) {
-        return false;
-      }
-      
-      for (size_t i = 0; i < chunks.size(); ++i) {
-        const auto& chunk_ref = chunks[i];
-        
-        if (rem < chunk_ref.size) {
-          // Case 1: both bytes are in the same chunk
-          if (rem + 1 < chunk_ref.size) {
-            const uint8_t* ptr = chunk_ref.chunk->data() + chunk_ref.offset + rem;
-            out = ptr[0] | (ptr[1] << 8);
-            return true;
-          }
-
-          // Case 2: word is split across this chunk and the next
-          if (i + 1 < chunks.size()) {
-            uint8_t b0 = *(chunk_ref.chunk->data() + chunk_ref.offset + rem);
-            uint8_t b1 = *(chunks[i+1].chunk->data() + chunks[i+1].offset);
-            out = b0 | (b1 << 8);
-            return true;
-          }
-
-          return false;
-        }
-
-        rem -= chunk_ref.size;
-      }
-
-      // Offset exceeds total size of all chunks
-      return false;
-    }
-
-    // Read a 16-bit word at given word index (relative to payload start) from a vector of ChunkRef
-    bool readWordAtEventOffset(const std::vector<ChunkRef>& chunks,
-                               size_t word_index,
-                               uint16_t& out) const
-    {
-      size_t byte_offset = EVENT_HEADER_BYTES + word_index * sizeof(uint16_t);
-      bool success = readU16FromChunks(chunks, byte_offset, out);
-      return success;
     }
 
     // Get single pointer in mem from multiple chunks
     std::pair<const int16_t*, bool> try_get_single_chunk_ptr(const EventView& evt, const DatasetView& ds) 
     {
-      // Convert dataset word offset/size to byte offset/size and account for event header
-      size_t byte_offset = ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
+      // Convert dataset word offset/size to byte offset/size and account for event header  
+      const bool is_raw = (&ds == &evt.raw);
+
+      size_t byte_offset =
+	is_raw
+	? ds.offset * sizeof(int16_t)
+	: ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
+
       size_t byte_size   = ds.size   * sizeof(int16_t);
 
       // Iterate over the chunks to locate the dataset
@@ -241,82 +218,69 @@ namespace mu2e {
     }
 
     // Compute the DatasetView offsets and sizes from a fully read event
-    // Uses the ChunkRef vector to safely read the RAW/ZS/MWD length words
-    bool computeDatasetView(const std::vector<ChunkRef>& chunks, EventView& evt) const
+    bool computeDatasetView(EventView& evt)
     {
-      uint16_t raw_first = 0, zs_first = 0, mwd_first = 0;
-      uint16_t raw_last = 0, zs_last = 0, mwd_last = 0;
+      const uint16_t* hdr_words = evt.header;
 
-      // RAW anchor word is at RAW_HEADER[0]
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES, raw_first)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read RAW anchor word";
-        return false;
+      if (!hdr_words) {
+	TLOG(TLVL_ERROR) << "[PARSER] Null event header pointer";
+	return false;
       }
 
-      // RAW length word is at RAW_HEADER_LEN-1
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + (RAW_HEADER_LEN - 1) * sizeof(uint16_t), raw_last)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read RAW length word";
-        return false;
+      if (hdr_words[anchor_start] != event_anchor_word_ ||
+	  hdr_words[anchor_end]   != event_anchor_word_) {
+
+	TLOG(TLVL_ERROR)
+	  << "[PARSER] Anchor mismatch: start=0x"
+	  << std::hex << hdr_words[anchor_start]
+	  << " end=0x" << hdr_words[anchor_end]
+	  << " expected=0x" << event_anchor_word_;
+	done_.store(true);
+	return false;
       }
 
-      // ZS anchor word is after RAW
-      size_t zs_offset_anchor_word = RAW_HEADER_LEN + raw_last;
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + zs_offset_anchor_word * sizeof(uint16_t), zs_first)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read ZS anchor word";
-        return false;
+      const uint16_t raw_len = hdr_words[RAW_LEN];
+      const uint16_t zs_len  = hdr_words[ZS_LEN];
+      const uint16_t ph_num  = hdr_words[PH_NUM];
+
+      if (raw_len > MAX_RAW_WORDS ||
+	  zs_len  > MAX_ZS_WORDS  ||
+	  ph_num  > MAX_MWD_WORDS) {
+
+	TLOG(TLVL_ERROR)
+	  << "[RECV] Invalid dataset sizes: RAW=" << raw_len
+	  << " ZS=" << zs_len
+	  << " PH=" << ph_num;
+	return false;
       }
 
-      // ZS length word is after RAW + ZS_HEADER_LEN-1
-      size_t zs_offset_word = RAW_HEADER_LEN + raw_last + ZS_HEADER_LEN - 1;
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + zs_offset_word * sizeof(uint16_t), zs_last)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read ZS length word";
-        return false;
-      }
+      size_t offset = 0;
 
-      // MWD anchor word is after RAW + ZS
-      size_t mwd_offset_anchor_word = RAW_HEADER_LEN + raw_last + ZS_HEADER_LEN + zs_last;
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + mwd_offset_anchor_word * sizeof(uint16_t), mwd_first)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read MWD anchor word";
-        return false;
-      }
+      // RAW includes header
+      evt.raw = { offset, raw_len + EVENT_HEADER_WORDS };
+      offset += raw_len;
 
-      // MWD length word is after RAW + ZS + MWD_HEADER_LEN-1
-      size_t mwd_offset_word = RAW_HEADER_LEN + raw_last + ZS_HEADER_LEN + zs_last + MWD_HEADER_LEN - 1;
-      if (!readU16FromChunks(chunks, EVENT_HEADER_BYTES + mwd_offset_word * sizeof(uint16_t), mwd_last)) {
-        TLOG(TLVL_ERROR) << "[PARSER] Failed to read MWD length word";
-        return false;
-      }
+      evt.zs  = { offset, zs_len };
+      offset += zs_len;
 
-      // Sanity checks //
-      
-      // Alignment anchors
-      if (raw_first != raw_anchor_word_ || zs_first != zs_anchor_word_  || mwd_first != mwd_anchor_word_) {
-        TLOG(TLVL_ERROR) << "[PARSER] Headers are misaligned: RAW=" 
-                         << raw_first << " ZS=" << zs_first << " MWD=" << mwd_first;
-        return false;
-      }
-      // Dataset sizes
-      if (raw_last > MAX_RAW_WORDS || zs_last > MAX_ZS_WORDS || mwd_last > MAX_MWD_WORDS) {
-        TLOG(TLVL_ERROR) << "[PARSER] Anomalous dataset length detected: RAW=" 
-                         << raw_last << " ZS=" << zs_last << " MWD=" << mwd_last;
-        return false;
-      }
-
-      ///////////////////
-
-      // Store in EventView (offsets in words relative to payload start)
-      evt.raw = {0, RAW_HEADER_LEN + raw_last};
-      evt.zs  = {evt.raw.offset + evt.raw.size, ZS_HEADER_LEN + zs_last};
-      evt.mwd = {evt.zs.offset + evt.zs.size, MWD_HEADER_LEN + mwd_last};
+      evt.mwd = { offset, ph_num };
 
       return true;
     }
 
+
     // Make temporary buffer to store dataset (fallback if we cant get single pointer)
     std::vector<int16_t> copy_dataset_to_temp(const EventView& evt, const DatasetView& ds)
     {
-      size_t byte_offset = ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
-      size_t byte_size   = ds.size * sizeof(int16_t);
+
+      const bool is_raw = (&ds == &evt.raw);
+
+      size_t byte_offset =
+	is_raw
+	? ds.offset * sizeof(int16_t)
+	: ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
+
+      size_t byte_size = ds.size * sizeof(int16_t);
 
       std::vector<int16_t> tmp(ds.size);
       uint8_t* dst = reinterpret_cast<uint8_t*>(tmp.data());

@@ -45,18 +45,14 @@ namespace mu2e {
     : artdaq::CommandableFragmentGenerator(ps)
     , chan_(ps.get<int>("channelNumber", 0)) // Data channel (0=HPGE, 1=LaBr3)
     , host_(ps.get<std::string>("ip_address", "127.0.0.2")) // I.P. host of TCP socket
-    , port_(ps.get<int>("port", 10010)) // Port of TCP socket
-    , rcvbuf_bytes_(ps.get<int>("rcvbuf_bytes", 33554432)) // Buffer bytes
-    , recv_buffer_size_(ps.get<int>("recv_buffer_size", 256000)) // Size of the temporary TCP receive buffer
-    , raw_anchor_word_(ps.get<uint16_t>("raw_anchor_word", 48879)) // Anchor word in RAW header (0xBEEF)
-    , zs_anchor_word_(ps.get<uint16_t>("zs_anchor_word", 57005)) // Anchor word in ZS header (0xDEAD)
-    , mwd_anchor_word_(ps.get<uint16_t>("mwd_anchor_word", 65261)) // Anchor word in MWD header (0xFEED)
+    , port_(ps.get<int>("port", 10025)) // Port of TCP socket
+    , rcvbuf_bytes_(ps.get<int>("rcvbuf_bytes", 209715200)) // Buffer bytes (Default: 200*1024*1024)
+    , recv_buffer_size_(ps.get<int>("recv_buffer_size", 256000)) // Size of the temporary TCP receive buffer (Default: 1024*1024)
+    , event_anchor_word_(ps.get<uint16_t>("event_anchor_word", 51966)) // Anchor word in Event header (0xCAFE)
     , start_fragment_id_(ps.get<uint64_t>("start_fragment_id", 100)) // Base fragment id
     , raw_stream_id_(ps.get<uint64_t>("raw_stream_id", 0)) // RAW fragment id
     , zs_stream_id_(ps.get<uint64_t>("zs_stream_id", 1)) // ZS fragment id
     , mwd_stream_id_(ps.get<uint64_t>("mwd_stream_id", 2)) // MWD fragment id
-    , recv_queue_capacity_(ps.get<size_t>("recv_queue_capacity", DEFAULT_RECV_QCAP)) // Capacity of the recv queue
-    , evt_queue_capacity_(ps.get<size_t>("evt_queue_capacity", DEFAULT_EVT_QCAP)) // Capacity of the event queue
     , debug_level_(ps.get<int>("debug_level", 0)) // Set debug levels
     , pin_threads_(ps.get<bool>("pin_threads", true)) // Pin thread to specific cores
     , idle_timeout_ms_(ps.get<int>("idle_timeout_ms", 5000)) // Idle timeout AFTER first packet (ms)
@@ -64,6 +60,8 @@ namespace mu2e {
     // Log configuration
     TLOG_DEBUG(1) << "STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
 		  << " rcvbuf=" << rcvbuf_bytes_;
+    TLOG_DEBUG(1) << "STMTCPReceiver: recv_to_parser queue capacity=" << DEFAULT_RECV_QCAP
+		  << ", parser_to_cons queue capacity=" << DEFAULT_EVT_QCAP;  
 
     // Create lockfree SPSC queues
     recv_to_parser_queue_     = std::make_unique<RecvToParserQ>();
@@ -254,34 +252,32 @@ namespace mu2e {
 	for (auto& c : chunks) total_bytes += c->size();
 	total_bytes -= offset_in_first_chunk;
 
-	if (total_bytes < EVENT_HEADER_BYTES) {
-	  TLOG(TLVL_DEBUG) << "[PARSER] Not enough bytes for header: total_bytes="
-			   << total_bytes << ", waiting for more chunks";
-	  break; // wait for more TCP data
-	}
+	// Wait until we have at least a full header
+	if (total_bytes < EVENT_HEADER_BYTES) break;
 
 	const uint8_t* header_ptr = nullptr;
 	uint8_t header_tmp[EVENT_HEADER_BYTES];
 
 	if (!getEventHeaderPtr(header_ptr, header_tmp, chunks, offset_in_first_chunk)) {
-	  TLOG(TLVL_DEBUG) << "[PARSER] Incomplete header, waiting for more data";
-	  break;
+	  break; // header spans multiple chunks, wait for more data
 	}
 
-	const uint16_t* len_words = reinterpret_cast<const uint16_t*>(header_ptr);
-	size_t event_len_bytes = build_len_from_3_words(len_words[0], len_words[1], len_words[2]);
-	size_t evt_total_bytes = EVENT_HEADER_BYTES + event_len_bytes;
+	const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(header_ptr);
 
-	TLOG(TLVL_DEBUG) << "[PARSER] total_bytes=" << total_bytes
-			 << " evt_total_bytes=" << evt_total_bytes;
+	// Extract RAW/ZS/PH sizes from the header
+	uint16_t raw_len = hdr_words[RAW_LEN];
+	uint16_t zs_len  = hdr_words[ZS_LEN];
+	uint16_t ph_num  = hdr_words[PH_NUM];
+
+	// Compute total bytes for the event
+	size_t evt_total_bytes = EVENT_HEADER_BYTES + 
+	  static_cast<size_t>(raw_len + zs_len + ph_num) * sizeof(uint16_t);
 
 	if (total_bytes < evt_total_bytes) {
-	  TLOG(TLVL_DEBUG) << "[PARSER] Not enough bytes for full event, need "
-			   << evt_total_bytes << " bytes, have " << total_bytes;
 	  break; // wait for more chunks
 	}
 
-	// --- Build EventView ---
+	// --- Build EventView across chunks ---
 	std::vector<ChunkRef> temp_refs;
 	size_t bytes_needed = evt_total_bytes;
 	size_t off = offset_in_first_chunk;
@@ -290,16 +286,17 @@ namespace mu2e {
 	for (size_t i = 0; i < chunks.size() && bytes_needed > 0; ++i) {
 	  const auto& chunk = chunks[i];
 	  if (off >= chunk->size()) {
-	    off = 0;
-	    continue;
+            off = 0;
+            continue;
 	  }
 
 	  size_t avail = chunk->size() - off;
 	  size_t take  = std::min(avail, bytes_needed);
+
 	  temp_refs.push_back({chunk, off, take});
 	  total_collected += take;
 	  bytes_needed -= take;
-	  off = 0; // only first chunk has offset
+	  off = 0;
 	}
 
 	if (bytes_needed != 0) {
@@ -309,46 +306,46 @@ namespace mu2e {
 	}
 
 	EventView evt;
-	uint16_t w11, w12, w13, w16, w19;
-
-	if (!readWordAtEventOffset(temp_refs, 11, w11) ||
-	    !readWordAtEventOffset(temp_refs, 12, w12) ||
-	    !readWordAtEventOffset(temp_refs, 13, w13) ||
-	    !readWordAtEventOffset(temp_refs, 16, w16) ||
-	    !readWordAtEventOffset(temp_refs, 19, w19)) {
-	  TLOG(TLVL_ERROR) << "[PARSER] Failed to read event ID/spill flag";
-	  done_.store(true);
-	  return;
+	evt.buffer_chunks = std::move(temp_refs);
+	evt.size_bytes    = evt_total_bytes;
+	if (header_ptr == header_tmp) {
+	  // Header spans multiple chunks
+	  std::memcpy(evt.header_copy.data(), header_tmp, EVENT_HEADER_BYTES);
+	  evt.header = evt.header_copy.data();
+	} else {
+	  // Header fully inside first chunk
+	  evt.header = reinterpret_cast<const uint16_t*>(header_ptr);
 	}
 
-	evt.buffer_chunks = std::move(temp_refs);
-	evt.event_num = (int64_t)w11 | ((int64_t)w12 << 16) | ((int64_t)w13 << 32);
-	evt.template_id = (int16_t)w16;
-	evt.spill_flag  = (int16_t)w19;
+	const uint16_t* hdr = evt.header;
 
-	if (!computeDatasetView(evt.buffer_chunks, evt)) {
+	// Fill event metadata (event_num, template_id, spill_flag)
+	uint16_t e0       = hdr[EWT_0];
+	uint16_t e1       = hdr[EWT_1];
+	uint16_t e2       = hdr[EWT_2];
+	uint16_t tmpl     = hdr[EM_0];
+	uint16_t prescale = hdr[PRESCALE];
+
+	evt.event_num  = int64_t(e0) | (int64_t(e1) << 16) | (int64_t(e2) << 32);
+	evt.template_id = tmpl;
+	evt.spill_flag  = prescale & 0x1;
+
+	if (!computeDatasetView(evt)) {
 	  TLOG(TLVL_ERROR) << "[PARSER] Failed to compute dataset sizes";
 	  done_.store(true);
 	  return;
 	}
 
-	evt.size_bytes = evt_total_bytes;
-
-	// --- Push to consumer queue ---
-	size_t push_attempts = 0;
+	// Push event to parser->consumer queue
 	while (!parser_to_consumer_queue_->push(evt)) {
-	  push_attempts++;
-	  if (push_attempts % 1000 == 0) std::this_thread::sleep_for(std::chrono::microseconds(1));
 	  if (done_.load()) break;
+	  std::this_thread::sleep_for(std::chrono::microseconds(1));
 	}
 
-	TLOG(TLVL_DEBUG) << "[PARSER] Event pushed to consumer queue, event_num=" << evt.event_num
-			 << ", evt_total_bytes=" << evt_total_bytes
-			 << ", push_attempts=" << push_attempts;
-
-	event_count_.fetch_add(1);
-
-	// --- Advance deque ---
+	// Wake getNext_ if it is waiting
+	parser_cv_.notify_one();
+	
+	// Advance deque
 	offset_in_first_chunk += evt_total_bytes;
 	auto it = chunks.begin();
 	while (it != chunks.end() && offset_in_first_chunk >= (*it)->size()) {
@@ -366,8 +363,7 @@ namespace mu2e {
   // =====================================================================================
   bool STMTCPReceiver::getNext_(artdaq::FragmentPtrs& frags)
   {
-    TLOG(TLVL_INFO) << "[getNext_] Entering getNext_()";
-
+    // --- Setup --- 
     EventView evt;
     bool made_any = false;
     const bool done = done_.load(std::memory_order_acquire);
@@ -416,7 +412,9 @@ namespace mu2e {
       process_dataset(evt.raw, raw_stream_id_, seq_id);
       process_dataset(evt.zs,  zs_stream_id_, seq_id);
       process_dataset(evt.mwd, mwd_stream_id_, seq_id);
-      
+  
+      // Increment counters      
+      event_count_.fetch_add(1);
       raw_frag_count_.fetch_add(1);
       zs_frag_count_.fetch_add(1);
       mwd_frag_count_.fetch_add(1);
@@ -429,14 +427,19 @@ namespace mu2e {
 
     // --- No events available right now ---
     if (!made_any) {
-      if (!done) {
-	TLOG(TLVL_DEBUG) << "[getNext_] No events available yet, yielding";
-	std::this_thread::sleep_for(std::chrono::milliseconds(50)); // reduce CPU spinning
-	return true; // keep getNext being called
-      } else {
-	TLOG(TLVL_INFO) << "[getNext_] Exiting getNext_() - done and no events";
-	return false; // done and queue empty -> proper stop
+      std::unique_lock<std::mutex> lk(parser_cv_mutex_);
+      parser_cv_.wait(lk, [&] {
+        return done_.load(std::memory_order_acquire) ||
+	  !parser_to_consumer_queue_->empty();
+      });
+
+      // If done and queue still empty, exit immediately
+      if (done &&
+	  parser_to_consumer_queue_->empty()) {
+        return false;
       }
+
+      return true; // Otherwise, continue processing
     }
 
     TLOG(TLVL_INFO) << "[getNext_] Exiting getNext_() - made_any=" << made_any;
@@ -453,6 +456,9 @@ namespace mu2e {
     // Signal threads to exit
     done_.store(true);
 
+    // Wake up getNext_() if it is waiting
+    parser_cv_.notify_all();
+    
     // Close sockets to unblock poll()/recv()/accept()
     if (client_fd_ >= 0) {
       ::shutdown(client_fd_, SHUT_RDWR);

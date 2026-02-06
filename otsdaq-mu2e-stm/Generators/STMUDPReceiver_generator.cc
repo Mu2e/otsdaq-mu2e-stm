@@ -1,10 +1,10 @@
 #include "otsdaq-mu2e-stm/Generators/STMUDPReceiver.hh"
 #include "artdaq/Generators/GeneratorMacros.hh"
 #include "artdaq/DAQdata/Globals.hh"
-#include "STMDAQ-TestBeam/utils/dataVars.hh"
-#include "STMDAQ-TestBeam/utils/xml.hh"
-#include "STMDAQ-TestBeam/utils/Hex.hh"
-#include "STMDAQ-TestBeam/utils/EnvVars.hh"
+#include "Mu2e-STMDAQ/config/stm_data.hh"
+#include "Mu2e-STMDAQ/utils/xml.hh"
+#include "Mu2e-STMDAQ/utils/Hex.hh"
+#include "Mu2e-STMDAQ/utils/EnvVars.hh"
 
 #include "trace.h"
 #define TRACE_NAME "STMUDPReceiver"
@@ -83,20 +83,20 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs &frags)//getNext_packet
 	// And set first packet to false
 	first_packet = false;
       }
-      int event_len = rcv_buffer[fw_tHdr::EvLen];
+      int event_len = rcv_buffer[sw_eHdr::EvLen];
       if(event_len != 109 && event_len != 0){
 	
 	int event_size = event_len*sizeof(int16_t);
 
 	// Get event window tag
-	int16_t ewt[4] = {rcv_buffer[fw_tHdr::EWT_0],rcv_buffer[fw_tHdr::EWT_1],rcv_buffer[fw_tHdr::EWT_2],0};
+	int16_t ewt[4] = {rcv_buffer[sw_eHdr::EWT_0],rcv_buffer[sw_eHdr::EWT_1],rcv_buffer[sw_eHdr::EWT_2],0};
 	uint64_t EWT;
 	memcpy(&EWT, ewt, sizeof(EWT));
-	TLOG(TLVL_DEBUG+1) << std::hex << "003: EWT0: " << rcv_buffer[fw_tHdr::EWT_0] << " EWT1: " << rcv_buffer[fw_tHdr::EWT_1] << " EWT2: " << rcv_buffer[fw_tHdr::EWT_2] << "  | EWT= " << EWT;
+	TLOG(TLVL_DEBUG+1) << std::hex << "003: EWT0: " << rcv_buffer[sw_eHdr::EWT_0] << " EWT1: " << rcv_buffer[sw_eHdr::EWT_1] << " EWT2: " << rcv_buffer[sw_eHdr::EWT_2] << "  | EWT= " << EWT;
 
 	// Get event mode
-	int16_t EM2 = rcv_buffer[fw_tHdr::EM_2_DRTDC] & 0xFF;
-	int16_t em[4] = {rcv_buffer[fw_tHdr::EM_0],rcv_buffer[fw_tHdr::EM_1],EM2,0};
+	int16_t EM2 = rcv_buffer[sw_eHdr::EM_2_DRTDC] & 0xFF;
+	int16_t em[4] = {rcv_buffer[sw_eHdr::EM_0],rcv_buffer[sw_eHdr::EM_1],EM2,0};
 	uint64_t EM;
 	memcpy(&EM, em, sizeof(EM));
 	TLOG(TLVL_DEBUG+1) << std::hex << "004: EM: " << EM << " at EWT: " << EWT;
@@ -108,10 +108,10 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs &frags)//getNext_packet
 	metricMan->sendMetric("Last event window tag", EWT, "status", 3, artdaq::MetricMode::LastPoint); 
 	
 	frags.emplace_back(new artdaq::Fragment(EWT, fragment_id(), FragmentType::STM, 0));
-	frags.back()->resizeBytes(fw_tHdr_Size+event_size); // very important: caused issues with writing data when this line was missing...
+	frags.back()->resizeBytes(sw_eHdr_Size+event_size); // very important: caused issues with writing data when this line was missing...
 	auto dataBegin = frags.back()->dataBegin();
-	memcpy(dataBegin, rcv_buffer, fw_tHdr_Size+event_size); // copy the data
-	global_data_len += fw_tHdr_Len+event_len;
+	memcpy(dataBegin, rcv_buffer, sw_eHdr_Size+event_size); // copy the data
+	global_data_len += sw_eHdr_Len+event_len;
 	TLOG(TLVL_DEBUG) << "006: n_data_copied at end of loop = " << global_data_len;
 	ev_counter_inc();  // increment event counter
 	// Increase the received packet counter

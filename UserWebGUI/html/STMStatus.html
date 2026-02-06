@@ -1,110 +1,279 @@
 <!DOCTYPE HTML>
-<html lang="en"> 
+<html lang="en">
 <head>
-	<title>STM VST Status</title>
+    <title>STM Status</title>
 
-	<link href='/WebPath/css/fonts.css?family=Inconsolata:400' rel='stylesheet' type='text/css'>
-	<link href='/WebPath/css/fonts.css?family=Comfortaa:400' rel='stylesheet' type='text/css'>
-		
-	
-	
-	<!-- FTBFWebPath is link (> ln -s linkpath linkname) in otsdaq_utilities/WebPath -->
-	<link rel="stylesheet" type="text/css" href="/WebPath/css/library/pretty-checkbox.min.css">
-	<link rel="stylesheet" type="text/css" href="/WebPath/css/library/MaterialDesign-Webfont-master/css/materialdesignicons.min.css">
-	
-	<link rel="stylesheet" type="text/css" href="/WebPath/css/ConfigurationAPI.css">
-<!--	<link rel="stylesheet" type="text/css" href="/WebPath/css/SmartLaunch.css"> -->
-	
-	
-	<script type="text/JavaScript" src="/WebPath/js/Globals.js"></script>	
-	<script type="text/JavaScript" src="/WebPath/js/Debug.js"></script>	
-	<script type="text/JavaScript" src="/WebPath/js/DesktopContent.js"></script>
-  <script type="text/JavaScript" src="/WebPath/js/js_lib/ConfigurationAPI.js"></script>
-<!--	<script type="text/JavaScript" src="/WebPath/js/js_lib/SimpleContextMenu.js"></script> -->
-<!--	<script type="text/JavaScript" src="/WebPath/js/SmartLaunch.js"></script> -->
-  
-  <!-- <script src="https://cdn.plot.ly/plotly-2.34.0.min.js" charset="utf-8"></script> //  -->
+    <!-- Fonts -->
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
 
-	<body>
-    <div id="drawing" style="position: absolute; inset: 1px;"></div>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="/WebPath/css/ConfigurationAPI.css">
 
-    <!-- <div id="tester" style="position: bottom-right; width:600px;height:250px;"></div> -->
+    <!-- OTS JS -->
+    <script src="/WebPath/js/Globals.js"></script>
+    <script src="/WebPath/js/Debug.js"></script>
+    <script src="/WebPath/js/DesktopContent.js"></script>
+    <script src="/WebPath/js/js_lib/ConfigurationAPI.js"></script>
 
-    <!-- <script> -->
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+        }
 
-	  <!--   TESTER = document.getElementById('tester'); -->
-      
-	  <!--   Plotly.newPlot( TESTER, [{ -->
-	  <!--       x: [1, 2, 3, 4, 5],           -->
-	  <!--       y: [1, 2, 4, 8, 16] }], { -->
-	  <!--           margin: { t: 0 } } ); -->
-    <!-- </script> -->
-   </body>
+        #drawing {
+            position: absolute;
+            inset: 0;
+        }
 
-  <script type='module'>
-    import { draw, httpRequest, redraw, decodeUrl, registerForResize, GridDisplay } from 'https://root.cern/js/latest/modules/main.mjs';
-    
-    let mdi = null, drawopt = null, addr = null;
+        #topBar {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 10px;
+            font-family: Inconsolata;
+            font-size: 12px;
+            border-radius: 4px;
+            z-index: 20;
+        }
 
-    function updateGUI() {
-        let request_addr = addr || "/WebPath/UserWebPath/json_dqm/c_stmdqm.json";
-        httpRequest(request_addr, 'object').then(canvas => {
-//            console.log(canvas);
-            // when use grid layout, use counter value stored in request itself
-            let frame = mdi ? mdi.findFrame(`item${request_count % mdi.numGridFrames()}`, true) : 'drawing';
-            
-            // redraw canvas at specified frame
-            redraw(frame, canvas, drawopt).then(() => {
-                // let adjust drawing when browser will be resized
-                //                if (!request_count) registerForResize('drawing');
-                registerForResize('drawing');
-            });
-        }).catch(() => { document.getElementById('drawing').innerHTML = `"<h3>Can not get ${request_addr} from the server</h3>`;});
+        #topBar button {
+            margin-right: 6px;
+        }
+
+        #alarmOverlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="drawing"></div>
+<div id="alarmOverlay"></div>
+
+<div id="topBar">
+    <button onclick="goMain()">Main</button>
+    <button onclick="goFFT()">FFT</button>
+    <button onclick="togglePolling()">Pause</button>
+    <button onclick="updateGUI()">Reload</button>
+    <span id="dqmStatus">Starting...</span>
+</div>
+
+<script type="module">
+import {
+    httpRequest,
+    redraw,
+    decodeUrl,
+    registerForResize,
+    GridDisplay
+} from 'https://root.cern/js/latest/modules/main.mjs';
+
+/* ===============================
+   Navigation
+   =============================== */
+
+window.goMain = function () {
+    window.location.href = 'STMMain.html';
+};
+
+window.goFFT = function () {
+    window.location.href = 'STMFFT.html';
+};
+
+/* ===============================
+   Configuration
+   =============================== */
+
+const cfg = (function () {
+    const d = decodeUrl();
+    return {
+        monitor: parseInt(d.get('monitoring') || '200'),
+        addr: d.get('addr') || '/WebPath/UserWebPath/json_dqm/c_stmdqm.json',
+        opt: d.get('opt'),
+        layout: d.get('layout'),
+        autopause: d.get('autopause') === '1'
+    };
+})();
+
+let mdi = null;
+let polling = !cfg.autopause;
+let busy = false;
+let lastUpdate = 0;
+let errorCount = 0;
+
+/* ===============================
+   UI helpers
+   =============================== */
+
+function updateStatus(text, color) {
+    const el = document.getElementById('dqmStatus');
+    el.textContent = text;
+    el.style.color = color || 'white';
+}
+
+window.togglePolling = function () {
+    polling = !polling;
+    updateStatus(polling ? 'Running' : 'Paused');
+};
+
+/* ===============================
+   Alarm logic
+   =============================== */
+
+function evaluateAlarms(canvas) {
+    if (!canvas.alarms || !Array.isArray(canvas.alarms))
+        return { level: 'OK', messages: [] };
+
+    let level = 'OK';
+    const messages = [];
+
+    for (let i = 0; i < canvas.alarms.length; i++) {
+        const a = canvas.alarms[i];
+        const mode = a.mode || 'high';
+        const value = a.value;
+
+        if (value === undefined)
+            continue;
+
+        if (mode === 'high') {
+            if (a.crit !== undefined && value >= a.crit) {
+                level = 'CRIT';
+                messages.push(a.name + ': ' + value + ' >= ' + a.crit);
+            } else if (a.warn !== undefined && value >= a.warn) {
+                if (level !== 'CRIT')
+                    level = 'WARN';
+                messages.push(a.name + ': ' + value + ' >= ' + a.warn);
+            }
+        }
+
+        if (mode === 'low') {
+            if (a.crit !== undefined && value <= a.crit) {
+                level = 'CRIT';
+                messages.push(a.name + ': ' + value + ' <= ' + a.crit);
+            } else if (a.warn !== undefined && value <= a.warn) {
+                if (level !== 'CRIT')
+                    level = 'WARN';
+                messages.push(a.name + ': ' + value + ' <= ' + a.warn);
+            }
+        }
     }
 
-    let d = decodeUrl();
-    let monitor = parseInt(d.get('monitoring') || '100'); // time in milliseconds
+    return { level: level, messages: messages };
+}
 
-    drawopt = d.get('opt');
-    addr = d.get('addr');
+function showAlarmOverlay(level) {
+    const o = document.getElementById('alarmOverlay');
 
-    let layout = d.get('layout');
+    if (level === 'OK') {
+        o.style.display = 'none';
+        return;
+    }
 
-    if (layout)
-        mdi = new GridDisplay('drawing', layout);
+    o.style.display = 'block';
+    o.style.border =
+        (level === 'CRIT')
+            ? '6px solid red'
+            : '6px solid orange';
+}
 
-    setInterval(updateGUI, monitor);
-   </script>
+function updateAlarmStatus(alarm) {
+    if (alarm.level === 'OK') {
+        updateStatus(
+            'OK ' + new Date(lastUpdate).toLocaleTimeString(),
+            'lightgreen'
+        );
+    } else if (alarm.level === 'WARN') {
+        updateStatus(
+            'WARN ' + alarm.messages[0],
+            'orange'
+        );
+    } else if (alarm.level === 'CRIT') {
+        updateStatus(
+            'CRIT ' + alarm.messages[0],
+            'red'
+        );
+    }
+}
 
-	<script>		
-	//=====================================================================================
-	//init ~~
-	//	init called once body has loaded
-	function init() 
-	{		
-      //		SmartLaunch.create();
-      //      let priority = 1;
-      // ConfigurationAPI.init()
-      // Debug.mode = 1;
-      // console.log("HERE");
-      // var groups = ConfigurationAPI.getActiveGroups;
-      // console.log(groups.length);
-      // console.log(groups);
-      // for (let i_group = 0; i_group < groups.length; ++i_group) 
-//      var req = new XMLHttpRequest();
-//      DesktopContent.getXMLValue(req, "");
-      //      console.log(req);
+/* ===============================
+   Main update
+   =============================== */
 
-//      let UID_ = "stmReader0";
-  }
-	</script>
-</head>
-	
+window.updateGUI = function () {
+    if (busy || !polling)
+        return;
 
-<body onload='//init() called by DesktopContent.js'>		
-	<h1>Title 1</h1>
+    busy = true;
+
+    httpRequest(cfg.addr, 'object')
+        .then(function (canvas) {
+            lastUpdate = Date.now();
+            errorCount = 0;
+
+            const alarm = evaluateAlarms(canvas);
+            showAlarmOverlay(alarm.level);
+
+            const frame = mdi
+                ? mdi.findFrame('item0', true)
+                : 'drawing';
+
+            return redraw(frame, canvas, cfg.opt)
+                .then(function () { return alarm; });
+        })
+        .then(function (alarm) {
+            updateAlarmStatus(alarm);
+            registerForResize('drawing');
+        })
+        .catch(function () {
+            errorCount++;
+            updateStatus(
+                'Error (' + errorCount + ')',
+                errorCount > 3 ? 'red' : 'orange'
+            );
+        })
+        .finally(function () {
+            busy = false;
+        });
+};
+
+/* ===============================
+   Stale watchdog
+   =============================== */
+
+setInterval(function () {
+    if (!polling || !lastUpdate)
+        return;
+
+    const age = Date.now() - lastUpdate;
+    if (age > 5 * cfg.monitor) {
+        updateStatus(
+            'STALE ' + Math.round(age / 1000) + 's',
+            'red'
+        );
+    }
+}, cfg.monitor);
+
+/* ===============================
+   Init
+   =============================== */
+
+if (cfg.layout)
+    mdi = new GridDisplay('drawing', cfg.layout);
+
+setInterval(function () {
+    if (polling)
+        updateGUI();
+}, cfg.monitor);
+
+</script>
+
 </body>
-	
 </html>
-
-	
