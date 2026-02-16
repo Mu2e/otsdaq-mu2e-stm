@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(STMDAQ LANGUAGES CXX)
 
 # ---------------------------
-# Define the build layout
+# Build layout
 # ---------------------------
 # All libraries/executables go under a single build directory
 set(BUILD_DIR ${CMAKE_BINARY_DIR}/build)
@@ -28,12 +28,12 @@ set(STMDAQ_EXTRA_LIBS
 # Include centralized config
 # ---------------------------
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/STMDAQConfig.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/useCET.cmake)
 
 # ---------------------------
 # Add subdirectories
 # ---------------------------
 add_subdirectory(utils)
-# Add other modules as they are converted:
 add_subdirectory(interfaces)
 add_subdirectory(config)
 add_subdirectory(buffers)
@@ -43,7 +43,4 @@ add_subdirectory(dqm)
 add_subdirectory(simfw)
 add_subdirectory(frontend)
 
-# ---------------------------
-# Optional: top-level install
-# ---------------------------
-# CET macros usually handle install in each module
+

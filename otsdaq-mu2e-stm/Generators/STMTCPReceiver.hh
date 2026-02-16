@@ -2,6 +2,7 @@
 #define STMTCPRECEIVER_HH
 
 // STMTCPReceiver.hh
+// Author George Sweetmore
 
 // =====================================================================================
 // CPP Includes
@@ -65,32 +66,39 @@ namespace mu2e {
     FragmentType fragment_type_{FragmentType::STM};  // Type of fragment (see FragmentType.hh)
 
     // ----------------- Config -----------------
-    int chan_;                      // Data channel (0=HPGE, 1=LaBr3)
-    std::string host_;              // I.P. host of TCP socket
-    int port_;                      // Port of TCP socket
-    int rcvbuf_bytes_;              // Socket receive buffer bytes
-    int recv_buffer_size_;          // Size of the temporary TCP receive buffer
-    uint16_t event_anchor_word_;    // Anchor word in Event header
-    uint64_t start_fragment_id_;    // Base fragment id
-    uint64_t raw_stream_id_;        // RAW fragment id
-    uint64_t zs_stream_id_;         // ZS fragment id
-    uint64_t mwd_stream_id_;        // MWD fragment id
-    int      debug_level_;          // Debug verbosity
-    bool     pin_threads_;          // Pin thread to specific cores
-    int      idle_timeout_ms_;      // Idle timeout after first packet (ms)
+    int chan_;                               // Data channel (0=HPGE, 1=LaBr3)
+    std::string host_;                       // I.P. host of TCP socket
+    int port_;                               // Port of TCP socket
+    int rcvbuf_bytes_;                       // Socket receive buffer bytes
+    int recv_buffer_size_;                   // Size of the temporary TCP receive buffer
+    uint16_t event_anchor_word_;             // Anchor word in Event header
+    uint64_t start_fragment_id_;             // Base fragment id
+    uint64_t raw_stream_id_;                 // RAW fragment id
+    uint64_t zs_stream_id_;                  // ZS fragment id
+    uint64_t ph_stream_id_;                  // PH fragment id
+    uint64_t container_stream_id_;           // Container fragment id
+    int      debug_level_;                   // Debug verbosity
+    bool     pin_threads_;                   // Pin thread to specific cores
+    int      idle_timeout_ms_;               // Idle timeout after first packet (ms)
+    size_t   events_per_container_;          // Number of events per container
+    size_t   offspill_events_per_container_; // Number of off-spill events per container
+    bool     use_spill_condition_;           // Condition for batching on spill flags
     
     // ----------------- Runtime -----------------
-    std::atomic<bool> done_{false}; // Threads stop flag
     std::atomic<size_t> event_count_{0}; // Number of events processed
     std::atomic<size_t> raw_frag_count_{0}; // Number of raw frags produced
     std::atomic<size_t> zs_frag_count_{0}; // Number of ZS frags produced
-    std::atomic<size_t> mwd_frag_count_{0}; // Number of MWD frags produced
-    std::atomic<size_t> total_words_parsed_{0}; // Total number of words processed
+    std::atomic<size_t> ph_frag_count_{0}; // Number of PH frags produced
     std::atomic<uint64_t> total_bytes_received_{0}; // Total bytes received over TCP
 
     // getNext() wakeup control
     std::mutex parser_cv_mutex_;
     std::condition_variable parser_cv_;
+    std::mutex batcher_cv_mutex_;
+    std::condition_variable batcher_cv_;
+    std::atomic<bool> receiver_done_{false};
+    std::atomic<bool> parser_done_{false};  
+    std::atomic<bool> batcher_done_{false};
     
     // TCP sockets
     int listen_fd_{-1}; // Listening TCP socket fd (created in start())
@@ -100,24 +108,30 @@ namespace mu2e {
     int tcpDebugLevel() const { return debug_level_ + 5; }
     
     // Queue capacity
-    static constexpr size_t DEFAULT_RECV_QCAP = 28941;
-    static constexpr size_t DEFAULT_EVT_QCAP  = 28941;
+    static constexpr size_t DEFAULT_RECV_QCAP = 5000;
+    static constexpr size_t DEFAULT_EVT_QCAP  = 5000;
+    static constexpr size_t DEFAULT_BATCH_QCAP  = 5000;
 
     // Receiver -> Parser (raw bulk byte buffers)
     using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
-    // Parser -> Consumer (parsed event objects)
+    // Parser -> Batcher (parsed event objects)
     using ParserToConsQ = boost::lockfree::spsc_queue<EventView, boost::lockfree::capacity<DEFAULT_EVT_QCAP>>;
+    // Batcher -> Consumer (batch events per container)
+    using BatcherToGNQ = boost::lockfree::spsc_queue<EventBatch, boost::lockfree::capacity<DEFAULT_BATCH_QCAP>>;
 
     std::unique_ptr<RecvToParserQ> recv_to_parser_queue_;
     std::unique_ptr<ParserToConsQ> parser_to_consumer_queue_;
+    std::unique_ptr<BatcherToGNQ> batcher_to_getNext_queue_; 
 
     // ----------------- Threads -----------------
     std::thread receiver_thread_;
     std::thread parser_thread_;
+    std::thread batcher_thread_;
 
     // Thread functions
     void receiverThread_();
     void parserThread_();
+    void batcherThread_();
 
     // ----------------- Helpers -----------------
 
@@ -235,22 +249,22 @@ namespace mu2e {
 	  << std::hex << hdr_words[anchor_start]
 	  << " end=0x" << hdr_words[anchor_end]
 	  << " expected=0x" << event_anchor_word_;
-	done_.store(true);
 	return false;
       }
 
       const uint16_t raw_len = hdr_words[RAW_LEN];
       const uint16_t zs_len  = hdr_words[ZS_LEN];
       const uint16_t ph_num  = hdr_words[PH_NUM];
+      const uint16_t ph_len = static_cast<uint16_t>(ph_num * 2);
 
       if (raw_len > MAX_RAW_WORDS ||
 	  zs_len  > MAX_ZS_WORDS  ||
-	  ph_num  > MAX_MWD_WORDS) {
+	  ph_len  > MAX_PH_WORDS) {
 
 	TLOG(TLVL_ERROR)
 	  << "[RECV] Invalid dataset sizes: RAW=" << raw_len
 	  << " ZS=" << zs_len
-	  << " PH=" << ph_num;
+	  << " PH=" << ph_len;
 	return false;
       }
 
@@ -263,7 +277,7 @@ namespace mu2e {
       evt.zs  = { offset, zs_len };
       offset += zs_len;
 
-      evt.mwd = { offset, ph_num };
+      evt.ph = { offset, ph_len };
 
       return true;
     }
@@ -349,71 +363,33 @@ namespace mu2e {
       return tmp;
     }
 
-
     // Fragment creation helper
-    void makeAndEmplaceFragment_(artdaq::FragmentPtrs& out,
-                                 uint64_t fragment_id,
-                                 uint64_t sequence_id,
-                                 const int16_t* data,
-                                 size_t n_words,
-                                 FragmentType type = FragmentType::STM)
+    std::unique_ptr<artdaq::Fragment> makeFragment_(uint64_t fragment_id,
+						    uint64_t sequence_id,
+						    const int16_t* data,
+						    size_t n_words)
     {
       const size_t n_bytes = n_words * sizeof(int16_t);
-      const auto tid = std::this_thread::get_id();
 
-      if (!data && n_bytes > 0) {
-        TLOG(TLVL_ERROR) << "[makeAndEmplaceFragment_] ERROR (tid=" << tid
-                         << "): null data pointer for " << n_bytes << " bytes" << std::endl;
-        done_.store(true);
-        return;
-      }
-
-      if (n_bytes == 0) {
-        TLOG(TLVL_ERROR) << "[makeAndEmplaceFragment_] WARNING (tid=" << tid
-                         << "): zero-length fragment requested";
-      }
-
-      // Allocate fragment
       auto frag = artdaq::Fragment::FragmentBytes(n_bytes);
       if (!frag) {
-        TLOG(TLVL_ERROR) << "[makeAndEmplaceFragment_] ERROR (tid=" << tid
-                         << "): failed to allocate fragment of " << n_bytes << " bytes";
-        done_.store(true);
-        return;
+        TLOG(TLVL_ERROR) << "[makeFragment_] allocation failed";
+        return nullptr;
       }
-
-      // Set IDs
-      frag->setUserType(type);
+      
+      frag->setUserType(FragmentType::STM);
       frag->setSequenceID(sequence_id);
       frag->setFragmentID(fragment_id);
       
-      // Additional safety check: artdaq Fragment buffer size
-      auto frag_buf = frag->dataBeginBytes();
-      if (!frag_buf) {
-        TLOG(TLVL_ERROR) << "[makeAndEmplaceFragment_] ERROR (tid=" << tid
-                         << "): null frag->dataBeginBytes() pointer";
-        done_.store(true);
-        return;
+      if (n_bytes > 0) {
+	if (!data || !frag->dataBeginBytes()) {
+	  TLOG(TLVL_ERROR) << "[makeFragment_] null data pointer";
+	  return nullptr;
+        }
+        std::memcpy(frag->dataBeginBytes(), data, n_bytes);
       }
-
-      // Copy and verify that both ends are valid
-      try {
-        std::memcpy(frag_buf, reinterpret_cast<const uint8_t*>(data), n_bytes);
-      } catch (...) {
-        TLOG(TLVL_ERROR) << "[makeAndEmplaceFragment_] EXCEPTION (tid=" << tid
-                         << "): memcpy failed for " << n_bytes << " bytes";
-        done_.store(true);
-        return;
-      }
-
-      // Add final debug guard
-      TLOG(TLVL_DEBUG) << "[makeAndEmplaceFragment_] INFO (tid=" << tid
-                       << "): fragment_id=" << fragment_id
-                       << " seq_id=" << sequence_id
-                       << " n_words=" << n_words
-                       << " (" << n_bytes << " bytes)";
-
-      out.emplace_back(std::move(frag));
+      
+      return frag;
     }
 
     // -------------------------------------------
