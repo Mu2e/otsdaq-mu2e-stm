@@ -34,11 +34,11 @@ set(PUGIXML_LIBRARY_DIR /usr/lib64/libpugixml.so)
 
 # ---- Python / pybind11 ----
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
-#find_package(pybind11 REQUIRED)
+find_package(py-pybind11 REQUIRED)
 
 set(PYTHON_INCLUDE_DIRS
     ${Python3_INCLUDE_DIRS}
-#    ${pybind11_INCLUDE_DIRS}
+    ${pybind11_INCLUDE_DIRS}
 )
 
 set(PYTHON_LIBRARIES ${Python3_LIBRARIES})

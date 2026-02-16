@@ -82,7 +82,6 @@ namespace mu2e {
     int      idle_timeout_ms_;               // Idle timeout after first packet (ms)
     size_t   events_per_container_;          // Number of events per container
     size_t   offspill_events_per_container_; // Number of off-spill events per container
-    bool     use_spill_condition_;           // Condition for batching on spill flags
     
     // ----------------- Runtime -----------------
     std::atomic<size_t> event_count_{0}; // Number of events processed

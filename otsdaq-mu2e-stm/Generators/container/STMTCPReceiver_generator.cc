@@ -62,7 +62,6 @@ namespace mu2e {
     , idle_timeout_ms_(ps.get<int>("idle_timeout_ms", 5000)) // Idle timeout AFTER first packet (ms)
     , events_per_container_(ps.get<size_t>("events_per_container", 600)) // Default number of events per container in getNext()
     , offspill_events_per_container_(ps.get<size_t>("offspill_events_per_container", 100)) // Number of off-spill events per container in getNext()
-    , use_spill_condition_(ps.get<bool>("use_spill_condition", false)) // Condition for batching on spill flags
   {
     // Log configuration
     TLOG_DEBUG(1) << "STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
@@ -443,122 +442,113 @@ namespace mu2e {
   }
 
   void mu2e::STMTCPReceiver::batcherThread_()
-{
-  TLOG(TLVL_INFO) << "[BATCHER] Batcher thread started";
+  {
+    TLOG(TLVL_INFO) << "[BATCHER] Batcher thread started";
 
-  auto make_new_batch = [&] {
-    EventBatch b;
-    b.events.reserve(events_per_container_);
-    b.container_frag_id = start_fragment_id_ + container_stream_id_;
-    b.container_seq_id  = 0;
-    return b;
-  };
+    auto make_new_batch = [&] {
+      EventBatch b;
+      b.events.reserve(events_per_container_);
+      b.container_frag_id = start_fragment_id_ + container_stream_id_;
+      b.container_seq_id = 0;
+      return b;
+    };
 
-  EventBatch batch = make_new_batch();
-  uint16_t batch_spill_flag = 0;
+    EventBatch batch = make_new_batch();
+    uint16_t batch_spill_flag = 0;
 
-  EventView evt;
+    EventView evt;
 
-  while (true) {
+    while (true) {
 
-    // ------------------------------------------------------------
-    // Consume parsed events
-    // ------------------------------------------------------------
-    if (parser_to_consumer_queue_->pop(evt)) {
+      // ------------------------------------------------------------
+      // Consume parsed events
+      // ------------------------------------------------------------
+      if (parser_to_consumer_queue_->pop(evt)) {
 
-      // First event in a new batch
-      if (batch.events.empty()) {
-        batch.container_seq_id = evt.event_num;
-        batch_spill_flag       = evt.spill_flag;
-      }
-      // ----------------------------------------------------------
-      // Spill transition → flush immediately
-      // ----------------------------------------------------------
-      else if (use_spill_condition_ && evt.spill_flag != batch_spill_flag) {
+	/*TLOG(TLVL_DEBUG) << "[BATCHER] got event="
+			 << evt.event_num
+			 << " spill_flag=" << evt.spill_flag
+			 << " batch_size(before)=" << batch.events.size();*/
 
-        EventBatch flushed = std::move(batch);
-        batch = make_new_batch();
+	// First event in a new batch
+	if (batch.events.empty()) {
+	  batch.container_seq_id = evt.event_num;
+	  batch_spill_flag = evt.spill_flag;
+	}
 
-        if (!batcher_to_getNext_queue_->push(std::move(flushed))) {
-          TLOG(TLVL_ERROR)
-            << "[BATCHER] spill-transition flush failed: output queue full";
-          batcher_done_.store(true, std::memory_order_release);
-          batcher_cv_.notify_all();
-          return;
-        }
+	batch.events.emplace_back(std::move(evt));
 
-        batcher_cv_.notify_one();
+	// ----------------------------------------------------------
+	// Emit full batch (NON-BLOCKING!)
+	// ----------------------------------------------------------
+	if (batch.events.size() >= events_per_container_) {
 
-        // Start new batch with this event
-        batch.container_seq_id = evt.event_num;
-        batch_spill_flag       = evt.spill_flag;
-      }
+	  EventBatch full_batch = std::move(batch);   // move once
+	  batch = make_new_batch();                   // brand new object
 
-      batch.events.emplace_back(std::move(evt));
+	  if (!batcher_to_getNext_queue_->push(std::move(full_batch))) {
+	    TLOG(TLVL_ERROR)
+	      << "[BATCHER] batcher_to_getNext_queue FULL — stopping batcher";
+	    batcher_done_.store(true, std::memory_order_release);
+	    batcher_cv_.notify_all();
+	    return;
+	  }
 
-      // ----------------------------------------------------------
-      // Spill-dependent batch size
-      // ----------------------------------------------------------
-      const size_t target_batch_size =
-        (batch_spill_flag == 0)
-          ? offspill_events_per_container_
-          : events_per_container_;
+	  /*TLOG(TLVL_INFO) << "[BATCHER] Emitted batch: events="
+			  << events_per_container_
+			  << " seq=" << batch.container_seq_id
+			  << " spill=" << batch_spill_flag;*/
 
-      // ----------------------------------------------------------
-      // Emit full batch (NON-BLOCKING)
-      // ----------------------------------------------------------
-      if (batch.events.size() >= target_batch_size) {
+	  batcher_cv_.notify_one();
 
-        EventBatch full_batch = std::move(batch);
-        batch = make_new_batch();
-        batch_spill_flag = 0;
+	  batch = make_new_batch();
+	  batch_spill_flag = 0;
+	}
 
-        if (!batcher_to_getNext_queue_->push(std::move(full_batch))) {
-          TLOG(TLVL_ERROR)
-            << "[BATCHER] batcher_to_getNext_queue FULL — stopping batcher";
-          batcher_done_.store(true, std::memory_order_release);
-          batcher_cv_.notify_all();
-          return;
-        }
-
-        batcher_cv_.notify_one();
+	continue;
       }
 
-      continue;
+      // ------------------------------------------------------------
+      // Parser finished and no more events
+      // ------------------------------------------------------------
+      if (parser_done_.load(std::memory_order_acquire) &&
+	  parser_to_consumer_queue_->empty()) {
+
+	// Flush final partial batch
+	if (!batch.events.empty()) {
+
+	  EventBatch final_batch = std::move(batch);
+	  
+	  if (!batcher_to_getNext_queue_->push(std::move(final_batch))) {
+	    TLOG(TLVL_ERROR)
+	      << "[BATCHER] final batch lost: output queue full";
+	  } else {
+	    TLOG(TLVL_INFO) << "[BATCHER] Emitted final batch: events="
+			    << batch.events.size()
+			    << " seq=" << batch.container_seq_id
+			    << " spill=" << batch_spill_flag;
+	    batcher_cv_.notify_one();
+	  }
+	}
+
+	batcher_done_.store(true, std::memory_order_release);
+	batcher_cv_.notify_all();
+	return;
+      }
+
+      // ------------------------------------------------------------
+      // Wait for more events or parser completion
+      // ------------------------------------------------------------
+      std::unique_lock<std::mutex> lk(parser_cv_mutex_);
+      parser_cv_.wait(lk, [&] {
+	return parser_done_.load(std::memory_order_acquire) ||
+	  !parser_to_consumer_queue_->empty();
+      });
     }
 
-    // ------------------------------------------------------------
-    // Parser finished and no more events
-    // ------------------------------------------------------------
-    if (parser_done_.load(std::memory_order_acquire) &&
-        parser_to_consumer_queue_->empty()) {
+    TLOG(TLVL_INFO) << "[BATCHER] Batcher thread exiting";
 
-      if (!batch.events.empty()) {
-        EventBatch final_batch = std::move(batch);
-
-        if (!batcher_to_getNext_queue_->push(std::move(final_batch))) {
-          TLOG(TLVL_ERROR)
-            << "[BATCHER] final batch lost: output queue full";
-        } else {
-          batcher_cv_.notify_one();
-        }
-      }
-
-      batcher_done_.store(true, std::memory_order_release);
-      batcher_cv_.notify_all();
-      return;
-    }
-
-    // ------------------------------------------------------------
-    // Wait
-    // ------------------------------------------------------------
-    std::unique_lock<std::mutex> lk(parser_cv_mutex_);
-    parser_cv_.wait(lk, [&] {
-      return parser_done_.load(std::memory_order_acquire) ||
-             !parser_to_consumer_queue_->empty();
-    });
   }
-}
 
   // =====================================================================================
   // getNext_: Convert batch of parsed events to artdaq::Fragments
