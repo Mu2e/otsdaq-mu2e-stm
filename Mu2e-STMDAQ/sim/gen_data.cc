@@ -3,7 +3,7 @@
 
 // Constructor
 GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
-		 const std::string& filepath) :
+                 const std::string& filepath) :
   channel(channel_),
   event_num(static_cast<double>(event_num_)),
   event_period(event_period_),
@@ -68,40 +68,40 @@ GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
       std::cout << "Input A or B to continue: ";
       std::cin >> input;
       if (input == 'a' or input == 'A'){
-	std::cout << "Event number unchanged." <<  std::endl;
-	std::cout << "Input file will be repeated " << nfiles_in_data << " times." << std::endl;
-	break;
+        std::cout << "Event number unchanged." <<  std::endl;
+        std::cout << "Input file will be repeated " << nfiles_in_data << " times." << std::endl;
+        break;
 	
       }	
       else if (input == 'b' or input == 'B') {
-	double num = 0;
-	while(true){
-	  std::cout << "Input the number times the file be repeated:" << std::endl;
-	  std::string n;
-	  std::cin >> n;
-	  try {
-	    num = std::stod(n);
-	    std::cout << "Double value: " << num << std::endl;
-	    break;
-	  } catch (const std::invalid_argument&) {
-	    std::cout << "Invalid input: not a number." << std::endl;
-	  }
-	}
-	// Update event num
-	event_num = num*events_in_file;
-	// Recalculate data length in ADCs
-	data_len = event_len*event_num;	
-	std::cout << "Event number changed to " << event_num << " events." <<  std::endl;
-	// Notify user
-	std::cout << "Event len = " << event_period << " ns = " << event_len << " ADC values = " << event_size << " bytes." << std::endl;
-	std::cout << "Event num = " << event_num << " events = " << data_len << " ADC values = " << (double)data_len*sizeof(int16_t)*1e-9 << " GB." << std::endl;
-     	break;
+        double num = 0;
+        while(true){
+          std::cout << "Input the number times the file be repeated:" << std::endl;
+          std::string n;
+          std::cin >> n;
+          try {
+            num = std::stod(n);
+            std::cout << "Double value: " << num << std::endl;
+            break;
+          } catch (const std::invalid_argument&) {
+            std::cout << "Invalid input: not a number." << std::endl;
+          }
+        }
+        // Update event num
+        event_num = num*events_in_file;
+        // Recalculate data length in ADCs
+        data_len = event_len*event_num;	
+        std::cout << "Event number changed to " << event_num << " events." <<  std::endl;
+        // Notify user
+        std::cout << "Event len = " << event_period << " ns = " << event_len << " ADC values = " << event_size << " bytes." << std::endl;
+        std::cout << "Event num = " << event_num << " events = " << data_len << " ADC values = " << (double)data_len*sizeof(int16_t)*1e-9 << " GB." << std::endl;
+        break;
       }
       else {
-     	std::cout << "Invalid input. Please enter Y or N." << std::endl;
-     	// Clear the fail state and discard the rest of the input line
- 	std::cin.clear();
-     	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter Y or N." << std::endl;
+        // Clear the fail state and discard the rest of the input line
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       }
     }
   }
@@ -112,7 +112,7 @@ GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
   // Make sure the data size is larger than the event size
   if (data->size() < event_len){
     std::cout << "ERROR: Please ensure generated data length ("
-	      << data->size() << " ADC values) is >= the event length " 
+              << data->size() << " ADC values) is >= the event length " 
       	      << event_len << " ADC values). Exiting..." << std::endl;
     exit(0);
   }
@@ -121,8 +121,8 @@ GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
 
 // Get packets
 void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>>>& queue,
-			  const std::shared_ptr<SignalHandler>& signal,
-			  std::atomic<bool>& finished){
+                          const std::shared_ptr<SignalHandler>& signal,
+                          std::atomic<bool>& finished){
 
   // The packet number
   size_t packet_num = 0;
@@ -168,34 +168,34 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
       // If remaining packet space is <= a event header...
       if (left_in_packet < fw_eHdr_len){	
         // PACKET COMPLETE - fill curent packet with 0xDEADBEEF
-    	// Get remaining in packet
-    	uint16_t start = MAX_PACKET_LEN - left_in_packet;
-    	// Fill remainder of packet with 0xDEADBEEF
-    	for (int j = start; j < start+left_in_packet; j++){
-    	  // If odd entry
-    	  if (j % 2 != 0) (*packet)[j] = BEEF;
-    	  // If event entry
-    	  if (j % 2 == 0) (*packet)[j] = DEAD;
-    	} // End j-loop	  
-	// Break loop
-	break;
+        // Get remaining in packet
+        uint16_t start = MAX_PACKET_LEN - left_in_packet;
+        // Fill remainder of packet with 0xDEADBEEF
+        for (int j = start; j < start+left_in_packet; j++){
+          // If odd entry
+          if (j % 2 != 0) (*packet)[j] = BEEF;
+          // If event entry
+          if (j % 2 == 0) (*packet)[j] = DEAD;
+        } // End j-loop	  
+        // Break loop
+        break;
       } // End if fw_eHdr_len >= left_in_packet
 
       // Get the event length to copy
       size_t event_in_packet = 0;
       if (left_in_event >= left_in_packet - fw_eHdr_len){
-	event_in_packet = left_in_packet - fw_eHdr_len;
+        event_in_packet = left_in_packet - fw_eHdr_len;
       }
       else{
-	event_in_packet = left_in_event;
+        event_in_packet = left_in_event;
       }
       // Calc event start
       size_t event_start = this_event_len - left_in_event;
       
       // Create event header
       std::vector<int16_t> header = form_event_header(channel,EWT,1,this_event_len,
-						      event_start,
-						      event_in_packet);
+                                                      event_start,
+                                                      event_in_packet);
 
       // Copy event header
       size_t copy_index = MAX_PACKET_LEN - left_in_packet;
@@ -208,30 +208,31 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
       copy_index = MAX_PACKET_LEN - left_in_packet;
       size_t copy_start = data_count % data->size();
       size_t copy_end = (data_count + event_in_packet) % data->size();
+      if (data_count + event_in_packet == data->size()) copy_end = data->size();
       // If the modulus of the data has wrapped around
       if (copy_end < copy_start){
-	// Copy portion to end of data
-	std::copy(data->begin() + copy_start,
-		  data->end(),
-		  packet->begin() + copy_index);
-	// Update left in packet and copy index
-	left_in_packet -= data->size() - copy_start;
-	copy_index = MAX_PACKET_LEN - left_in_packet;
-	// Copy from start of data
-	std::copy(data->begin(),
-		  data->begin() + copy_end,
-		  packet->begin() + copy_index);
-	// Update left in packet 
-	left_in_packet -= copy_end;
+        // Copy portion to end of data
+        std::copy(data->begin() + copy_start,
+                  data->end(),
+                  packet->begin() + copy_index);
+        // Update left in packet and copy index
+        left_in_packet -= data->size() - copy_start;
+        copy_index = MAX_PACKET_LEN - left_in_packet;
+        // Copy from start of data
+        std::copy(data->begin(),
+                  data->begin() + copy_end,
+                  packet->begin() + copy_index);
+        // Update left in packet 
+        left_in_packet -= copy_end;
       }
       // Else if start and end are inside data
       else{
-	// Copy data
-	std::copy(data->begin() + copy_start,
-		  data->begin() + copy_end,
-		  packet->begin() + copy_index);	
-	// Update left in packet 
-	left_in_packet -= event_in_packet;
+        // Copy data
+        std::copy(data->begin() + copy_start,
+                  data->begin() + copy_end,
+                  packet->begin() + copy_index);	
+        // Update left in packet 
+        left_in_packet -= event_in_packet;
       }
       // Update the data counter
       data_count += event_in_packet;
@@ -240,56 +241,56 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
 
       // If at end of data...
       if (data_count == data_len){
-	// If remaining packet space is <= a event header
-	if (left_in_packet < fw_eHdr_len){
-	  // Signal a new packet needed for the nullhb header
-	  new_packet_for_nullhb = true;
-	}
-	// Else, if there is a space for the nullhb header in this packet
-	else{
-	  // Create event header
-	  std::vector<int16_t> header = form_event_header(channel,
-			  				  0,
-							  0,
-							  0,
-							  0,
-							  0);
+        // If remaining packet space is <= a event header
+        if (left_in_packet < fw_eHdr_len){
+          // Signal a new packet needed for the nullhb header
+          new_packet_for_nullhb = true;
+        }
+        // Else, if there is a space for the nullhb header in this packet
+        else{
+          // Create event header
+          std::vector<int16_t> header = form_event_header(channel,
+                                                          0,
+                                                          0,
+                                                          0,
+                                                          0,
+                                                          0);
 	  
-	  // Copy event header
-	  size_t copy_index = MAX_PACKET_LEN - left_in_packet;
-	  std::copy(header.begin(), header.end(), packet->begin() + copy_index);
-	  // Account for event header length                            
-	  left_in_packet -= fw_eHdr_len;	  
-	}
-	// Fill final packet with 0xDEADBEEFS      
-	// Get remaining in packet
-	uint16_t start = MAX_PACKET_LEN - left_in_packet;      
-	// Fill remainder of packet with 0xDEADBEEF
-	for (int j = start; j < MAX_PACKET_LEN; j++){	
-	  // If odd entry
-	  if (j % 2 != 0) (*packet)[j] = BEEF;
-	  // If event entry
-	  if (j % 2 == 0) (*packet)[j] = DEAD;
-	  // Decrement left_in_packet
-	  left_in_packet--;
-	}
-	// Increment the EWT
-	EWT++;
+          // Copy event header
+          size_t copy_index = MAX_PACKET_LEN - left_in_packet;
+          std::copy(header.begin(), header.end(), packet->begin() + copy_index);
+          // Account for event header length                            
+          left_in_packet -= fw_eHdr_len;	  
+        }
+        // Fill final packet with 0xDEADBEEFS      
+        // Get remaining in packet
+        uint16_t start = MAX_PACKET_LEN - left_in_packet;      
+        // Fill remainder of packet with 0xDEADBEEF
+        for (int j = start; j < MAX_PACKET_LEN; j++){	
+          // If odd entry
+          if (j % 2 != 0) (*packet)[j] = BEEF;
+          // If event entry
+          if (j % 2 == 0) (*packet)[j] = DEAD;
+          // Decrement left_in_packet
+          left_in_packet--;
+        }
+        // Increment the EWT
+        EWT++;
       }      
       // If we've reached the end of the event
       else if (left_in_event == 0){
-	// Increment the EWT
-	EWT++;
-	// Check if the last event is an event portion
-	if (event_num - double(EWT) < 1){
-	  this_event_len = data_len - data_count;
-	}
-	// Else standard event size
-	else{
-	  this_event_len = event_len;
-	}
-	// Reset left in event
-	left_in_event = this_event_len;
+        // Increment the EWT
+        EWT++;
+        // Check if the last event is an event portion
+        if (event_num - double(EWT) < 1){
+          this_event_len = data_len - data_count;
+        }
+        // Else standard event size
+        else{
+          this_event_len = event_len;
+        }
+        // Reset left in event
+        left_in_event = this_event_len;
       }
       
     } // end while(left_in_packet > 0)
@@ -327,11 +328,11 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
 
     // Create event header
     std::vector<int16_t> header = form_event_header(channel,
-						    0,
-						    0,
-						    0,
-						    0,
-						    0);
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    0);
     
     // Copy event header
     size_t copy_index = MAX_PACKET_LEN - left_in_packet;
@@ -371,11 +372,11 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
 
 // Generate a new event header
 std::vector<int16_t> GenData::form_event_header(size_t channel_,
-						size_t EWT_,
-						size_t EM_,
-						size_t len,
-						size_t event_start,
-						size_t event_in_packet){
+                                                size_t EWT_,
+                                                size_t EM_,
+                                                size_t len,
+                                                size_t event_start,
+                                                size_t event_in_packet){
 
   // Get first event header inputs
   uint16_t chan = channel_;
@@ -399,8 +400,8 @@ std::vector<int16_t> GenData::form_event_header(size_t channel_,
 
   // Copy header anchor
   std::copy(std::begin(fw_eHdr.anchor_data),
-	    std::end(fw_eHdr.anchor_data),
-	    header.begin());   
+            std::end(fw_eHdr.anchor_data),
+            header.begin());   
   // ADC Clock 0-3
   header[fw_eHdr.ADCclk_0] = ADCclock & 0xFFFF;
   header[fw_eHdr.ADCclk_1] = ADCclock >> 16;
