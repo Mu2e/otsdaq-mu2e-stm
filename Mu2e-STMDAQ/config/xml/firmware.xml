@@ -1,5 +1,6 @@
 <!-- Firmware register parameters -->
 <fw>
+  <ctrl_srvr>mu2e-stm-01.fnal.gov</ctrl_srvr> <!-- The firmware control server -->
   <dir>/hardware/python</dir> <!-- STMDAQ Hardware directory -->
   <device>ZCU102-FMC120</device> <!-- Hardware device -->
   <load_fw>

@@ -15,7 +15,7 @@ CCOPTS = -O3 -march=native # Optimisation
 DEPOPTS = -MT $@ -MMD -MP -MF $(BUILD_DIR)/dep/$*.d
 
 INCLUDE_CC = -I$(BOOST_INC) -I$(STM_INC)
-LIB_CC = buffer_queue.cc buffer_pool.cc   
+LIB_CC = buffer_queue.cc 
 
 LIB_OBJ = $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(LIB_CC))
 LIB = $(BUILD_DIR)/lib/libBuffers.so 

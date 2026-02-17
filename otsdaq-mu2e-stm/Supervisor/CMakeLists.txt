@@ -9,14 +9,14 @@ cet_make_library(LIBRARY_NAME STMDAQSupervisor
   STMDAQSupervisor.cc
   LIBRARIES PRIVATE
   otsdaq::CoreSupervisors
-  otsdaq_mu2e_stm::UtilsLibraryX
-  otsdaq_mu2e_stm::ConfigLibraryX
-  otsdaq_mu2e_stm::OpsProviderLibraryX
-  otsdaq_mu2e_stm::BuffersLibraryX
-  otsdaq_mu2e_stm::DebugLibraryX
-  otsdaq_mu2e_stm::DQMLibraryX
-  otsdaq_mu2e_stm::ProcessingLibraryX
-  otsdaq_mu2e_stm::SimDataLibraryX
+  otsdaq_mu2e_stm::Utils
+  otsdaq_mu2e_stm::Config
+  otsdaq_mu2e_stm::Hardware
+  otsdaq_mu2e_stm::Buffers
+  otsdaq_mu2e_stm::Debug
+  otsdaq_mu2e_stm::Processing
+  otsdaq_mu2e_stm::Sim
+  stmdaq_all_deps
 )
 
 install_headers()

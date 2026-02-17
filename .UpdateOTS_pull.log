@@ -129,18 +129,30 @@ Your branch is behind 'origin/main' by 158 commits, and can be fast-forwarded.
 nothing to commit, working tree clean
 UpdateOTS.sh:671  	 ==================
 /home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-stm
-On branch sweetmor/merged_daq
-Your branch is up to date with 'origin/sweetmor/merged_daq'.
+On branch sweetmor/merged_daqx
+Your branch is up to date with 'origin/sweetmor/merged_daqx'.
 
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
 	modified:   .UpdateOTS_pull.log
-	modified:   Mu2e-STMDAQ/sim/gen_data.cc
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-	Mu2e-STMDAQ/analysis_files/checkStreams.py
+	modified:   Mu2e-STMDAQ/Makefile
+	modified:   Mu2e-STMDAQ/buffers/Makefile
+	modified:   Mu2e-STMDAQ/config/include/fw_config.hh
+	modified:   Mu2e-STMDAQ/config/xml/firmware.xml
+	modified:   Mu2e-STMDAQ/frontend/main.cc
+	modified:   Mu2e-STMDAQ/processing/Makefile
+	modified:   Mu2e-STMDAQ/processing/buffer_pool.cc
+	modified:   Mu2e-STMDAQ/processing/dqm_manager.cc
+	modified:   Mu2e-STMDAQ/utils/Logger.cc
+	modified:   Mu2e-STMDAQ/utils/Logger.hh
+	modified:   Mu2e-STMDAQ/utils/async_logger.cc
+	modified:   Mu2e-STMDAQ/utils/async_logger.hh
+	modified:   otsdaq-mu2e-stm/CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/Generators/CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/Supervisor/CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/Supervisor/STMDAQSupervisor.cc
+	modified:   otsdaq-mu2e-stm/Supervisor/STMDAQSupervisor.h
 
 no changes added to commit (use "git add" and/or "git commit -a")
 UpdateOTS.sh:671  	 ==================

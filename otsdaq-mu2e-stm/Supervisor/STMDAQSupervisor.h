@@ -7,10 +7,10 @@
 #include "Mu2e-STMDAQ/utils/signal_handler.hh"
 #include "Mu2e-STMDAQ/config/stm_data.hh"
 #include "Mu2e-STMDAQ/config/config.hh"
-#include "Mu2e-STMDAQ/buffers/buffer_pool.hh"
-#include "Mu2e-STMDAQ/interfaces/operation_provider.hh"
+#include "Mu2e-STMDAQ/processing/buffer_pool.hh"
 #include "Mu2e-STMDAQ/processing/thread_manager.hh"
 #include "Mu2e-STMDAQ/processing/operation_manager.hh"
+#include "Mu2e-STMDAQ/hardware/hw_manager.hh"
 
 namespace ots
 {
@@ -34,11 +34,12 @@ namespace ots
 
   private:
     // Core DAQ objects
-    Config* cfg_ = nullptr;
+    Config& cfg_;
     std::shared_ptr<cpu_utils> cpu_;
     std::shared_ptr<AsyncLogger> logger_;
     std::shared_ptr<SignalHandler> signal_;
     std::shared_ptr<STMdata> stm_;
+    std::shared_ptr<HardwareManager> hw_;
     std::shared_ptr<OperationManager> om_;
     std::shared_ptr<BufferPool> pool_;
     std::shared_ptr<ThreadManager> tm_;

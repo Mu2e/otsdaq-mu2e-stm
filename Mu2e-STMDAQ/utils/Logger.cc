@@ -6,43 +6,43 @@
 #include "Mu2e-STMDAQ/dqm/dqm_structs.hh"
 
 // Must constructorialise the singletons/static variables here
-Logger* Logger::_instance = 0;
-unsigned int Logger::_logLevel = 0;
-unsigned int Logger::_style = 0;
-DateTime Logger::_time;
-std::mutex Logger::_mutex;
-string Logger::_opFileName;
-std::ofstream Logger::_opFile;
-bool Logger::_logToFile;
-bool Logger::_logToSHM;
-bool Logger::_throwCriticalErrors;
-bool Logger::_useColor;
-Color::Modifier Logger::_red(Color::FG_RED);
-Color::Modifier Logger::_yel(Color::FG_YELLOW);
-Color::Modifier Logger::_green(Color::FG_GREEN);
-Color::Modifier Logger::_def(Color::FG_DEFAULT);
-std::string Logger::_prevMsg;
+LoggerSTM* LoggerSTM::_instance = 0;
+unsigned int LoggerSTM::_logLevel = 0;
+unsigned int LoggerSTM::_style = 0;
+DateTime LoggerSTM::_time;
+std::mutex LoggerSTM::_mutex;
+string LoggerSTM::_opFileName;
+std::ofstream LoggerSTM::_opFile;
+bool LoggerSTM::_logToFile;
+bool LoggerSTM::_logToSHM;
+bool LoggerSTM::_throwCriticalErrors;
+bool LoggerSTM::_useColor;
+Color::Modifier LoggerSTM::_red(Color::FG_RED);
+Color::Modifier LoggerSTM::_yel(Color::FG_YELLOW);
+Color::Modifier LoggerSTM::_green(Color::FG_GREEN);
+Color::Modifier LoggerSTM::_def(Color::FG_DEFAULT);
+std::string LoggerSTM::_prevMsg;
 
 // Define template
-Destroyer<Logger> Logger::_destroyer;
+Destroyer<LoggerSTM> LoggerSTM::_destroyer;
 
-Logger* Logger::Instance () {
+LoggerSTM* LoggerSTM::Instance () {
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
-  constructor(Logger::INFO); //Default log level
+  constructor(LoggerSTM::INFO); //Default log level
   return _instance;
 }
 
-Logger* Logger::Instance (const unsigned int logLevel_) {
+LoggerSTM* LoggerSTM::Instance (const unsigned int logLevel_) {
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
   constructor(logLevel_);
   return _instance;
 }
 
 //Common function called by the overloaded "Instance" functions
-void Logger::constructor (const unsigned int logLevel_) {
+void LoggerSTM::constructor (const unsigned int logLevel_) {
 
   if (!_instance) {
-    _instance = new Logger();
+    _instance = new LoggerSTM();
     _destroyer.SetDoomed(_instance);
     _logLevel = logLevel_;
     _logToFile = false;
@@ -56,24 +56,24 @@ void Logger::constructor (const unsigned int logLevel_) {
 }
 
 template <typename T>
-void Logger::registerBlock(DQMPageType type, const std::string& shm_name, size_t size, bool persist) {
+void LoggerSTM::registerBlock(DQMPageType type, const std::string& shm_name, size_t size, bool persist) {
 
   // Register in manager
   SHMmanager::Instance().registerBlock<T>(type, shm_name, size, persist);
 }
 
 template <typename T>
-T* Logger::get(DQMPageType type) {
+T* LoggerSTM::get(DQMPageType type) {
   // Retrieve the pointer from the global registry
   T* ptr = SHMmanager::Instance().get<T>(type);
   if (!ptr) {
-      throw std::runtime_error("Requested Logger SHM block not found in SHMmanager.");
+      throw std::runtime_error("Requested LoggerSTM SHM block not found in SHMmanager.");
   }
   return ptr;
 }
 
 
-void Logger::write(unsigned int level_, const std::string & message_) {
+void LoggerSTM::write(unsigned int level_, const std::string & message_) {
 
   //Write doesn't lock mutex itself by default in case it is called by
   //other functions that have already locked the mutex.
@@ -84,7 +84,7 @@ void Logger::write(unsigned int level_, const std::string & message_) {
 }
 
 
-void Logger::write(unsigned int level_, const std::string & message_, const std::lock_guard<std::mutex> & lock_) {
+void LoggerSTM::write(unsigned int level_, const std::string & message_, const std::lock_guard<std::mutex> & lock_) {
 
   // Only print if level is above the set log level threshold
   if ( level_ <= _logLevel ) {
@@ -93,14 +93,14 @@ void Logger::write(unsigned int level_, const std::string & message_, const std:
     std::stringstream shm_msg;
 
     string levelStr = "UNKNOWN";
-    if(level_ == Logger::ERROR) levelStr = "ERROR";
-    else if(level_ == Logger::INFO) levelStr = "INFO";
-    else if(level_ == Logger::WARNING) levelStr = "WARNING";
-    else if(level_ == Logger::NOTE) levelStr = "NOTE";
-    else if(level_ == Logger::DEBUG) levelStr = "DEBUG";
+    if(level_ == LoggerSTM::ERROR) levelStr = "ERROR";
+    else if(level_ == LoggerSTM::INFO) levelStr = "INFO";
+    else if(level_ == LoggerSTM::WARNING) levelStr = "WARNING";
+    else if(level_ == LoggerSTM::NOTE) levelStr = "NOTE";
+    else if(level_ == LoggerSTM::DEBUG) levelStr = "DEBUG";
     else {
-      std::stringstream ss; ss << "[ Logger :: write ] Invalid log level " << level_ << " chosen, must be ERROR, INFO, WARNING, NOTE or DEBUG";
-      this->write(Logger::ERROR,ss.str(),lock_);
+      std::stringstream ss; ss << "[ LoggerSTM :: write ] Invalid log level " << level_ << " chosen, must be ERROR, INFO, WARNING, NOTE or DEBUG";
+      this->write(LoggerSTM::ERROR,ss.str(),lock_);
       return;
     }
 
@@ -108,7 +108,7 @@ void Logger::write(unsigned int level_, const std::string & message_, const std:
     _prevMsg = message_;
 
     // Shared memory just needs message
-    if (_logToSHM && (level_ == Logger::ERROR || level_ == Logger::WARNING)) {
+    if (_logToSHM && (level_ == LoggerSTM::ERROR || level_ == LoggerSTM::WARNING)) {
       shm_msg << message_;
       logToSHM(level_, shm_msg.str());
     }
@@ -129,8 +129,8 @@ void Logger::write(unsigned int level_, const std::string & message_, const std:
     //Send msg to stdout
     if( _useColor ) { //Add color case
       std::stringstream colorMsg;
-      if( level_ == Logger::ERROR ) colorMsg << _red;
-      else if( level_ == Logger::WARNING ) colorMsg << _yel;
+      if( level_ == LoggerSTM::ERROR ) colorMsg << _red;
+      else if( level_ == LoggerSTM::WARNING ) colorMsg << _yel;
       else colorMsg << _def;
       colorMsg << msg.str() << _def << std::endl;
       std::cout << colorMsg.str();
@@ -147,26 +147,26 @@ void Logger::write(unsigned int level_, const std::string & message_, const std:
 
     //Throw CriticalError if required
     if(_throwCriticalErrors) {
-      if( level_ == Logger::ERROR ) stop::trigger_critical_stop();//throw CriticalError();
+      if( level_ == LoggerSTM::ERROR ) stop::trigger_critical_stop();//throw CriticalError();
     }
 
   }//if within debug level
 
 }
 
-unsigned int Logger::getLogLevel() {
+unsigned int LoggerSTM::getLogLevel() {
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
   return _logLevel;
 }
 
-void Logger::setLogLevel(const unsigned int logLevel) {
+void LoggerSTM::setLogLevel(const unsigned int logLevel) {
 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
   //Check for valid debug level and set if OK
   if( logLevel > 4 ) {
-    std::stringstream ss; ss << "[ Logger :: setLogLevel ] Invalid log level " << logLevel << " chosen, must be ERROR, INFO, WARNING, NOTE or DEBUG";
-    this->write(Logger::ERROR,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: setLogLevel ] Invalid log level " << logLevel << " chosen, must be ERROR, INFO, WARNING, NOTE or DEBUG";
+    this->write(LoggerSTM::ERROR,ss.str(),lock);
     _logLevel = 0;
   }
   else {
@@ -176,18 +176,18 @@ void Logger::setLogLevel(const unsigned int logLevel) {
 
 }
 
-void Logger::setStylePlain() {
+void LoggerSTM::setStylePlain() {
   this->setStyle(0);
 }
 
-void Logger::setStyle(unsigned int style_) {
+void LoggerSTM::setStyle(unsigned int style_) {
 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
   //Check for valid style level and set if OK
   if( style_ > 2 ) {
-    std::stringstream ss; ss << "[ Logger :: setStyle ] Invalid style " << style_ << " chosen, must be in range 0-2";
-    this->write(Logger::ERROR,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: setStyle ] Invalid style " << style_ << " chosen, must be in range 0-2";
+    this->write(LoggerSTM::ERROR,ss.str(),lock);
     _style = 0;
   }
   else {
@@ -197,15 +197,15 @@ void Logger::setStyle(unsigned int style_) {
 }
 
 //Enable logging to file (as well as stdout)
-void Logger::LogToFile(string fileName_) {
+void LoggerSTM::LogToFile(string fileName_) {
 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
   //Check if already logging to file
   if(_logToFile) {
-    std::stringstream ss; ss << "[ Logger :: LogToFile ] Already logging to file";
+    std::stringstream ss; ss << "[ LoggerSTM :: LogToFile ] Already logging to file";
     CloseLogFile();
-    //this->write(Logger::ERROR,ss.str(),lock);
+    //this->write(LoggerSTM::ERROR,ss.str(),lock);
     //return;
   }
 
@@ -219,19 +219,19 @@ void Logger::LogToFile(string fileName_) {
   //If open was successful, set flag
   if(_opFile) {
     _logToFile = true;
-    std::stringstream ss; ss << "[ Logger :: LogToFile ] Logging to file: " << _opFileName;
-    this->write(Logger::INFO,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: LogToFile ] Logging to file: " << _opFileName;
+    this->write(LoggerSTM::INFO,ss.str(),lock);
   }
   else {
-    std::stringstream ss; ss << "[ Logger :: LogToFile ] Failed to open file: " << _opFileName << std::endl;
-    this->write(Logger::ERROR,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: LogToFile ] Failed to open file: " << _opFileName << std::endl;
+    this->write(LoggerSTM::ERROR,ss.str(),lock);
   }
 
 }
 
 
 //Write the file stream to the file
-void Logger::CloseLogFile() {
+void LoggerSTM::CloseLogFile() {
 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
@@ -240,21 +240,21 @@ void Logger::CloseLogFile() {
 
     _logToFile = false;
 
-    std::stringstream ss; ss << "[ Logger :: CloseLogFile ] Closing log file: " << _opFileName;
-    write(Logger::INFO,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: CloseLogFile ] Closing log file: " << _opFileName;
+    write(LoggerSTM::INFO,ss.str(),lock);
 
     _opFile.close();
 
   }
   else {
-    std::stringstream ss; ss << "[ Logger :: CloseLogFile ] Cannot close log file as not currently logging to file";
-    write(Logger::ERROR,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM :: CloseLogFile ] Cannot close log file as not currently logging to file";
+    write(LoggerSTM::ERROR,ss.str(),lock);
     return;
   }
 
 }
 
-void Logger::initSHM(unsigned int max_alarms) {
+void LoggerSTM::initSHM(unsigned int max_alarms) {
 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
@@ -267,9 +267,9 @@ void Logger::initSHM(unsigned int max_alarms) {
   registerBlock<dqm_data_alarm>(DQMPageType::ALARMS, "/dqm_alarm_data", alarm_bytes, true);
   _logToSHM = true;
 
-  std::stringstream ss; ss << "[ Logger::initSHM ] Registered SHM block for alarms" <<
+  std::stringstream ss; ss << "[ LoggerSTM::initSHM ] Registered SHM block for alarms" <<
 	 " with size " << alarm_bytes;
-  this->write(Logger::INFO,ss.str(),lock);
+  this->write(LoggerSTM::INFO,ss.str(),lock);
 
   auto* alarm_data = get<dqm_data_alarm>(DQMPageType::ALARMS);
 
@@ -279,7 +279,7 @@ void Logger::initSHM(unsigned int max_alarms) {
 
 }
 
-void Logger::logToSHM(unsigned int level_, const std::string & message_) {
+void LoggerSTM::logToSHM(unsigned int level_, const std::string & message_) {
   // Get pointer to SHM block
   auto* alarm_data = get<dqm_data_alarm>(DQMPageType::ALARMS);
 
@@ -319,12 +319,12 @@ void Logger::logToSHM(unsigned int level_, const std::string & message_) {
 }
 
 
-std::string Logger::getMostRecentMsg() const { 
+std::string LoggerSTM::getMostRecentMsg() const { 
   std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
   return _prevMsg;
 }
 
-uint64_t Logger::get_current_time_ns() {
+uint64_t LoggerSTM::get_current_time_ns() {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 

@@ -1,5 +1,5 @@
 // Buffer pool header
-#include "Mu2e-STMDAQ/buffers/buffer_pool.hh"
+#include "Mu2e-STMDAQ/processing/buffer_pool.hh"
 
 // Constructor: Pre-allocate buffers and push them into the lock-free stack
 BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,

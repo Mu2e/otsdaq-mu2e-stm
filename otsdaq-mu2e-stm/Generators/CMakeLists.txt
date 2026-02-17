@@ -26,7 +26,7 @@ include(artdaq::commandableGenerator)
 cet_build_plugin(STMTCPReceiver artdaq::commandableGenerator
   LIBRARIES REG
   otsdaq_mu2e_stm::Generators_Mu2eReceiverBase
-  otsdaq_mu2e_stm::UtilsLibraryX
+  otsdaq_mu2e_stm::Utils
 )
 
 #cet_build_plugin(STMTCPReceiverSim artdaq::commandableGenerator LIBRARIES REG otsdaq_mu2e_stm::Generators_Mu2eReceiverBase otsdaq_mu2e_stm::UtilsLibrary)
