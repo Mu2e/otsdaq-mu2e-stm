@@ -22,7 +22,7 @@ AsyncLogger::AsyncLogger(const Config& cfg, const std::shared_ptr<cpu_utils>& cp
   // LoggerSTM
   LoggerSTM::Instance(LoggerSTM::DEBUG);
   LoggerSTM::Instance()->setStylePlain();
-  //LoggerSTM::Instance()->initSHM(max_shm_alarms);
+  LoggerSTM::Instance()->initSHM(max_shm_alarms);
   LoggerSTM::Instance()->LogToFile(log_dir+log_file);
   LoggerSTM::Instance()->write(1,"STM DAQ started: " + date_time);
   LoggerSTM::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());
