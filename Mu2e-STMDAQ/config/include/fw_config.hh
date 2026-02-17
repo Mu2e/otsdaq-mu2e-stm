@@ -65,7 +65,9 @@ struct python_scripts{
 
 // Firmware configurable variables
 struct fw_info{
-
+  
+  // The control server
+  const std::string ctrl_srvr;
   // Hardware dirrectory
   const std::string hw_dir;
   // Hardware device
@@ -83,6 +85,7 @@ struct fw_info{
   
   // Constructor
   fw_info(Config& cfg, const std::shared_ptr<AsyncLogger> logger) :
+    ctrl_srvr(cfg.getValue<std::string>("stm.fw.ctrl_srvr")), // Control server
     hw_dir(cfg.getValue<std::string>("stm.fw.dir")), // Hardware directory
     device(cfg.getValue<std::string>("stm.fw.device")), // Hardware device 
     python(cfg.getValue<std::string>("stm.fw.python.pybind"),
@@ -109,6 +112,8 @@ struct fw_info{
     
     // Notify user
     if(logger){
+      logger->log("Config:fw_info: Control server = " +
+                  ctrl_srvr + ".",1);            
       logger->log("Config:fw_info: Hardware directory = " +
                   hw_dir + ".",1);      
       logger->log("Config:fw_info: Hardware device = " +

@@ -5,7 +5,7 @@
 #include <atomic>
 
 // Include dqm manager code
-#include "Mu2e-STMDAQ/dqm/dqm_manager.hh"
+#include "Mu2e-STMDAQ/processing/dqm_manager.hh"
 // Include dqm structs code
 #include "Mu2e-STMDAQ/dqm/dqm_structs.hh"
 // Operations manager header

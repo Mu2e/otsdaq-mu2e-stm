@@ -41,7 +41,7 @@ public:
     }
 
     // Close log file
-    Logger::Instance()->CloseLogFile();
+    LoggerSTM::Instance()->CloseLogFile();
     
     std::cout << "AsyncLogger destructor called.\n";
   }

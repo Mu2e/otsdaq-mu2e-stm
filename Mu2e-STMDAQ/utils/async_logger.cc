@@ -19,14 +19,14 @@ AsyncLogger::AsyncLogger(const Config& cfg, const std::shared_ptr<cpu_utils>& cp
   // Get number alarms to store in SHM
   size_t max_shm_alarms = cfg.getValue<int>("stm.dqm.max_num_alarms");
   
-  // Logger
-  Logger::Instance(Logger::DEBUG);
-  Logger::Instance()->setStylePlain();
-  Logger::Instance()->initSHM(max_shm_alarms);
-  Logger::Instance()->LogToFile(log_dir+log_file);
-  Logger::Instance()->write(1,"STM DAQ started: " + date_time);
-  Logger::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());
-  Logger::Instance()->write(1,"Logger initialised");   
+  // LoggerSTM
+  LoggerSTM::Instance(LoggerSTM::DEBUG);
+  LoggerSTM::Instance()->setStylePlain();
+  //LoggerSTM::Instance()->initSHM(max_shm_alarms);
+  LoggerSTM::Instance()->LogToFile(log_dir+log_file);
+  LoggerSTM::Instance()->write(1,"STM DAQ started: " + date_time);
+  LoggerSTM::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());
+  LoggerSTM::Instance()->write(1,"LoggerSTM initialised");   
 
   // Start thread to print to screen
   printerThread = std::thread(&AsyncLogger::printerThreadFunc, this);
@@ -54,7 +54,7 @@ void AsyncLogger::printerThreadFunc() {
       // Unlock before printing to minimize mutex hold time
       lock.unlock();
       // Print message to screen (CHANGE TO LOGGER)
-      Logger::Instance()->write(msg.second,msg.first);
+      LoggerSTM::Instance()->write(msg.second,msg.first);
       //      std::cout << msg << std::endl;
       // Reacquire lock for next iteration
       lock.lock();   

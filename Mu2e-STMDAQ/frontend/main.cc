@@ -25,6 +25,9 @@ int main() {
   // Initialise the STM data information
   std::shared_ptr<STMdata> stm = std::make_shared<STMdata>(cfg,logger);
 
+  // Get machine host name
+  const std::string host = EnvVars::expand("${HOSTNAME}");
+  if (host == stm->fw_config.ctrl_srvr) std::cout << "TRUE" << std::endl;
   // Initialise hardward manager
   std::shared_ptr<HardwareManager> hw = std::make_shared<HardwareManager>(logger,stm);
   

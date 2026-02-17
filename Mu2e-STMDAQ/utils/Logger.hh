@@ -1,5 +1,5 @@
-#ifndef Logger_hh
-#define Logger_hh
+#ifndef LoggerSTM_hh
+#define LoggerSTM_hh
 
 #include <memory>
 #include <sstream>
@@ -19,7 +19,7 @@
 #include "Mu2e-STMDAQ/dqm/dqm_shm_block.hh"
 #include "Mu2e-STMDAQ/dqm/shm_manager.hh"
 
-//Exception class thrown when Logger::ERROR written
+//Exception class thrown when LoggerSTM::ERROR written
 class CriticalError : public std::exception {
 public:
   CriticalError() : std::exception() {}
@@ -51,11 +51,11 @@ namespace Color {
 }
 
 
-//Logger singleton class
-class Logger {
+//LoggerSTM singleton class
+class LoggerSTM {
 public:
-  static Logger* Instance();
-  static Logger* Instance(const unsigned int logLevel_);
+  static LoggerSTM* Instance();
+  static LoggerSTM* Instance(const unsigned int logLevel_);
 
   //Define various levels of debugging/print-out (less to more)
   static unsigned int const ERROR                    = 0;
@@ -105,18 +105,18 @@ public:
   T* get(DQMPageType type);
 
 protected:
-  Logger() { }
+  LoggerSTM() { }
   static void constructor(const unsigned int logLevel_);
   void write(unsigned int level_, const std::string & message_, const std::lock_guard<std::mutex> & lock_);
 
-  friend class Destroyer<Logger>;
-  virtual ~Logger() {
-    std::cout << "Destroyed instance of Logger." << std::endl;
+  friend class Destroyer<LoggerSTM>;
+  virtual ~LoggerSTM() {
+    std::cout << "Destroyed instance of LoggerSTM." << std::endl;
   }
 
 private:
-  static Logger* _instance;
-  static Destroyer<Logger> _destroyer;
+  static LoggerSTM* _instance;
+  static Destroyer<LoggerSTM> _destroyer;
   static unsigned int _logLevel;
   static unsigned int _style;
   static DateTime _time;
