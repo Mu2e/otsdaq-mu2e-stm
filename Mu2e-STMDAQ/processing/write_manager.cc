@@ -25,7 +25,7 @@ WriteManager::WriteManager(const std::shared_ptr<AsyncLogger>& logger_,
 
   // Get the stream IDs
   int num = 0;
-  for (size_t i = 0; i < stm->write_config.streamID.size(); i++){
+  for (int i = 0; i < stm->write_config.streamID.size(); i++){
     if (stm->write_config.stream_enabled[i]){
       streamID[num] = stm->write_config.streamID[i];
       ++num;
@@ -100,7 +100,7 @@ void WriteManager::push(std::shared_ptr<DataStruct> buffer, const std::string& t
   }
     
   // Increase total bytes written
-  total_bytes[idx] = bytes;
+  total_bytes[idx] += bytes;
   
 }
 

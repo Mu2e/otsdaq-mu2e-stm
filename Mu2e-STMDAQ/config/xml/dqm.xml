@@ -1,0 +1,15 @@
+<!-- DQM -->
+<dqm>
+  <max_num_alarms>20</max_num_alarms>
+  <raw_data>
+    <raw_length>1000</raw_length>
+  </raw_data>
+  <baseline>
+    <noise_length>10</noise_length>
+  </baseline>
+  <pulses>
+    <peak_nbins>500</peak_nbins>
+    <min_height>-5000</min_height>
+  </pulses>
+</dqm>
+

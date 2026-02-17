@@ -12,7 +12,7 @@
 // Buffer queue code
 #include "Mu2e-STMDAQ/buffers/buffer_queue.hh"
 // Operation Manager code
-#include "Mu2e-STMDAQ/interfaces/operation_provider.hh"  
+#include "Mu2e-STMDAQ/processing/operation_manager.hh"  
 
 // Pre-allocated buffer pool for memory reuse
 class BufferPool {
@@ -68,7 +68,7 @@ public:
   BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
              const std::shared_ptr<AsyncLogger>& logger,
              const std::shared_ptr<STMdata>& stm_,
-             const std::shared_ptr<IOperationProvider>& om);
+             const std::shared_ptr<OperationManager>& om);
   
   // Destructor
   ~BufferPool() {

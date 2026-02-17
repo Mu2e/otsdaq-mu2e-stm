@@ -1,0 +1,47 @@
+ifndef STMDAQ_ROOT
+$(error STMDAQ_ROOT not set, must source setup.sh)
+endif
+
+include $(STMDAQ_ROOT)/Makefile.inc
+
+WARNING = -Wall -Wformat=2 -Wno-format-nonliteral -Wno-strict-aliasing -Wuninitialized -Wno-unused-function -Wextra -Wformat=2 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-pointer-arith -Wno-unused-variable -Wno-unused-local-typedefs -Wno-parentheses -Wno-deprecated-declarations -Wno-conversion-null -Wno-unused-but-set-variable -Wno-type-limits -Wno-unused-but-set-parameter -Wno-catch-value -fPIC -Wno-deprecated
+
+CCOPTS = -O3
+#CCOPTS = -Wall -Wno-unused-variable -ggdb -g3 # turn on debugging information
+INCLUDE_CC = -I$(BOOST_INC) -I$(PQXX_INC) -I$(STM_INC) -I$(MIDAS_INC) 
+
+MAIN_CC = run_HPGeSim.cc
+LIB_CC = HPGeSim_Mu2e_New.cc emulate_ADC.cc
+LIB_OBJ = $(patsubst %.cc, $(BUILD_DIR)/obj/%.o,$(LIB_CC))
+EXE = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(MAIN_CC))
+LIB = $(BUILD_DIR)/lib/libHPGeSim.so
+DEPENDS := $(patsubst %.cc,%.d,$(LIB_CC))
+
+.PHONY: all clean
+
+all: $(EXE)
+
+clean:
+	rm $(LIB) $(LIB_OBJ) $(EXE) $(BUILD_DIR)/obj/run_HPGeSim.o
+
+$(EXE) : $(BUILD_DIR)/obj/run_HPGeSim.o $(LIB)
+	echo "<**Linking run_HPGeSim**>"
+	g++ $(BUILD_DIR)/obj/run_HPGeSim.o $(STM_LIBS) $(IPBUS_LIBS) $(MIDAS_LIBS) $(PQXX_LIBS) -o $(EXE)
+
+$(LIB) : $(LIB_OBJ)
+	echo "<***Building Library**>" $(notdir $(LIB))
+	g++ -shared -o $(LIB) $(LIB_OBJ) 
+
+-include $(DEPENDS)
+
+$(BUILD_DIR)/obj/%.o: %.cc Makefile
+	echo "<**Compiling**>" $<
+	g++ $(CCOPTS) $(WARNING) $(INCLUDE_CC) -MMD -MP -c $< -o  $@
+
+#$(BUILD_DIR)/bin/%.exe: $(BUILD_DIR)/obj/%.o
+#	echo "<**Linking**>"  $(notdir $@)
+#	g++ $(CCOPTS) $^ -o $@ $(STM_LIBS) $(IPBUS_LIBS) $(PQXX_LIBS) $(MIDAS_LIBS) 
+
+
+
+

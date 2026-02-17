@@ -25,7 +25,7 @@ SharedMemoryManager::SharedMemoryManager() {
   
 }
 
-// Write data to shared memeory segment
+// Write data to shared memory segment
 void SharedMemoryManager::write_data(const void* data, size_t offset, size_t size) {
   std::memcpy(static_cast<char*>(shared_memory) + offset, data, size);
 }

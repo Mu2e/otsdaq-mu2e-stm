@@ -28,7 +28,6 @@ BufferPool::BufferPool(const Config& cfg,
   // Check buffer allocation is correct
   if (buffer_remainder < 0){
     logger->log("BufferPool: UDP initialisation code error: more packets than allocated buffer size.",0);
-    return;
   }
   
   // Get the zero suppression overflow size
@@ -134,7 +133,6 @@ BufferPool::BufferPool(const Config& cfg,
       std::to_string(FREE_MEM*1e-9) +
       " GB";
     logger->log(warning,0);
-    return;
   }
   
   // Set the buffer pool size
@@ -179,7 +177,7 @@ void BufferPool::release(std::shared_ptr<DataStruct>& buffer) {
 void BufferPool::resetWorker() {
 
   // Pin thread to core                                                                               
-  [[maybe_unused]] size_t core = cpu->get_next_core("BufferPool");
+  size_t core = cpu->get_next_core("BufferPool");
   
   while (running) {
     std::shared_ptr<DataStruct> buffer;

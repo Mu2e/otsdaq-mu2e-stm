@@ -21,7 +21,7 @@ void CheckData::check_packets(std::shared_ptr<DataStruct>& buffer){
   new_buffer = true;
   
   // The data length                                                                           
-  [[maybe_unused]] size_t n = buffer->zs_len;
+  size_t n = buffer->zs_len;
   
   // Define a pointer to the raw data buffer                                                  
   int16_t* data_ptr = buffer->zs.data();
@@ -33,7 +33,8 @@ void CheckData::check_packets(std::shared_ptr<DataStruct>& buffer){
                 + std::to_string(n % MAX_PACKET_LEN),0);
     return;
   }
-  
+
+
   // If this is the first packet of the data run or a null_hb has been detected
   if (firstPacket or is_null_hb){
     // Set the last packet to be the first packet to be read in
@@ -95,7 +96,7 @@ void CheckData::check_packets(std::shared_ptr<DataStruct>& buffer){
 void CheckData::check_eHdrs(std::shared_ptr<DataStruct>& buffer, uint64_t packet_start){
 
   // The data length                                                                           
-  [[maybe_unused]] size_t n = buffer->zs_len;
+  size_t n = buffer->zs_len;
   
   // Define a pointer to the raw data buffer                                                  
   int16_t* data_ptr = buffer->zs.data();
@@ -105,7 +106,7 @@ void CheckData::check_eHdrs(std::shared_ptr<DataStruct>& buffer, uint64_t packet
     | (uint16_t)data_ptr[packet_start];
   
   // Check for dropped packets
-  [[maybe_unused]] bool dropped_packets = check_dropped_packets(buffer,pnum,last_packet);
+  bool dropped_packets = check_dropped_packets(buffer,pnum,last_packet);
 
   // Return if a stop signal has been triggered
   if (stop::should_critical_stop()) return;
@@ -126,7 +127,7 @@ void CheckData::check_eHdrs(std::shared_ptr<DataStruct>& buffer, uint64_t packet
     // Get header start index location
     uint64_t hdr_start_loc = packet_start + MAX_PACKET_LEN - leftInPacket;
     // Get header end index location
-    [[maybe_unused]] uint64_t hdr_end_loc = hdr_start_loc + fw_eHdr_len-1;
+    uint64_t hdr_end_loc = hdr_start_loc + fw_eHdr_len-1;
 
     // Get event length index location
     uint64_t eLen_loc = hdr_start_loc + fw_eHdr.EvInPacket;
@@ -229,7 +230,7 @@ bool CheckData::check_dropped_packets(std::shared_ptr<DataStruct>& buffer,
 uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr_index){
 
   // The data length                                                                           
-  [[maybe_unused]] size_t n = buffer->zs_len;
+  size_t n = buffer->zs_len;
   
   // Define a pointer to the raw data buffer                                                  
   int16_t* data_ptr = buffer->zs.data();
@@ -238,7 +239,7 @@ uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr
   uint16_t channel = data_ptr[hdr_index+fw_eHdr.Ch_DTCclk_0] & 0xFF;  
 
   // Check that the channel number is correct
-  if (channel != stm->ch_config.num){
+  if (channel != stm->master_config.ch_num){
     // Check to see if it is the last packet filled only with 0xDEADBEEFs
     for (size_t i = 0; i < fw_eHdr_len/2; i++){
       // If end of packet isn't filled with 0xDEADBEEF, throw critical error

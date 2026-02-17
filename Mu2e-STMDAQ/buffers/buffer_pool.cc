@@ -1,12 +1,11 @@
 // Buffer pool header
 #include "Mu2e-STMDAQ/buffers/buffer_pool.hh"
-#include "Mu2e-STMDAQ/processing/operation_manager.hh"  // include the concrete class here
 
 // Constructor: Pre-allocate buffers and push them into the lock-free stack
 BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
                        const std::shared_ptr<AsyncLogger>& logger,
                        const std::shared_ptr<STMdata>& stm_,
-                       const std::shared_ptr<IOperationProvider>& om) :
+                       const std::shared_ptr<OperationManager>& om) :
   cpu(cpu_), stm(stm_),
   raw_size(stm->buffer_config.raw_size),
   raw_len(stm->buffer_config.raw_len),
@@ -97,7 +96,7 @@ BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
   // Get the names of all the selected operations
   const std::vector<std::pair<std::string, op_any>>& selectedOperations = om->getUseOps();
   std::vector<std::string> op_names(thread_num);
-  for (size_t i = 0; i < thread_num; i++) op_names[i] = selectedOperations[i].first;
+  for (int i = 0; i < thread_num; i++) op_names[i] = selectedOperations[i].first;
   
   // Create pool of data struct buffers
   for (size_t i = 0; i < buffer_pool_total; ++i){
@@ -132,7 +131,7 @@ void BufferPool::release(std::shared_ptr<DataStruct>& buffer) {
 void BufferPool::resetWorker() {
 
   // Pin thread to core                                                                               
-  [[maybe_unused]] size_t core = cpu->get_next_core("BufferPool");
+  size_t core = cpu->get_next_core("BufferPool");
   
   while (running) {
     std::shared_ptr<DataStruct> buffer;

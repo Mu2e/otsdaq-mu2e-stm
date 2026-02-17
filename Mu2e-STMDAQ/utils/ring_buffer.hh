@@ -6,9 +6,8 @@
 #include <atomic>
 #include <iostream>
 
-// Data Struct
+// STM data header
 #include "Mu2e-STMDAQ/utils/data_struct.hh"
-
 
 template<typename T>
 class RingBuffer {

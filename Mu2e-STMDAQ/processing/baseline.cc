@@ -35,7 +35,7 @@ void Baseline::calc_baseline(std::shared_ptr<DataStruct>& buffer){
   const int16_t* data_ptr = buffer->raw.data();
 
   // Check histogram sizes and throw error
-  if (int(buffer->hist_counts_window.size()) != nbins){
+  if (buffer->hist_counts_window.size() != nbins){
       logger->log("Baseline: Error! buffer->hist_window has " +
                   std::to_string(buffer->hist_counts_window.size()) +
                   " bins. Config bin num = " +
@@ -43,7 +43,7 @@ void Baseline::calc_baseline(std::shared_ptr<DataStruct>& buffer){
       std::this_thread::sleep_for(std::chrono::seconds(3));
       return;
   }
-  if (int(buffer->hist_counts_all.size()) != nbins){
+  if (buffer->hist_counts_all.size() != nbins){
       logger->log("Baseline: Error! buffer->hist_all has " +
                   std::to_string(buffer->hist_counts_all.size()) +
                   " bins. Config bin num = " +
@@ -298,8 +298,8 @@ baseline_fit Baseline::EM_algorithm(const std::vector<uint64_t>& hist_counts,
   // Convert exponential parameters to (mean, rms)
   // For f(x|lambda,t) on (-inf, t]: mean  = t - 1/lambda, sigma = 1/lambda
   const double sigma0 = std::sqrt(var0);
-  [[maybe_unused]] const double mu_exp = t - 1.0 / lambda;
-  [[maybe_unused]] const double sig_exp = 1.0 / lambda;
+  const double mu_exp = t - 1.0 / lambda;
+  const double sig_exp = 1.0 / lambda;
 
   // Baseline fit result
   baseline_fit result = {w0, mu0, sigma0, w1, t, lambda};

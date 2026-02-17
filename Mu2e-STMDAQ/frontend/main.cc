@@ -1,15 +1,6 @@
 // Thread Manager header
-#include "Mu2e-STMDAQ/utils/cpu_utils.hh"
-#include "Mu2e-STMDAQ/utils/async_logger.hh"
-#include "Mu2e-STMDAQ/utils/EnvVars.hh"
-#include "Mu2e-STMDAQ/utils/timer.hh"
-#include "Mu2e-STMDAQ/utils/signal_handler.hh"
-#include "Mu2e-STMDAQ/config/stm_data.hh"
-#include "Mu2e-STMDAQ/config/config.hh"
-#include "Mu2e-STMDAQ/buffers/buffer_pool.hh"
-#include "Mu2e-STMDAQ/interfaces/operation_provider.hh"
 #include "Mu2e-STMDAQ/processing/thread_manager.hh"
-#include "Mu2e-STMDAQ/processing/operation_manager.hh"
+#include "Mu2e-STMDAQ/hardware/hw_manager.hh" 
 
 // Main
 int main() {  
@@ -33,9 +24,12 @@ int main() {
 
   // Initialise the STM data information
   std::shared_ptr<STMdata> stm = std::make_shared<STMdata>(cfg,logger);
+
+  // Initialise hardward manager
+  std::shared_ptr<HardwareManager> hw = std::make_shared<HardwareManager>(logger,stm);
   
   // Instance of operation manager
-  std::shared_ptr<IOperationProvider> om;
+  std::shared_ptr<OperationManager> om;
   if (!stop::should_stop()) om = std::make_shared<OperationManager>(cfg,logger,stm,signal);
   
   // If any operations have been selected...
@@ -49,10 +43,10 @@ int main() {
     if (!stop::should_stop()) pool = std::make_shared<BufferPool>(cpu,logger,stm,om);
     
     // Instance of thread manager
-    if (!stop::should_stop()) std::shared_ptr<ThreadManager> tm = std::make_shared<ThreadManager>(cpu,logger,stm,signal,pool,om);
+    if (!stop::should_stop()) std::shared_ptr<ThreadManager> tm = std::make_shared<ThreadManager>(cpu,logger,stm,signal,pool,om,hw);
     
   }
-    
+
   return 0;
   
 }

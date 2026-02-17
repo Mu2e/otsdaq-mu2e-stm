@@ -1,19 +1,47 @@
-set(LIB_CC
-  stm_data.cc 
+# config/CMakeLists.txt
+
+# ---- Sources (shared) ----                                                 
+set(CONFIG_SOURCES
+  stm_data.cc
 )
 
-cet_make_library(
-  LIBRARY_NAME ConfigLibraryX
-  SOURCE
-  ${LIB_CC}
-  LIBRARIES PUBLIC
-  ${STMDAQ_EXTRA_LIBS}  # e.g., rt
-  ${PUGIXML_LIBRARY_DIR}  
-  UtilsLibraryX
-)
+# ============================================================               
+#                         CET BUILD                                          
+# ============================================================               
+if(USE_CET)                                                                  
+                                                                             
+  cet_make_library(                                                          
+    LIBRARY_NAME Config
+    SOURCE                                                                   
+    ${CONFIG_SOURCES}
+    LIBRARIES PUBLIC
+      Utils          
+    LIBRARIES PRIVATE
+      stmdaq_all_deps      
+    )                                                                          
+                                                                             
+  install_headers()                                                          
+  install_source()  
 
-# Include paths
-stmdaq_target_includes(ConfigLibraryX)
+# ============================================================               
+#                    STANDARD CMAKE BUILD                                    
+# ============================================================               
+else()                                                                       
+                                                                             
+  add_library(Config SHARED                                                   
+    ${CONFIG_SOURCES}                                                         
+  )                                                                          
+                                                                             
+  # Produce libConfig.so (case-sensitive name)                                
+  set_target_properties(Config PROPERTIES                                     
+    OUTPUT_NAME "Config"                                                      
+  )                                                                          
+                                                                             
+  target_link_libraries(Config PRIVATE                                        
+    stmdaq_all_deps                                                          
+  )                                                                          
+                                                                             
+endif()
 
-install_headers()
-install_source()
+
+

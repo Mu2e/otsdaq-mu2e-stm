@@ -10,7 +10,7 @@
 #include "Mu2e-STMDAQ/utils/async_logger.hh"
 
 // Config code
-#include "Mu2e-STMDAQ/config/include/ch_config.hh" // channel
+#include "Mu2e-STMDAQ/config/include/master_config.hh" // master
 #include "Mu2e-STMDAQ/config/include/fw_config.hh" // firmware
 #include "Mu2e-STMDAQ/config/include/mu2e_config.hh" // mu2e
 #include "Mu2e-STMDAQ/config/include/udp_config.hh" // udp
@@ -20,6 +20,8 @@
 #include "Mu2e-STMDAQ/config/include/buffer_config.hh" // buffers
 #include "Mu2e-STMDAQ/config/include/baseline_config.hh" // adc baseline
 #include "Mu2e-STMDAQ/config/include/mwd_config.hh" // moving window algorithm
+#include "Mu2e-STMDAQ/config/include/dqm_config.hh" // dqm
+#include "Mu2e-STMDAQ/config/include/tcp_config.hh" // tcp
 
 // Number of data channels
 static constexpr int CHNUM = 2;
@@ -216,7 +218,7 @@ public:
   
   // Check the end of a packet for repeated 0xDEADBEEF
   uint16_t check_dead_beef(int16_t* data, uint64_t packet_start, uint16_t leftInPacket);
-  
+
   // Create software event header from buffer
   sw_event_header create_sw_eHdr(int16_t* data, uint64_t hdr_index);
 
@@ -226,8 +228,8 @@ public:
                                  uint64_t Ch_DTCclk,
                                  uint64_t EM);
 
-  // Channel config
-  const ch_info ch_config;
+  // STMDAQ master config
+  const master_info master_config;
   
   // Firmware configuration
   const fw_info fw_config;
@@ -238,7 +240,7 @@ public:
   // UDP configuration
   const udp_info udp_config;
   
-  // Zero suppression configuration
+ // Zero suppression configuration
   const zs_info zs_config;
   
   // Prescale configuration
@@ -255,6 +257,12 @@ public:
 
   // MWD configuration
   const mwd_info mwd_config;
+
+  // TCP configuration
+  const tcp_cfg_info tcp_config;
+  
+  // DQM configuration
+  const dqm_info dqm_config;
   
 };
 

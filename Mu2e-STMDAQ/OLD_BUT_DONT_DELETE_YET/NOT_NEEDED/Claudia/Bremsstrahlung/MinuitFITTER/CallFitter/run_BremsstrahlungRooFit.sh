@@ -1,0 +1,1 @@
+/work/cgarcia/STMDAQ-TestBeam/build/bin/BremsstrahlungRooFit.exe  > /data1/cgarcia/SignaltoBackground/MinuitFit_1kHz_100000s_347keV_1keVres/1000JOBS/SigBack_TrueRecoRooFit/SignalTrue_RecoRooFit_Diff.log  2>&1 &

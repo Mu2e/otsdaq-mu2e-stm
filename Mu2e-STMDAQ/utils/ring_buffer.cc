@@ -75,6 +75,3 @@ template class RingBuffer<DataStruct>;
 // Explicit template instantiation for int16_t vector type
 template class RingBuffer<std::vector<int16_t>>;
 
-// Explicit template instantiation for event data struct type
-//template class RingBuffer<EventDataStruct>;
-

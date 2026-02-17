@@ -1,0 +1,49 @@
+ifndef STMDAQ_ROOT
+$(error STMDAQ_ROOT not set, must source setup.sh)
+endif
+
+include $(STMDAQ_ROOT)/Makefile.inc
+
+WARNING = -Wall -Wformat=2 -Wno-format-nonliteral -Wno-strict-aliasing -Wuninitialized -Wno-unused-function -Wextra -Wformat=2 -Wno-unused-parameter -Wno-missing-field-initializers -Wno-pointer-arith -Wno-unused-variable -Wno-unused-local-typedefs -Wno-parentheses -Wno-deprecated-declarations -Wno-conversion-null -Wno-unused-but-set-variable -Wno-type-limits -Wno-unused-but-set-parameter -Wno-catch-value -fPIC -Wno-deprecated
+
+#Use this
+CC_OPTS = -Wall -Wno-unused-variable -O3 -DUSE_SQL # turn on code optimisation and database access
+
+DEPOPTS = -MT $@ -MMD -MP -MF $*.d
+
+MAIN_CC = CallZS.cc
+LIB_CC = ZS.cc	
+SOURCE_CC = $(LIB_CC) $(MAIN_CC)
+LIB_OBJ = $(patsubst %.cc, %.o, $(LIB_CC))
+LIB = libZS.so
+EXE = $(patsubst %.cc, %.exe, $(MAIN_CC))
+INCLUDE_CC = -I$(BOOST_INC) -I$(PQXX_INC) -I$(STM_INC) -I$(ROOT_INC)
+DEPFILES = $(patsubst %.cc, %.d, $(SOURCE_CC))
+
+
+.PHONY: all clean
+
+all: $(EXE)
+
+clean:
+	rm $(LIB_OBJ) $(DEPFILES) $(LIB) $(EXE) *output* *.o *~
+
+%.o: %.cc Makefile %.d |
+	echo "<**Compiling**>" $<
+	g++ $(CC_OPTS) $(WARNING) $(DEPOPTS) $(INCLUDE_CC) -c $< -o  $@
+
+%.exe: $(patsubst %.cc, %.o, $(MAIN_CC)) $(LIB)
+	echo "<**Linking**>"
+	g++ $(patsubst %.cc, %.o, $(MAIN_CC)) $(STM_LIBS) $(IPBUS_LIBS) $(PQXX_LIBS) -o $(EXE)
+
+$(LIB) : $(LIB_OBJ)
+	echo "<***Building Library**>" $(notdir $(LIB))
+	g++ -shared -o $(LIB) $(LIB_OBJ)
+
+$(DEPFILES):
+include $(wildcard $(DEPFILES))
+
+
+
+
+

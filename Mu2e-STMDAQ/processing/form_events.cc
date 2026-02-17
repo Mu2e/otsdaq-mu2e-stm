@@ -25,7 +25,7 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
   size_t count = 0;
 
   // The buffer's EWT data
-  [[maybe_unused]] EWTinfo& EWTs = buffer->EWTs;
+  EWTinfo& EWTs = buffer->EWTs;
 
   // ADC data counter
   size_t adc_count = 0;
@@ -223,6 +223,7 @@ int FormEvents::store_event(std::shared_ptr<DataStruct>& buffer, size_t& adc_cou
   this_EWT.EWT = current_EWT; // EWT
   this_EWT.raw.start = adc_count; // Buffer index of start of event's ADC data
   this_EWT.raw.len = current_event_count; // Length of event's ADC data in the buffer
+  eHdr_to_copy[sw_eHdr.RAW_LEN] = current_event_count; // Length of event's ADC data in header
   this_EWT.hdr = eHdr_to_copy; // The actual header data
 
   // Check the event is not larger than the single event buffer

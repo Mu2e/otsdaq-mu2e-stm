@@ -1,31 +1,22 @@
-set(LIB_CC
+# simfw/CMakeLists.txt
+
+add_library(Sim SHARED
   gen_data.cc
 )
+set_target_properties(Sim PROPERTIES OUTPUT_NAME "Sim")
+target_link_libraries(Sim PRIVATE stmdaq_all_deps)
 
-cet_make_library(
-  LIBRARY_NAME SimDataLibraryX
-  SOURCE
-    ${LIB_CC}
-  LIBRARIES PUBLIC
-  ${STMDAQ_EXTRA_LIBS}  # e.g., rt
-  ${PUGIXML_LIBRARY_DIR}  
-  UtilsLibraryX
-  ConfigLibraryX
-  OpsProviderLibraryX
-  BuffersLibraryX
-  ProcessingLibraryX
+add_executable(run_sim.exe
+  run_sim.cc
 )
 
-cet_make_exec(
-  NAME run_sim
-  SOURCE
-    run_sim.cc
-  LIBRARIES
-    SimDataLibraryX
+target_link_libraries(run_sim.exe PRIVATE
+  stmdaq_all_deps
+  stmdaq_python_deps
+  Sim
+
+  Utils
+  Buffers
+  Processing
+  Config    
 )
-
-# Include paths
-stmdaq_target_includes(SimDataLibraryX)
-
-install_headers()
-install_source()

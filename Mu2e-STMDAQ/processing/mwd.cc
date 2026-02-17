@@ -136,7 +136,7 @@ void MWD::differentiation(std::shared_ptr<DataStruct>& buffer) {
     const size_t m_index = diff_index & m_mask;
     
     // Get a[i-M] from the ring buffer
-    const double aim = (int(diff_index) >= M) ? a_ring[m_index] : 0.0;
+    const double aim = (diff_index >= M) ? a_ring[m_index] : 0.0;
     
     // Differentiation: D[i] = ai - a[i-M] (for i >= M), else D[i] = ai
     const double Di = ai - aim;
@@ -183,9 +183,9 @@ void MWD::averaging(std::shared_ptr<DataStruct>& buffer) {
 
     // Moving average 
     double val;
-    if (int(idx) < L) {
+    if (idx < L) {
       s += Di;
-      val = (int(idx) == L - 1) ? (s * inv_L) : Di;
+      val = (idx == L - 1) ? (s * inv_L) : Di;
     } else {
       s += Di - D_ptr[l_index];
       val = s * inv_L;
@@ -253,7 +253,7 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
     
     // Get the first EWT header of the buffer
     EWT_info* this_EWT = &EWTs[EWT_count];
-    [[maybe_unused]] uint64_t EWT = this_EWT->EWT;
+    uint64_t EWT = this_EWT->EWT;
     size_t EWT_start = this_EWT->raw.start;
     size_t EWT_len = this_EWT->raw.len;
     size_t new_EWT_loc = EWT_start + EWT_len; // The next EWT location
@@ -274,7 +274,7 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
       const double avg = data_ptr[i];
       
       // Only perform peak-finding logic after the warm-up period (M samples)
-      if (int(pf_index) >= M) [[likely]] {
+      if (pf_index >= M) [[likely]] {
         
         // Detect peak region below threshold
         if (avg < threshold_cut) {
@@ -327,7 +327,7 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
     }
     
     // Loop over all EWTs
-    for (size_t j = 0; j < buffer->EWT_count; j++){
+    for (int j = 0; j < buffer->EWT_count; j++){
       // Get the EWT info
       EWT_info* this_EWT = &EWTs[j];
       //    uint64_t EWT = this_EWT->EWT;

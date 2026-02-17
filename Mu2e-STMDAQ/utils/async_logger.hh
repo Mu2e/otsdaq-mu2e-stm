@@ -15,7 +15,9 @@
 // Logger code
 #include "Mu2e-STMDAQ/utils/Logger.hh" 
 // Environmental variables header
-#include "Mu2e-STMDAQ/utils/EnvVars.hh"  
+#include "Mu2e-STMDAQ/utils/EnvVars.hh"
+// Timer code
+#include "Mu2e-STMDAQ/utils/timer.hh"
 
 // Pre-allocated buffer pool for memory reuse
 class AsyncLogger {
@@ -39,7 +41,7 @@ public:
     }
 
     // Close log file
-    STMLogger::Instance()->CloseLogFile();
+    Logger::Instance()->CloseLogFile();
     
     std::cout << "AsyncLogger destructor called.\n";
   }

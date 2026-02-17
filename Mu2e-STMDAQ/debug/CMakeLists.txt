@@ -1,20 +1,41 @@
-set(LIB_CC
- test_funcs.cc  
+# debug/CMakeLists.txt
+
+# ---- Sources (shared) ----                                                 
+set(DEBUG_SOURCES
+  test_funcs.cc
 )
 
-cet_make_library(
-  LIBRARY_NAME DebugLibraryX
-  SOURCE
-    ${LIB_CC}
-  LIBRARIES PUBLIC
-    ${STMDAQ_EXTRA_LIBS}  # e.g., rt
-    ${PUGIXML_LIBRARY_DIR}  
-    UtilsLibraryX
-    ConfigLibraryX
+# ============================================================               
+#                         CET BUILD                                          
+# ============================================================               
+if(USE_CET)                                                                  
+                                                                             
+  cet_make_library(                                                          
+	  LIBRARY_NAME Debug
+    SOURCE                                                                   
+      ${DEBUG_SOURCES}
+    LIBRARIES PUBLIC
+      Utils          
+      Config
+    LIBRARIES PRIVATE
+      stmdaq_all_deps      
+    )                                                                          
+                                                                             
+  install_headers()                                                          
+  install_source()  
+
+# ============================================================               
+#                    STANDARD CMAKE BUILD                                    
+# ============================================================               
+else()                                                                       
+
+  add_library(Debug SHARED
+    test_funcs.cc
   )
 
-# Include paths
-stmdaq_target_includes(DebugLibraryX)
+  set_target_properties(Debug PROPERTIES OUTPUT_NAME "Debug")
 
-install_headers()
-install_source()
+  target_link_libraries(Debug PRIVATE
+    stmdaq_all_deps
+)
+endif()

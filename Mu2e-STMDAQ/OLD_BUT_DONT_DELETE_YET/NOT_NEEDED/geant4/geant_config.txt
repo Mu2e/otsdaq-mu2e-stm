@@ -1,0 +1,40 @@
+
+#Primary
+pdgid: 22
+momMeV: 1.809
+thetamin: 0.99
+//phi always between 0 and 2pi
+initpos_x_cm: 4
+initpos_y_cm: 0
+initpos_z_cm: -11
+
+bool_dodisk_pos: 1
+init_rmax_cm: 0.5642
+
+bool_docyl_pos: 0
+
+bool_dofixed_pos: 0
+
+#Geometry
+bool_doHPGe: 1
+bool_doPoly: 0
+bool_doKClPot: 0
+bool_doVDplane: 0
+bool_doAlWindow: 1 
+
+HPGe_rot_angley: 50
+AlWindow_rmax_cm: 5
+AlWindow_halflength_cm: 0.075
+AlWindow_xcenter_cm: 0
+AlWindow_ycenter_cm: 0
+AlWindow_zcenter_cm: -0.475
+
+VD_rmax_cm: 5
+VD_halflength_cm: 0.05
+VD_xcenter_cm: 0
+VD_ycenter_cm: 0
+VD_zcenter_cm: -0.7
+
+#RootFile
+rootname: 10to6_1.809MeV_0.99costheta_50yrot_4.root
+

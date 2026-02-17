@@ -14,7 +14,7 @@ Prescale::Prescale(const std::shared_ptr<AsyncLogger>& logger_,
                                            {"ZS on-spill",p_cfg.zs.on_spill.prescale},
                                            {"ZS off-spill",p_cfg.zs.off_spill.prescale}};
 
-  for (size_t i = 0; i < ps.size(); i++){
+  for (int i = 0; i < ps.size(); i++){
     string ID = ps[i].first;
     int val = ps[i].second;
     // Check that prescales values are prime numbers
@@ -54,14 +54,14 @@ void Prescale::prescale_data(std::shared_ptr<DataStruct>& buffer){
   const prescale_t& zs_prescale  = p_cfg.zs;
   
   // Loop over EWTs
-  for (size_t i = 0; i < buffer->EWT_count; ++i) {
+  for (int i = 0; i < buffer->EWT_count; ++i) {
 
     // Get this EWT
     EWT_info& ewt = buffer->EWTs[i];
-    [[maybe_unused]] uint64_t EWT = ewt.EWT;
+    uint64_t EWT = ewt.EWT;
 
     // Get EWT header
-    [[maybe_unused]] sw_event_header& ewt_hdr = ewt.hdr;
+    sw_event_header& ewt_hdr = ewt.hdr;
 
     // Is this EWT on- or off-spill?
     const bool on_spill = true; // GET FROM EVENT MODE LATER

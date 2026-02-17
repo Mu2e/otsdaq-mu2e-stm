@@ -1,0 +1,31 @@
+# Configuration file for MWD processing
+
+# Main MWD parameters
+M = 512
+L = 256
+
+# Peak parameters
+tau = 50000 # Decay time constant (ns)
+
+# ADC parameters
+fADC = 370 # ADC sampling frequency (MHz)
+
+# Threshold cut mode: 0 = baseline mean + RMS , 1 = fixed user value
+use_fixed_cut = 0
+
+# Parameters for cut_mode 0 = baseline mean + RMS
+baseline_mean = 0 # Baseline mean
+baseline_rms = 12.32 # Baseline RMS
+nsigma_cut = 3.0 # No. of sigmas to used as a threshold cut
+thresholdgrad = -0.5; # Used if calculating the baseline
+
+# Parameter to offset basline to close to int16 max value
+nsigma_baseline_offset = 7 # No of baseline sigmas from int16 max
+
+# Parameters for cut_mode 1 = fixed user value
+fixed_cut_value = -500
+
+# auxlow, minimum value of the peak 
+auxlow_init = 4000 // 4000 so l values always lower at start of peaks
+
+

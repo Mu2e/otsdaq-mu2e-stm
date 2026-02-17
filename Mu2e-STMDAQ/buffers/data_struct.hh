@@ -6,12 +6,13 @@
 
 // Struct of baseline fit data
 struct baseline_fit{
-  
+
   // Baseline Gaussian Values
   double w0 = 0;
   double mu0 = 0;
   double sigma0 = 0;
-  // Pulse Tail Exponential Values  
+
+  // Pulse Tail Exponential Values
   double w1 = 0;
   double t = 0;
   double lambda = 0;
@@ -23,8 +24,9 @@ struct baseline_fit{
     sigma0 = 0;
     w1 = 0;
     t = 0;
-    lambda = 0;
+    lambda = 0;    
   }
+  
 };
 
 // Pulse height
@@ -85,7 +87,7 @@ struct DataStruct {
   std::vector<double> ph; // Pulse height buffer
 
   // Data lengths
-  size_t orig_len = 0, raw_len = 0, zs_len = 0, ph_len = 0;
+  size_t orig_len = 0, raw_len = 0, zs_len = 0, noise_len = 0, ph_len = 0;
 
   // Packet info
   size_t packet_count = 0;
@@ -123,6 +125,7 @@ struct DataStruct {
   double baseline_sigma_current = 0;
   // Noise data for DQM
   std::vector<int16_t> noise_data;
+  std::vector<int16_t> noise_data_fft;
 
   // MWD output
   size_t peak_count = 0;
@@ -130,6 +133,9 @@ struct DataStruct {
   // CPU performace/efficiency metrics
   std::vector<std::pair<const std::string, double>> cpu_performance;
   
+  // Prescale 
+  std::vector<bool> raw_ps_bool; // Which events are being kept (1=keep)
+
   // Constructor initializes the buffer with a fixed size
   DataStruct(const std::shared_ptr<STMdata>& stm,
              int buffer_num_,
@@ -141,7 +147,7 @@ struct DataStruct {
       EWTs(stm->buffer_config.max_event_num),
       hist_counts_window(stm->baseline_config.hist_bin_num),
       hist_counts_all(stm->baseline_config.hist_bin_num),
-      noise_data(stm->buffer_config.baseline_len),
+      noise_data(),
       cpu_performance([&]{
         std::vector<std::pair<const std::string,double>> v;
         v.reserve(op_names.size());
@@ -151,6 +157,7 @@ struct DataStruct {
         return v;
       }())
   {
+    noise_data.reserve(stm->buffer_config.baseline_len);
     reset();  // Ensure clean state on creation
   }
 
@@ -188,7 +195,8 @@ struct DataStruct {
     baseline_sigma_current = 0;
     baseline_window.reset();
     baseline_all.reset();
-    std::fill(noise_data.begin(), noise_data.end(), 0);
+    noise_data.clear();
+    std::fill(raw_ps_bool.begin(), raw_ps_bool.end(), 0);
     peak_count = 0;
     //    peaks.resize(0);
     for (auto& entry : cpu_performance) entry.second = 0.0;

@@ -13,22 +13,23 @@
 
 // Include CPU utils header                                                                       
 #include "Mu2e-STMDAQ/utils/cpu_utils.hh"
-// Include UDP header
-#include "Mu2e-STMDAQ/processing/udp.hh"
-// Buffer pool code
-#include "Mu2e-STMDAQ/buffers/buffer_pool.hh"
 // Buffer queue code
 #include "Mu2e-STMDAQ/buffers/buffer_queue.hh"
+// Buffer pool code
+#include "Mu2e-STMDAQ/processing/buffer_pool.hh"
 // Operation Manager code
-#include "Mu2e-STMDAQ/interfaces/operation_provider.hh"
+#include "Mu2e-STMDAQ/processing/operation_manager.hh"
+// Hardware Manager code
+#include "Mu2e-STMDAQ/hardware/hw_manager.hh"
 // DQM code
-#include "Mu2e-STMDAQ/dqm/dqm_manager.hh"
+#include "Mu2e-STMDAQ/processing/dqm_manager.hh"
 
 // Standard thread functions
 class ThreadManager {
 
 private:
   
+
   // Store reference to CPU utils instance
   const std::shared_ptr<cpu_utils>& cpu;
   
@@ -44,6 +45,9 @@ private:
   // Buffer pool
   const std::shared_ptr<BufferPool>& pool;
 
+  // Hardware manager
+  const std::shared_ptr<HardwareManager> hw;
+  
   // UDP class
   const std::shared_ptr<UDP> udp;
 
@@ -84,7 +88,8 @@ public:
                          const std::shared_ptr<STMdata>& stm_,
                          const std::shared_ptr<SignalHandler>& signal_,
                          const std::shared_ptr<BufferPool>& pool_,
-                         const std::shared_ptr<IOperationProvider>& om);
+                         const std::shared_ptr<OperationManager>& om,
+                         const std::shared_ptr<HardwareManager> hw_);
 
   // Get UDP wait time
   std::chrono::duration<double> wait() const { return udp->get_wait(); }
@@ -121,6 +126,10 @@ public:
   void log_performance(const size_t thrd_idx,
                        const std::chrono::time_point<
                        std::chrono::high_resolution_clock> thread_start_time);
+
+  // Data source thread function 
+  void data_source_thread(const size_t thrd_idx);
+
   
 };
 

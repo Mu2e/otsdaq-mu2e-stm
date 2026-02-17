@@ -1,0 +1,17 @@
+{
+  "name": "mu2e_stm_dqm",
+  "version": "1.0.0",
+  "description": "Mu2e Stopping Target Monitor (STM) Data Quality Monitor (DQM).\\nUsed to view the data coming into the High Purity Germanium (HPGe) detector. ",
+  "main": "ELBE_DQM.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pawel Plesniak",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "chart.js": "2.9.4",
+    "express": "4.17.3",
+    "http-server": "14.1.0",
+    "zeromq": "5.2.8"
+  }
+}

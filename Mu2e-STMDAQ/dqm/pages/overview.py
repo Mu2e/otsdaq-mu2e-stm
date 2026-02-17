@@ -1,94 +1,139 @@
-# Import required modules
-from dash import html, dcc, register_page
-import numpy as np
+import dash
+from dash import html, dcc, callback, Output, Input, State
+import dash_mantine_components as dmc
+from worker_manager import manager
 import plotly.graph_objs as go
 
-# Register this file as a Dash page with a specific path
-register_page(__name__, path="/overview", name="Overview")
+# Register this script as a Dash page 
+dash.register_page(__name__, path="/", name="Overview", layout=lambda: layout())
 
-# Simulated event numbers
-events = np.arange(1, 351)
+# Lazy-loaded layout function to reduce startup cost
+def layout():
+    return html.Div([
 
-# Create module names
-modules = [f"Module {i}" for i in range(8)]
+        # Track URL so we can poll only when on this page
+        dcc.Location(id="overview-url", refresh=False),
 
-# Generate dummy data for hits and event size
-hits_total = np.random.normal(3500, 200, size=events.size)
-hits_modules = [np.random.normal(500, 50, size=events.size) for _ in range(8)]
-hit_time_bins = np.arange(500)
-hit_time_counts = np.random.exponential(scale=1000, size=500).astype(int)
-amc13_event_size = np.random.normal(5000, 300, size=events.size)
-
-# Define the layout of this page
-layout = html.Div([
-    html.H1("Overview Page"),  # Page title
-
-    # First row of 3 summary graphs
-    html.Div([
+        # Title and status message
         html.Div([
-            dcc.Graph(
-                id="unpack-complete",
-                figure=go.Figure(data=go.Scatter(x=events, y=np.ones_like(events), name="UnpackComplete"))
-            )
-        ], style={'width': '30%', 'display': 'inline-block'}),
-
+            html.H2("Overview", style={"margin": 0}),
+            html.Div([
+                html.Span("Status: ", style={"color": "black", "fontWeight": "bold"}),
+                html.Span(id="status-message")
+            ], style={"marginLeft": "auto", "display": "flex", "alignItems": "center", "gap": "5px"})
+        ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "0 20px", "marginBottom": "10px"}),
+        
+        # Baseline and peak plot
         html.Div([
-            dcc.Graph(
-                id="num-unpack-errors",
-                figure=go.Figure(data=go.Scatter(x=events, y=np.zeros_like(events), name="NumUnpackingErrors"))
-            )
-        ], style={'width': '30%', 'display': 'inline-block'}),
+            html.Div(
+                dcc.Graph(id="baseline-graph",
+                    responsive=True,
+                    style={"height": "100%", "width": "100%"}
+                    ),
+                style={"width": "50%", "height": "500px", "margin": "auto",'display': 'inline-block'}
+            ),
 
-        html.Div([
-            dcc.Graph(
-                id="tracker-data",
-                figure=go.Figure(data=go.Scatter(x=events, y=np.ones_like(events), name="TrackerData"))
-            )
-        ], style={'width': '30%', 'display': 'inline-block'})
-    ]),
+            html.Div(
+                dcc.Graph(id="peak-graph",
+                    responsive=True,
+                    style={"height": "100%", "width": "100%"}
+                    ),
+                style={"width": "50%", "height": "500px", "margin": "auto",'display': 'inline-block'}
+            ),
+        ]),
 
-    # Number of Hits per Event for all modules
-    html.Div([
-        dcc.Graph(
-            id="hits-per-event",
-            figure={
-                'data': [go.Scatter(x=events, y=hits_total, name='Total')] +
-                [go.Scatter(x=events, y=hits_modules[i], name=modules[i]) for i in range(8)],
-                'layout': go.Layout(title='Number of Hits Per Event')
-            }
-        )
-    ]),
+         html.Div(
+            dcc.Graph(id="raw-graph",
+                    responsive=True,
+                    style={"height": "100%", "width": "100%"}
+                    ),
+            style={"width": "100%", "height": "400px", "margin": "auto",'display': 'inline-block'}
+        ),
 
-    # Histogram of TDC Hit Times
-    html.Div([
-        dcc.Graph(
-            id="tdc-hit-time",
-            figure={
-                'data': [go.Bar(x=hit_time_bins, y=hit_time_counts)],
-                'layout': go.Layout(title='TDC Hit Time (0-500us)', xaxis={'title': 'time bin'})
-            }
-        )
-    ]),
+         html.Div(
+            dcc.Graph(id="noise-plot",
+                    responsive=True,
+                    style={"height": "100%", "width": "100%"}
+                    ),
+            style={"width": "100%", "height": "400px", "margin": "auto",'display': 'inline-block'}
+        ),
 
-    # TDC Buffer Sizes
-    html.Div([
-        dcc.Graph(
-            id="tdc-buffer",
-            figure={
-                'data': [go.Scatter(x=np.arange(64), y=np.zeros(64))],
-                'layout': go.Layout(title='TDC Buffer Size > 1000', xaxis={'title': 'TDC Number'})
-            }
-        )
-    ]),
+        # Latest shared memory read for callbacks
+        dcc.Store(id="status", data={}),
 
-    # AMC13 Event Size per Event
-    html.Div([
-        dcc.Graph(
-            id="amc13-size",
-            figure={
-                'data': [go.Scatter(x=events, y=amc13_event_size)],
-                'layout': go.Layout(title='AMC13EventSize', xaxis={'title': 'event number'})
-            }
-        )
+        # Timer to trigger polling shared memory
+        dcc.Interval(id="overview-interval-component", interval=10000, n_intervals=0),
+
     ])
-], className="page-content")                        # Load the style page layout
+
+@callback(
+    Output("notif-container","sendNotifications", allow_duplicate=True),
+    Output("latest-alarm-time", "data"),
+    Input("alarm-interval", "n_intervals"),
+    State("latest-alarm-time", "data"),
+    prevent_initial_call=True
+)
+def check_alarms(n, latest_alarm):
+    alarm_task_queue, alarm_result_queue = manager.get_queues("alarms")
+    alarm_task_queue.put(latest_alarm)
+    alarms_arr, time_dict = alarm_result_queue.get()
+    
+    if not alarms_arr or len(alarms_arr) == 0:
+        return dash.no_update, dash.no_update
+    else:
+        return alarms_arr, time_dict
+
+@callback(
+    Output("status", "data"),
+    Output("raw-graph", "figure"),
+    Output("baseline-graph", "figure"),
+    Output("noise-plot", "figure"),
+    Output("peak-graph", "figure"),
+    Output("baseline-history", "data", allow_duplicate=True),
+    Input("overview-url", "pathname"),
+    Input("overview-interval-component", "n_intervals"),
+    State("baseline-history", "data"),
+    prevent_initial_call=True
+)
+def update_overview(pathname, n, baseline_history):
+    if pathname != "/":
+        return [dash.no_update] * 6
+
+    # Get all the worker queues
+    raw_task_queue, raw_result_queue = manager.get_queues("raw_data")
+    baseline_task_queue, baseline_result_queue = manager.get_queues("baseline")
+    peak_task_queue, peak_result_queue = manager.get_queues("peaks")
+
+    # Start the queue 
+    raw_task_queue.put(True)
+    baseline_task_queue.put(baseline_history)
+    peak_task_queue.put(True)
+
+    # Get the results
+    raw_status, raw_fig = raw_result_queue.get()
+    baseline_status, time_fig, baseline_hist, noise_fig, noise_fft, history = baseline_result_queue.get()
+    peak_status, peak_all, peak_window = peak_result_queue.get()
+
+    return raw_status, raw_fig, baseline_hist, noise_fig, peak_all, history
+
+
+# Show the current read status message above the graph
+@callback(
+    Output("status-message", "children"),
+    Output("status-message", "style"),
+    Input("status", "data"),
+)
+def update_overview_status(status):
+    """
+    Displays a color-coded status message above the graph.
+    """
+    
+    if status is None:
+        return "", {}
+    
+    if status == "waiting for shared memory":
+        return "No shared memory connection...", {"color": "red", "fontWeight": "bold"}
+    elif status == "waiting for new data":
+        return "Waiting for data...", {"color": "red", "fontWeight": "bold"}
+    else:
+        return "Receiving data...", {"color": "green", "fontWeight": "bold"}

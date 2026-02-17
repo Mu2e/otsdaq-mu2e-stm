@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+
+  <!-- Start html head -->
+  <head>
+
+    <!-- Start STM DQM style -->
+    <style>
+
+      /* center align h3 headers */
+      h3 {text-align: center;}
+
+      /* Set header styles */
+      header {
+      background-color: #333;
+          padding: 20px;
+          color: #fff;
+      }
+
+      /* Spacing for logo images */
+      .image-spacing { 
+	  margin-right: 10px; 
+      } 
+
+      /* Right spacing for charts */
+      .chart-spacing { 
+	  margin-right: 35px; 
+      } 
+
+      /* Ensure rows are vertically centered */
+      .row {
+      width:100%;
+      height:50%;
+      }
+      .row div {
+      width:50%;
+      height:100%;
+      }
+      
+    </style>
+    <!-- End STM DQM style -->
+  </head>
+  <!-- End html head -->
+
+  <!-- Import axios, which makes HTTP requests in JS a little easier-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Bootstrap Links -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstr\
+ap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"\
+ crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849bl\
+E2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrit\
+y="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonym\
+ous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integr\
+ity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anon\
+ymous"></script>
+
+    <!-- JQuery links  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!--High CHART LIVE  -->
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/highcharts-more.js"></script>
+    <script src="http://code.highcharts.com/modules/exporting.js"></script>
+    
+  <!-- Start html body -->
+  <body>
+
+    <!-- Start DQM hesder -->
+    <header>      
+      <!-- Manchester logo -->
+      <img class="padded" align="right" src="https://assets.manchester.ac.uk/logos/hi-res/TAB_UNI_MAIN_logo/Coloured_backgrounds/TAB_col_background.png" alt="MCR" width="160">
+      <!-- Mu2e logo -->
+      <img align="right" src="https://rodare.hzdr.de/api/files/00000000-0000-0000-0000-000000000000/mu2e/logo.png" alt="Mu2e" width="110" class="image-spacing">
+      <!-- Header title -->
+      <h1>Mu2e STM DQM</h1>
+    </header>
+    <!-- End DQM header -->
+
+    <!-- Aesthetic line break -->
+    <br>
+
+    <!-- Start STM info division -->
+    <div class="px-1 mx-5" style="width: 28%; float:left">
+
+	<!-- STM checklist header -->
+	<h3>STM Checklist</h3>
+
+	<!-- Start STM checklist table -->
+	<table class="table table-bordered grocery-crud-table table-hover" style="float: left" border="0">
+	  <!-- Start table header -->
+	  <thead>
+	    <!-- Table header row -->
+            <tr>
+	      <!-- Loop through fw register headers from flask -->
+              {% for header in reg_headers %}
+	      <!-- Add registry headers -->
+              <th>{{header}}</th>
+	      <!-- End loop -->
+              {% endfor %}
+	      <!-- End header row -->
+            </tr>
+	    <!-- End table header -->
+	  </thead>
+	  <!-- Start table body -->
+	  <tbody>
+	    <!-- Loop through fw register data entries -->
+            {% for row in reg_data %}
+	    <!-- Table row -->
+            <tr>
+	      <!-- Get and write register check -->
+              <td>{{row['Register']}}</td>
+	      <!-- If the check value is Yes -->
+	      {% if row['Ready?'] == 'Yes'  %}
+	      <!-- Table cell, fill green (success) -->
+              <td class="p-2 mb-2 bg-success text-white">
+		<!-- Get and write check value -->
+		{{row['Ready?']}}
+		<!-- End table cell -->
+	      </td>
+	      <!-- If the check value is No -->
+	      {% elif row['Ready?'] == 'No'  %}
+	      <!-- Table cell, fill red (failure) -->
+              <td class="p-2 mb-2 bg-danger text-white">
+		<!-- Get and write check value -->
+		{{row['Ready?']}}
+		<!-- End table cell -->
+	      </td>
+	      <!-- Else if not yes/no -->
+	      {% else  %}
+	      <!-- Table cell, fill yellow (warning) -->
+              <td class="p-2 mb-2 bg-warning text-white">
+		<!-- Get and write check value -->
+		{{row['Ready?']}}
+		<!-- End table cell -->	
+	      </td>
+	      <!-- End if yes/nox -->
+	      {% endif %}
+	      <!-- End table row -->
+	    </tr>
+	    <!-- End loop -->
+	    {% endfor %}
+	    <!-- End table body -->
+	  </tbody>
+	  <!-- End table -->
+	</table>
+	
+	<!-- Aesthetic line breaks -->
+	<br>
+	<br>
+	
+	<!-- STM data header -->	
+	<h3>STM Data</h3>
+ 	<!-- Start STM data table -->
+	<table class="table table-bordered grocery-crud-table table-hover" style="float: left">
+	  <!-- Start table header -->
+	  <thead>
+	    <!-- Table header row -->
+            <tr>
+	      <!-- Loop through data headers from flask -->
+              {% for header in stm_headers %}
+	      <!-- Add data headers -->
+              <th>{{header}}</th>
+	      <!-- End loop -->
+              {% endfor %}
+	      <!-- End header row -->
+            </tr>
+	    <!-- End table header -->
+	  </thead>
+	  <!-- Start table body -->
+	  <tbody>
+	    <!-- Loop through STM data entries -->
+            {% for row in stm_data %}
+	    <!-- Table row -->
+            <tr>
+              <!-- Get and write STM parameter name -->
+              <td>{{row['Parameter']}}</td>
+              {% if row['Parameter'] == 'ADC Temperature (C)'  %}
+              <!-- Get and write STM parameter value -->
+              <td id="temp"> </td>
+	      {% elif row['Parameter'] == 'Subrun Number'  %}
+	      <!-- Get and write STM parameter value -->
+	      <td id="subrun"></td>	      
+	      {% else  %}
+	      <!-- Get and write STM parameter name -->
+	      <td>{{row['Value']}}</td>
+	      <!-- End if -->
+	      {% endif %}
+	      <!-- End row -->
+	    </tr>
+	    <!-- End loop -->
+	    {% endfor %}
+	    <!-- End table body -->
+	  </tbody>
+	  <!-- End table -->
+	</table>    
+	
+    </div>
+    <!-- End STM info division -->
+
+    <!-- Start STM charts division -->
+    <div class="chart-spacing" style="width:63%; float:right">
+
+      <!-- Channel 0 header -->
+      <h3>HPGe [Ch0]</h3>
+
+      <!-- ch0 data row -->
+      <div class="row">
+	
+	<!-- ch0 table divison -->
+	<div id="table-ch0" style="width:35%; float:left">
+	  
+ 	  <!-- Start Ch0 data table -->
+	  <table class="table table-bordered grocery-crud-table table-hover">
+	    <!-- Start table header -->
+	    <thead>
+	      <!-- Table header row -->
+              <tr>
+		<!-- Loop through data headers from flask -->
+		{% for header in ch_headers %}
+		<!-- Add data headers -->
+		<th>{{header}}</th>
+		<!-- End loop -->
+		{% endfor %}
+		<!-- End header row -->
+              </tr>
+	      <!-- End table header -->
+	    </thead>
+	    <!-- Start table body -->
+	    <tbody>
+	      <!-- Loop through data entries -->
+              {% for row in ch_data %}
+	      <!-- Table row -->
+              <tr>
+		<!-- Get and write parameter name -->
+		<td>{{row['Parameter']}}</td>
+		<!-- Get and write parameter value -->
+		<td>{{row['Value']}}</td>
+		<!-- End row -->
+	      </tr>
+	      <!-- End loop -->
+	      {% endfor %}
+	      <!-- End table body -->
+	    </tbody>
+	    <!-- End table -->
+	  </table>   	  	  
+
+	</div>
+	<!-- End ch0 table divison -->
+
+	<!-- ch0 chart divison -->
+	<div class="container-fluid" id="data-ch0" style="width:65%; float:right">
+	</div>
+	<!-- End ch0 chart divison -->
+
+      </div>
+      <!-- End ch0 data row -->
+      
+      <!-- Aesthetic horizontal row -->
+      <hr>
+
+      <!-- Channel 0 header -->
+      <h3>LaBr [Ch1]</h3>
+
+      <!-- ch1 data row -->
+      <div class="row">
+
+	<!-- ch0 table divison -->
+	<div  id="table-ch1" style="width:35%; float:left">
+	  
+ 	  <!-- Start ch1 data table -->
+	  <table class="table table-bordered grocery-crud-table table-hover">	    
+	    <!-- Start table header -->
+	    <thead>
+	      <!-- Table header row -->
+              <tr>
+		<!-- Loop through data headers from flask -->
+		{% for header in ch_headers %}
+		<!-- Add data headers -->
+		<th>{{header}}</th>
+		<!-- End loop -->
+		{% endfor %}
+		<!-- End header row -->
+              </tr>
+	      <!-- End table header -->
+	    </thead>
+	    <!-- Start table body -->
+	    <tbody>
+	      <!-- Loop through Ch0 data entries -->
+              {% for row in ch_data %}
+	      <!-- Table row -->
+              <tr>
+		<!-- Get and write parameter name -->
+		<td>{{row['Parameter']}}</td>
+		<!-- Get and write parameter value -->
+		<td>{{row['Value']}}</td>
+		<!-- End row -->
+	      </tr>
+	      <!-- End loop -->
+	      {% endfor %}
+	      <!-- End table body -->
+	    </tbody>
+	    <!-- End table -->
+	  </table>    	 	
+	</div>
+	<!-- End ch1 table divison -->
+
+	<!-- ch1 chart divison -->
+	<div class="container-fluid" id="data-ch1" style="width:65%; float:right">
+	</div>
+	<!-- End ch1 chart divison -->
+	
+      </div>
+      <!-- End ch1 data row -->
+      
+      <!-- End STM charts division -->
+    </div>     
+
+    <!-- Start of script -->
+    <script>
+      
+      // Function to get table content from flask with repeated interval
+      setInterval(function getTableContent() {
+
+      // The table data url
+          url = "/table";
+
+      // Get response from url
+          axios.get(url)
+              .then(function(response) {
+
+      // The data will all be returned as a JSON object                                    
+      // We can access the data by using the data property of the response object          
+
+      // Get ADC temperature
+      document.getElementById('temp').innerHTML = response.data.temp;
+      // Get sunrun number
+      document.getElementById('subrun').innerHTML = response.data.subrun;
+      })
+      // Catch any errors
+      .catch(function(error) {
+      console.log(error);
+      });
+
+      // Updated every 1 second
+      }, 1000);
+
+      // Define variables for charts
+      var chartCh0; // Ch0
+      var chartCh1; // Ch1
+      
+      // Function to request pulse/noise data from python
+      function requestData(){
+
+          // Ajax call to get the Data from Flask
+	  var requests = $.get('/data');
+
+          // Once the data request is done
+	  var tm = requests.done(
+
+              // Start create data function with
+	      // the data request as the argument
+	      function (result){
+
+                  // Pulse series data
+		  var seriesCh0 = chartCh0.series[0],
+                      shiftCh0 = seriesCh0.data.length > 0;
+		  
+                  // Add pulse data from result request
+		  chartCh0.series[0].setData(result[0]);
+
+                  // Ch1 series data
+		  var seriesCh1 = chartCh1.series[0],
+                      shiftCh1 = seriesCh0.data.length > 0;
+
+                  // Add pulse data from result request
+		  chartCh1.series[0].setData(result[1]);
+
+                  // call it again after one second
+		  setTimeout(requestData, 1000);
+
+                  // Redreaw the chart
+		  chart.redraw();
+
+              } // End create data function
+	  ); // End data request done
+      } // End request data function 
+
+      // When document is ready...
+      $(document).ready(
+	  
+	  // Start draw charts function
+	  function(){
+	      
+	      // Create ch0 chart
+	      chartCh0 = new Highcharts.Chart({
+		  chart:
+                  {
+		      // Render to data-ch0 container
+                      renderTo: 'data-ch0',
+		      // Aera series type
+                      defaultSeriesType: 'area',
+		      // Get the events
+                      events: {
+			  // Load the request data function
+                          load: requestData
+                      }
+                  },
+		  // Set the chart title
+                  title:
+                  {
+                      text: null // Title text
+                  },
+		  // Define the x-axis
+                  xAxis: {
+		      // Linear axis
+                      type: 'Linear',
+		      // Set the tick interval
+                      tickPixelInterval: 150,
+		      // Set x-axis label
+		      title: {
+                          text: 'Time [ns]',
+                          margin: 20
+                      }		      
+                  },
+		  // Define the x-axis
+                  yAxis: {
+                      minPadding: 0.2,
+                      maxPadding: 0.2,
+		      // Define the y-axis title
+                      title: {
+			  // Set y-axis label
+                          text: 'ADC counts',
+                          margin: 20
+                      }
+                  },
+		  // Include data series
+                  series: [{
+		      // Set the line colour
+                      lineColor: '#1d82b8',
+		      // Set the data desgination
+                      name: 'HPGe [Ch0]',
+		      // Set data to be continuosly updated
+                      data: []
+                  }]
+              }); // End ch0 chart
+	      
+	      // Create noise chart
+              chartCh1 = new Highcharts.Chart({
+                chart:
+                  {
+		      // Render to data-noise container
+                      renderTo: 'data-ch1',
+		      // Aera series type
+                      defaultSeriesType: 'area',
+		      // Get the events
+                      events: {
+			  // Load the request data function
+                          load: requestData
+                      }
+                  },
+		  // Set the chart title
+                  title:
+                  {
+                      text: null // Title text
+                  },
+		  // Define the x-axis
+                  xAxis: {
+		      // Linear axis
+                      type: 'Linear',
+		      // Set the tick interval
+                      tickPixelInterval: 150,
+		      // Set x-axis label
+		      title: {
+                          text: 'Time [ns]',
+                          margin: 20
+                      }		      
+                  },
+		  // Define the x-axis
+                  yAxis: {
+                      minPadding: 0.2,
+                      maxPadding: 0.2,
+		      // Define the y-axis title
+                      title: {
+			  // Set y-axis label
+                          text: 'ADC counts',
+                          margin: 20
+                      }
+                  },
+		  // Include data series
+                  series: [{
+		      // Set the color colour
+		      color : '#c23d23',
+		      // Set the line colour
+                      lineColor: '#303030',
+		      // Set the data desgination
+                      name: 'LaBr [Ch1]',
+		      // Set data to be continuosly updated
+                      data: []
+                  }]
+              }); // End noise chart
+	      
+          } // End create charts function
+
+      ); // End when document is ready...
+
+      <!-- End of script -->
+    </script>
+    
+    <!-- End of script -->
+  </body>
+  
+  <!-- End of body -->
+</html>
+

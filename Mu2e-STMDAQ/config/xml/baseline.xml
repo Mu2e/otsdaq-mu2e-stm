@@ -1,0 +1,18 @@
+<baseline>
+  <hist> <!-- ADC data histogram -->
+    <bin_num>512</bin_num>
+    <min_adc>-2500</min_adc>
+    <max_adc>600</max_adc>
+    <window_period>1.4</window_period> <!-- Hist window period (s) -->
+  </hist>
+  <EM> <!-- Expectation-Maximization (EM) -->
+    <max_iters>1000</max_iters> <!-- Maximum EM iterations -->
+    <LL_tol>1e-6</LL_tol> <!-- Convergence tolerance for log-likelihood change -->
+    <var_floor>1e-6</var_floor> <!-- Minimum allowed variance -->
+  </EM>
+  <window_delay>0</window_delay> <!-- Bool: delay data taking to calculate baseline -->
+  <last_value>
+    <mean>-7.02</mean>
+    <sigma>21.77</sigma>
+  </last_value>
+</baseline>

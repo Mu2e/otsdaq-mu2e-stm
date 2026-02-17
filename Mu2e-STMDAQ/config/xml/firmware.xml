@@ -1,0 +1,42 @@
+<!-- Firmware register parameters -->
+<fw>
+  <dir>/hardware/python</dir> <!-- STMDAQ Hardware directory -->
+  <device>ZCU102-FMC120</device> <!-- Hardware device -->
+  <load_fw>
+    <script>load_firmware.sh</script>
+    <petalinux_user>root</petalinux_user>
+    <petalinux_ip>192.168.0.14</petalinux_ip>
+    <bitfile>/lib/firmware/bin_files/top_level_0126_ADC_DTC_select_nhb_cont_ver_regs.bin</bitfile>    
+  </load_fw>
+  <python> <!-- Python scripts -->
+    <pybind>pybind_adaptor <!-- Pybind adaptpr script -->
+     <exec_func>run_and_get</exec_func> <!-- Pybind adaptpr function -->
+    </pybind>
+    <check_fpga>check_fpga_init <!-- Script -->
+     <retvar>success</retvar> <!-- Return variable -->
+    </check_fpga>
+    <check_adc>check_adc_init  <!-- Script -->
+     <retvar>success</retvar> <!-- Return variable -->    
+    </check_adc>
+    <init_adc>part_no_read_test_300MSPS_noDAC  <!-- Script -->
+     <retvar>dword</retvar> <!-- Return variable -->        
+    </init_adc>
+    <adc_temp>check_adc_temp <!-- Script -->
+     <retvar>result</retvar> <!-- Return variable -->            
+    </adc_temp>
+    <dtc_sim>dtc_sim_test_new</dtc_sim>
+  </python>
+  <use_dtc_sim>1 <!-- Use dtc simulation? -->
+    <!-- Buffers.Readout_regs -->
+    <teng_interpacket_pause>0x40</teng_interpacket_pause>
+    <ext_trig_timeout>0x129F0</ext_trig_timeout> <!-- (0x249F0) -->
+    <readout_chan1>0x1</readout_chan1>
+    <readout_chan2>0x1</readout_chan2>
+    <!-- Buffers.dtc_sim_params -->
+    <deltahb>0x30D4</deltahb> <!-- (0x2064) ... -->
+    <numberhb>0xFFFF</numberhb> <!-- (0x2428e) ... -->
+    <!-- Buffers.Controls_simADC_simDTC -->
+    <actual_adc_enable>0x1</actual_adc_enable>
+  </use_dtc_sim>
+  <fADC>300</fADC> <!-- ADC sampling frequency (MHz) -->
+</fw>

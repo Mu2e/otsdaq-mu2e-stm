@@ -189,8 +189,11 @@ int main(int argc, char* argv[]){
   
   std::cout << "Acquiring data and storing in memory..." << std::endl;
   
+  // Get channel from config
+  int CHAN = cfg.getValue<int>("channel");
+
   // Generate data
-  std::shared_ptr<GenData> gen = std::make_shared<GenData>(event_num,event_len,filename);
+  std::shared_ptr<GenData> gen = std::make_shared<GenData>(CHAN,event_num,event_len,filename);
 
   // Create ring buffer queue for packets
   std::shared_ptr<BufferQueue<std::vector<int16_t>>> queue

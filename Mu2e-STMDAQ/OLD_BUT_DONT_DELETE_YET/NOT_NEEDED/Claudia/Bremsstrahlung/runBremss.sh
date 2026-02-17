@@ -1,0 +1,35 @@
+#!/bin/bash 
+
+
+TIME=10
+NBINS=1000
+ENERGY=0.347
+SIGMACUT=3.5
+#just useful for plotting
+YMAX=180000
+
+EXE=/work/cgarcia/STMDAQ-TestBeam/build/bin/BremsstrahlungSim.exe
+
+OUTPUT_LOGFOLDER=/data1/cgarcia/DATA/Claudia/BremsstrahlungSim/${TIME}s_${ENERGY}MeV_${SIGMACUT}sigmacut
+
+if [ ! -e ${OUTPUT_LOGFOLDER} ] ; then
+ echo "Folder does not exist : creating ${OUTPUT_LOGFOLDER}"
+ mkdir -p ${OUTPUT_LOGFOLDER}
+fi
+echo "OUTPUT LOG FOLDER = "${OUTPUT_LOGFOLDER}
+
+
+for RATE in `echo "10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450 460 470 480 490 500"`
+do 
+    for RESOLUTION in `echo "0.001 0.0011 0.0012 0.0013 0.0014 0.0015 0.0016 0.0017 0.0018 0.0019 0.002 0.0021 0.0022 0.0023 0.0024 0.0025 0.0026 0.0027 0.0028 0.0029 0.003"`
+    do
+    echo "RATE = "${RATE}" kHz"
+    LOGFILE=${OUTPUT_LOGFOLDER}/logfile${RATE}kHz_resolution${RESOLUTION}MeV.log
+    echo ${LOGFILE}
+    
+    echo "$EXE $RATE $TIME $NBINS $ENERGY $RESOLUTION $SIGMACUT $YMAX > $LOGFILE 2>&1 &"
+    $EXE $RATE $TIME $NBINS $ENERGY $RESOLUTION $SIGMACUT $YMAX > $LOGFILE 2>&1 &
+    sleep 1
+    done
+done
+

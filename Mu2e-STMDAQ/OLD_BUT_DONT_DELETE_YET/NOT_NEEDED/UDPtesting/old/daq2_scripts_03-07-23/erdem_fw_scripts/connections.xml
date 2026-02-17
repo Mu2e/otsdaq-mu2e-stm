@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connections>
+  <connection id="SIM"      uri="ipbusudp-2.0://192.168.231.128:50001" address_table="file://${DF_ROOT}/etc/addrtab/tpgen-1fibre/top.xml" />
+  <connection id="SIMUDP"   uri="ipbusudp-2.0://localhost:50001" address_table="file://${DF_ROOT}/etc/addrtab/tpgen-1fibre-wibtor/top_wibtor.xml" />
+  <connection id="KCU105"      uri="ipbusudp-2.0://192.168.99.207:50001" address_table="file://fmc144_initial.xml" />
+  <connection id="ZCU102-FMC120" uri="ipbusudp-2.0://192.168.42.210:50001" address_table="file://fmc120_initial.xml" />
+  <connection id="flx-1-hf" uri="ipbusflx-2.0:///dev/flx:0" address_table="file://${DF_ROOT}/etc/addrtab/tpgen-1fibre/top.xml" />
+</connections>

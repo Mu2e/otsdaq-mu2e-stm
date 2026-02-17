@@ -13,8 +13,8 @@ CCOPTS = -O3 -march=native # Optimisation
 #CCOPTS = -Wall -Wno-unused-variable -pg # profiler
 DEPOPTS = -MT $@ -MMD -MP -MF $(BUILD_DIR)/dep/$*.d
 
-INCLUDE_CC = -I$(BOOST_INC) -I$(STM_INC)
-LIB_CC =  template_module.cc udp.cc check_data.cc form_events.cc baseline.cc zero_suppress.cc mwd.cc prescale.cc event_builder.cc write_manager.cc operation_manager.cc thread_manager.cc 
+INCLUDE_CC = -I$(BOOST_INC) -I$(FFTW_INC) -I$(STM_INC)
+LIB_CC =  template_module.cc udp.cc check_data.cc form_events.cc baseline.cc zero_suppress.cc noise.cc mwd.cc prescale.cc event_builder.cc write_manager.cc tcp.cc operation_manager.cc thread_manager.cc 
 LIB_OBJ = $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(LIB_CC))
 LIB = $(BUILD_DIR)/lib/libProcessing.so 
 DEPFILES = $(patsubst %.cc, $(BUILD_DIR)/dep/%.d, $(LIB_CC))
@@ -28,7 +28,7 @@ clean:
 
 $(LIB) : $(LIB_OBJ)
 	echo "<***Building Library**>" $(notdir $(LIB))
-	g++ -shared -o $(LIB) $(LIB_OBJ)
+	g++ -shared -o $(LIB) $(LIB_OBJ) $(FFTW_LIBS)
 
 $(BUILD_DIR)/obj/%.o: %.cc Makefile $(BUILD_DIR)/dep/%.d | $(BUILD_DIR)/dep
 	echo "<**Compiling**>" $<

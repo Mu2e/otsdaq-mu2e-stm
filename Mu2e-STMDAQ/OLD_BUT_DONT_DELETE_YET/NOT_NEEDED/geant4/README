@@ -1,0 +1,17 @@
+To compile/run one of the GEANT4 examples then do the following (this is for the B1 example).
+
+cd /work/`whoami`/STMDAQ-TestBeam//geant
+source setup.sh
+cp -R  $G4INSTALL/examples/basic/B1 .
+mkdir B1Build
+cd B1Build
+cmake3  -DGeant4_DIR=$G4DIR/Geant4-10.7.3 ../B1
+make
+./B1Example
+
+There are issues with OpenGL forwarding over X11 to a mac though. 
+On the mac this command helps but doesn't completely fix the problem ie a window pops up but 
+then immediately disappears as oppsoed to never appearing at all...
+
+defaults write org.macosforge.xquartz.X11 enable_iglx -bool true
+

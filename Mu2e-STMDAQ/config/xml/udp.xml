@@ -1,0 +1,28 @@
+<!-- UDP parameters -->
+<udp>
+  <recv_timeout_secs>10</recv_timeout_secs> <!-- UDP receive timeout (seconds) -->
+  <recv_timeout_usecs>0</recv_timeout_usecs> <!-- UDP receive timeout (usecs) -->
+  <poll_timeout_ms>100</poll_timeout_ms> <!-- UDP poll timeout (ms) -->
+  <!-- HPGe UDP parameters -->
+  <hpge> 
+    <fw>  
+      <ip>192.168.34.12</ip>
+      <port>51872</port>
+    </fw>
+    <sw>
+      <ip>192.168.34.12</ip>
+      <port>51872</port>
+    </sw>
+  </hpge>
+  <!-- LaBr UDP parameters -->
+  <labr> 
+    <fw>
+      <ip>192.168.36.12</ip>
+      <port>51874</port>
+    </fw>
+    <sw>
+      <ip>127.0.0.3</ip>
+      <port>10012</port>
+    </sw>
+  </labr>
+</udp>
