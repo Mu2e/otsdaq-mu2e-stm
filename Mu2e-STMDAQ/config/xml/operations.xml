@@ -1,0 +1,51 @@
+<!-- Operations: booleans to perform operation (0=false/1=true)-->
+<operations>
+  <UDP>1 <!-- UDP class -->
+   <receive_data>1</receive_data> 
+  </UDP>        
+  <CheckData>1 <!-- CheckData class -->
+   <check_packets>1</check_packets>
+  </CheckData>
+  <FormEvents>1 <!-- FormEvents class -->
+   <get_events>1</get_events>
+  </FormEvents>
+  <Baseline>1 <!-- Baseline class -->
+   <calc_baseline>1</calc_baseline>
+  </Baseline>
+  <ZeroSuppress>0 <!-- ZeroSuppress class -->
+   <find_peaks>1</find_peaks>
+   <suppress_data>1</suppress_data>
+  </ZeroSuppress>
+  <MWD>0 <!-- MWD class -->
+   <subtract_baseline>1</subtract_baseline>
+   <deconv>1</deconv>
+   <diff>1</diff>
+   <averaging>1</averaging>
+   <find_peaks>1</find_peaks>
+  </MWD> 
+  <Prescale>0 <!-- Prescale class -->
+   <prescale_data>1</prescale_data>
+  </Prescale>
+  <TemplateClass>0 <!-- Template class -->
+   <temp_func_1>1</temp_func_1>
+   <temp_func_2>0</temp_func_2>
+  </TemplateClass>
+  <WriteManager>0 <!-- Write Manager class -->
+   <write_events>1</write_events>
+   <write_raw>0</write_raw>
+   <write_zs>0</write_zs>
+   <write_ph>0</write_ph>
+  </WriteManager>
+  <TCP>0 <!-- TCP class -->
+   <send_data>1</send_data> 
+  </TCP>        
+  <DQM>0 <!-- DQM class -->
+   <update_dqm>1</update_dqm>
+  </DQM>
+  <TestFuncs>0 <!-- Test Functions -->
+   <mod_prev_buffer>1</mod_prev_buffer>
+   <read_mod_buffer>1</read_mod_buffer>
+   <check_form_events>0</check_form_events>
+   <do_nothing>0</do_nothing>
+  </TestFuncs>
+</operations>

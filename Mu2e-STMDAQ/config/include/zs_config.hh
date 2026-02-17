@@ -35,10 +35,10 @@ struct zs_info{
 
   // Constructor
   zs_info(Config& cfg, const std::shared_ptr<AsyncLogger> logger,
-          ch_info ch_config,
+          master_info master_config,
           fw_info fw_config,
           mu2e_info mu2e_config) :
-    channel((ch_config.num) ? "stm.zs.labr." : "stm.zs.hpge."), // Channel descriptor
+    channel((master_config.ch_num) ? "stm.zs.labr." : "stm.zs.hpge."), // Channel descriptor
     before_peak_time(cfg.getValue<double>(channel+"store_before_peak")), // Time to store before peak (us)
     before_peak(before_peak_time*fw_config.fADC), // Number of ADC values to store before peak
     after_peak_time(cfg.getValue<double>(channel+"store_after_peak")), // Time to store after peak (us)

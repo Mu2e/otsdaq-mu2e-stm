@@ -13,7 +13,7 @@ CCOPTS = -O3 -march=native # optimise
 #CCOPTS = -Wall -Wno-unused-variable -pg # turn on profiler information  
 DEPOPTS = -MT $@ -MMD -MP -MF $(BUILD_DIR)/dep/$*.d 
 
-INCLUDE_CC = -I$(BOOST_INC) -I$(STM_INC)	
+INCLUDE_CC = -I$(BOOST_INC) -I$(STM_INC) -I$(PY_INC)	
 MAIN_CC = main.cc
 SOURCE_CC = $(MAIN_CC)
 MAIN_EXE = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(MAIN_CC))
@@ -28,7 +28,7 @@ clean:
 
 $(MAIN_EXE) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC))
 	echo "<**Linking**>"
-	g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(STM_LIBS) -o $(MAIN_EXE)
+	g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(STM_LIBS) $(PY_LDFLAGS) -o $(MAIN_EXE)
 
 
 $(BUILD_DIR)/obj/%.o: %.cc Makefile $(BUILD_DIR)/dep/%.d | $(BUILD_DIR)/dep

@@ -7,11 +7,12 @@ ThreadManager::ThreadManager(const std::shared_ptr<cpu_utils>& cpu_,
                              const std::shared_ptr<STMdata>& stm_,
                              const std::shared_ptr<SignalHandler>& signal_,
                              const std::shared_ptr<BufferPool>& pool_,
-                             const std::shared_ptr<IOperationProvider>& om) :
-  cpu(cpu_), logger(logger_), stm(stm_), signal(signal_), pool(pool_),
+                             const std::shared_ptr<OperationManager>& om,
+                             const std::shared_ptr<HardwareManager> hw_) :
+  cpu(cpu_), logger(logger_), stm(stm_), signal(signal_), pool(pool_), hw(hw_),
   udp(std::dynamic_pointer_cast<UDP>(om->get_class("UDP"))),
   thread_num(om->getUseOps().size()),
-  thread_name(thread_num),
+  thread_name(thread_num+1),
   finished(thread_num),
   buffer_count(thread_num,0),
   tot_bytes_processed(thread_num,0),
@@ -49,6 +50,9 @@ ThreadManager::ThreadManager(const std::shared_ptr<cpu_utils>& cpu_,
                          i, inq, outq, operation);
   }
 
+  // Run data source thread in this thread
+  data_source_thread(thread_num);
+
 }
 
 // General worker thread function
@@ -70,7 +74,7 @@ void ThreadManager::worker_thread(const size_t thrd_idx,
   }, operation);
 
   // Pin thread to core
-  [[maybe_unused]] size_t core = cpu->get_next_core(thread);
+  size_t core = cpu->get_next_core(thread);
   
   // First buffer
   bool first_buffer = true;
@@ -267,3 +271,51 @@ void ThreadManager::log_performance(const size_t thrd_idx,
 
 }
 
+// Data source thread function
+void ThreadManager::data_source_thread(const size_t thrd_idx){
+
+  // Get thread name
+  const std::string thread = thread_name[thrd_idx];
+
+  // Pin thread to core
+  size_t core = cpu->get_next_core(thread);
+
+  // Log to user
+  if (stm->master_config.use_sw_sim){
+    logger->log("ThreadManager::data_source_thread: Initialising software data sending...",1);
+  }
+  else{
+    logger->log("ThreadManager::data_source_thread: Initialising firmware data sending...",1);
+    if (stm->fw_config.use_dtc_sim){
+      logger->log("ThreadManager::data_source_thread: Initialising DTC simulation...",1);
+    }
+  }
+
+  // If using software simulation for data source
+  if (stm->master_config.use_sw_sim or stm->fw_config.use_dtc_sim){
+    // Sleep for 3 seconds
+    for (int i = 0; i < 3; i++){
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::cout << "Starting data sending in " << 3-i << std::endl;
+    }
+    // Log to user
+    logger->log("ThreadManager::data_source_thread: Starting data sending...",1);
+    // If using software simulation
+    if (stm->master_config.use_sw_sim){
+
+    }
+    // If you dtc simulation
+    else if (stm->fw_config.use_dtc_sim){
+      // Run dtc simulation
+      hw->run_dtc_sim();
+    }    
+  }
+  // If using firmware for data source
+  else{
+    // Log to user
+    logger->log("Expecting signal from DTC...",1);
+  }  
+  
+}
+
+                                  

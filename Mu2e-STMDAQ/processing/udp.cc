@@ -8,8 +8,8 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>& logger_,
          const bool is_client_) :
   logger(logger_), stm(stm_), signal(signal_), 
   is_client(is_client_), // Server or client
-  ip((stm->ch_config.num) ? stm->udp_config.rcv_ip : stm->udp_config.snd_ip), // IP address
-  port((stm->ch_config.num) ? stm->udp_config.rcv_port : stm->udp_config.snd_port), // Port
+  ip((stm->master_config.ch_num) ? stm->udp_config.rcv_ip : stm->udp_config.snd_ip), // IP address
+  port((stm->master_config.ch_num) ? stm->udp_config.rcv_port : stm->udp_config.snd_port), // Port
   max_packet_num(stm->buffer_config.max_packet_num),
   wait_time(0.0) // Time waiting with no packets received
 {
@@ -24,7 +24,7 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>& logger_,
 
   // Notify user
   std::string type = (is_client) ? "client" : "server";
-  if (logger) logger->log("UDP: Configuring UDP " + type + " for " + stm->ch_config.name + " channel...",1);
+  if (logger) logger->log("UDP: Configuring UDP " + type + " for " + stm->master_config.ch_name + " channel...",1);
   
   // Setup socket
   memset((char *) &address, 0, sizeof(address)); // zero out the structure
@@ -194,119 +194,145 @@ void UDP::configure_client() {
 }
 
 // Receive data from UDP server
-void UDP::receive_data(std::shared_ptr<DataStruct>& buffer)
-{
-    // Check correct buffer sizing
-    size_t required = max_packet_num * MAX_PACKET_SIZE;
-    size_t available = buffer->zs.size() * sizeof(int16_t);  
-    if (available < required) {
-        std::cerr << "ERROR: raw buffer too small: "
-                  << available << " bytes available, "
-                  << required << " required.\n";
-        std::abort();
+void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
+
+  // Check correct buffer sizing
+  size_t required = max_packet_num * MAX_PACKET_SIZE;
+  size_t available = buffer->zs.size() * sizeof(int16_t);  
+  if (available < required) {
+    std::cerr << "ERROR: raw buffer too small: "
+              << available << " bytes available, "
+              << required << " required.\n";
+    std::abort();
+  }
+
+  // Set up iovec structures to point directly into DataStruct
+  for (size_t i = 0; i < max_packet_num; ++i) {
+    // Point each iovec into the correct slice of the shared data buffer
+    iovecs[i].iov_base = buffer->zs.data() + (i * MAX_PACKET_LEN); 
+    messages[i].msg_hdr.msg_iov = &iovecs[i];
+    // Reset per-call output fields
+    messages[i].msg_len              = 0;
+    messages[i].msg_hdr.msg_flags    = 0;
+  }
+  
+  // Ensure buffer is zero before call
+  buffer->zs_len = 0;
+  buffer->orig_len = 0;
+  
+  // Start and end wait times
+  if (!waiting_for_data) start_wait = std::chrono::high_resolution_clock::now();
+  
+  // Packet counter
+  int packets_this_call = 0;
+  
+  // Loop until stop signal is triggered 
+  while (!stop::should_stop()) {
+    
+    // Poll for available data
+    int poll_ret = poll(&pfd, 1, stm->udp_config.poll_timeout_ms);
+    
+    // If poll failed
+    if (poll_ret < 0) {
+      if (logger) logger->log("UDP: UDP::receive_data - poll failed!",0);
+      break;
     }
+    
+    // If data is available
+    else if (poll_ret > 0) {
 
-    // Set up iovec structures
-    for (size_t i = 0; i < max_packet_num; ++i) {
-        iovecs[i].iov_base = buffer->zs.data() + (i * MAX_PACKET_LEN);
-        messages[i].msg_hdr.msg_iov = &iovecs[i];
-        messages[i].msg_len = 0;
-        messages[i].msg_hdr.msg_flags = 0;
-    }
-
-    buffer->zs_len = 0;
-    buffer->orig_len = 0;
-
-    if (!waiting_for_data) start_wait = std::chrono::high_resolution_clock::now();
-
-    size_t packets_this_call = 0;
-
-    // Main receive loop
-    while (true)
-    {
-        // Stop check at top of loop
-        if (stop::should_stop()) return;
-
-        int poll_ret = poll(&pfd, 1, stm->udp_config.poll_timeout_ms);
-
-        // Stop check after blocking call
-        if (stop::should_stop()) return;
-
-        if (poll_ret < 0) {
-            char buf[256];
-            strerror_r(errno, buf, sizeof(buf));
-            std::string errorStr(buf);
-            if (logger)
-                logger->log("UDP: receive_data - poll failed: " + std::to_string(errno) + " " + errorStr, 0);
-            return;
+      // If we haven't yet received data
+      if (!has_received_data){
+        // Store waiting end time
+        end_wait = std::chrono::high_resolution_clock::now();
+        // ... and add to wait time counter
+        if (packets_this_call > 0){
+          wait_time += end_wait - start_wait;
+          add_wait(end_wait - start_wait);
         }
-        else if (poll_ret > 0) {
-            if (!has_received_data) {
-                end_wait = std::chrono::high_resolution_clock::now();
-                if (packets_this_call > 0) {
-                    wait_time += end_wait - start_wait;
-                    add_wait(end_wait - start_wait);
-                }
-            }
+      }
+      
+      // Receive data from socket
+      int retval = recvmmsg(socket_fd, &messages[packets_this_call], 
+                            max_packet_num - packets_this_call, MSG_DONTWAIT, &timeout);
+      // int retval = udp_debug::debug_recvmmsg(socket_fd, &messages[packets_this_call],
+      //                                        max_packet_num - packets_this_call, MSG_DONTWAIT, &timeout);
+      
+      // If recvmmsg error
+      if (retval < 0) {
+        char buf[256];
+        strerror_r(errno, buf, sizeof(buf));
+        std::string errorStr(buf);
+        if (logger) logger->log("UDP: UDP::receive_data - recvmmsg failed with error code: "
+                                + (std::to_string(errno))
+                                + " " + errorStr,0);
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        return;
+      }
+      
+      // Update number of packets received
+      packets_this_call += retval;
 
-            int retval = recvmmsg(socket_fd, &messages[packets_this_call],
-                                  max_packet_num - packets_this_call, MSG_DONTWAIT, &timeout);
-
-            if (stop::should_stop()) return;
-
-            if (retval < 0) {
-                char buf[256];
-                strerror_r(errno, buf, sizeof(buf));
-                std::string errorStr(buf);
-                if (logger)
-                    logger->log("UDP: receive_data - recvmmsg failed: " + std::to_string(errno) + " " + errorStr, 0);
-                std::this_thread::sleep_for(std::chrono::seconds(3));
-                return;
-            }
-
-            packets_this_call += retval;
-            buffer->zs_len += retval * MAX_PACKET_LEN;
-            buffer->orig_len = buffer->zs_len;
-            total_packets_received += retval;
-
-            if (!has_received_data) has_received_data = true;
-
-            if (logger && waiting_for_data) logger->log("UDP: Receiving data...", 1);
-            waiting_for_data = false;
-
-            if (packets_this_call == max_packet_num) return;
-        }
-        else {
-            // poll_ret == 0, no data available
-            if (stop::should_stop()) return;
-
-            if (!waiting_for_data) {
-                if (!has_received_data) {
-                    if (logger) logger->log("UDP: Waiting for data from STM firmware...", 1);
-                } else {
-                    start_wait = std::chrono::high_resolution_clock::now();
-                }
-            }
-
-            waiting_for_data = true;
-
-            // Return partially received packets
-            if (packets_this_call > 0) return;
-
-            // Sleep briefly to avoid busy-wait
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+      // Update size of received data in DataStruct
+      buffer->zs_len += retval * MAX_PACKET_LEN;
+      buffer->orig_len = buffer->zs_len;
+      
+      // Update total number of packets received
+      total_packets_received += retval;
+            
+      // If first data of call
+      if (!has_received_data) has_received_data = true;
+      
+      // Tell user we're receiving data
+      if (logger && waiting_for_data) logger->log("UDP: Receiving data...",1);
+      
+      // Signal we're not waiting for data
+      waiting_for_data = false;
+      
+      // Reached maximum number of packets per call, so return
+      if (packets_this_call == max_packet_num) return;      
+      
     }
-
-    // --- Preserve wait accounting if we were idle when stopped ---
-    if (waiting_for_data) {
-      end_wait = std::chrono::high_resolution_clock::now();
-      wait_time += end_wait - start_wait;
-      add_wait(end_wait - start_wait);
+    
+    // Else, if no data available
+    else{
+      
+      // If we were previously receiving data
+      if (!waiting_for_data){
+        // If we've not still received the first data yet
+        if (!has_received_data){
+          if (logger) logger->log("UDP: Waiting for data from STM firmware...",1);
+        }
+        else{
+          // Start new waiting time
+          start_wait = std::chrono::high_resolution_clock::now();	    
+          // Warn user
+          if (logger) logger->log("UDP: Stopped receiving from STM firmware. Waiting for data...",2);
+        }
+      }		
+      
+      // Signal we're waiting for data
+      waiting_for_data = true;
+      
+      // Push what has already been pulled to the queue
+      if (packets_this_call > 0) return;
+      
     }
+    
+  } // End while (!stop::should_stop())  
+   
+  // If a signal has been caught and we've been waiting for data
+  if (waiting_for_data){
+    // Get waiting end time
+    end_wait = std::chrono::high_resolution_clock::now();
+    // ... and add to wait time counter
+    wait_time += end_wait - start_wait;
+    add_wait(end_wait - start_wait);
+  }
+  
+  return;
 
-    return;
-
+  
 }
 
 // // Receive data from UDP server

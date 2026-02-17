@@ -1,0 +1,4 @@
+//Compile without graphics in C++
+g++ -w root_graphics.cc `root-config --cflags --glibs` -o Claudia_without_graphics.exe 
+//Compile with graphics in C++
+g++ -w -DUSE_GRAPHICS root_graphics.cc `root-config --cflags --glibs` -o Claudia_with_graphics.exe

@@ -40,7 +40,7 @@ void SignalHandler::handleSignal(int signal) {
   
   // Log the received signal if an instance exists and logging is enabled
   if (instance && instance->logger) {
-    instance->logger->log("Signal " + std::to_string(signal) + " received. Awaiting user confirmation.", 1);
+    instance->logger->log("SignalHandler: Signal " + std::to_string(signal) + " received. Awaiting user confirmation.", 1);
   }
   
 }
@@ -53,7 +53,7 @@ void SignalHandler::listenForSignals() {
 
   // Pin thread to core
   if (cpu) {
-    [[maybe_unused]] size_t core = cpu->get_next_core("SignalHandler");
+    cpu->get_next_core("SignalHandler");
   }
   
   // Struct to define signal behavior
@@ -73,7 +73,7 @@ void SignalHandler::listenForSignals() {
 
   // Log that the signal listener has started (if logging is enabled)
   if (instance && instance->logger) {
-    instance->logger->log("Signal handler initialised.", 1);
+    instance->logger->log("SignalHandler: Signal handler initialised.", 1);
   }
 
   // Continuous loop to handle incoming signals
@@ -91,7 +91,7 @@ void SignalHandler::listenForSignals() {
     
     // Log the confirmation request (if logging is enabled)
     if (instance && instance->logger) {
-      instance->logger->log("Awaiting user confirmation for exit.", 1);
+      instance->logger->log("SignalHandler: Awaiting user confirmation for exit.", 1);
     }
     
     char choice;
@@ -106,7 +106,7 @@ void SignalHandler::listenForSignals() {
     if (choice == 'y' || choice == 'Y') {
       std::cout << "Exiting safely...\n";
       if (instance && instance->logger) {
-   	instance->logger->log("User confirmed exit. Stopping program.", 1);
+   	instance->logger->log("SignalHandler: User confirmed exit. Stopping program.", 1);
       }
       
       // Request program stop
@@ -116,7 +116,7 @@ void SignalHandler::listenForSignals() {
       // If user cancels, reset exit flag and continue execution
       std::cout << "Resuming execution.\n";
       if (instance && instance->logger) {
-   	instance->logger->log("User denied exit. Resuming program.", 1);
+   	instance->logger->log("SignalHandler: User denied exit. Resuming program.", 1);
       }
       exit_requested.store(false); // Reset flag so future signals can trigger exit confirmation again
     }
@@ -124,7 +124,7 @@ void SignalHandler::listenForSignals() {
 
   // Log the shutdown of the signal listener
   if (instance && instance->logger) {
-    instance->logger->log("Signal listener shutting down.", 1);
+    instance->logger->log("SignalHandler: Signal listener shutting down.", 1);
   }
 
 }

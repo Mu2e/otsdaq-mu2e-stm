@@ -190,7 +190,7 @@ public:
 				const std::string& timestamp,
 				int subrun) {
     std::ostringstream oss;
-    oss << prefix << "_" << stm->ch_config.name << "_" << type << "_" << timestamp << "_subrun" << subrun << \
+    oss << prefix << "_" << stm->master_config.ch_name << "_" << type << "_" << timestamp << "_subrun" << subrun << \
       ".bin";
     return oss.str();
   }

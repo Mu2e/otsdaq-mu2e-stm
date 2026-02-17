@@ -19,7 +19,7 @@ MAIN_CC = run_sim.cc
 LIB_CC = gen_data.cc
 SOURCE_CC = $(LIB_CC) $(MAIN_CC)
 LIB_OBJ = $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(LIB_CC))
-LIB = $(BUILD_DIR)/lib/libSim.so 
+LIB = $(BUILD_DIR)/lib/libFWsim.so 
 EXE = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(MAIN_CC))
 DEPFILES = $(patsubst %.cc, $(BUILD_DIR)/dep/%.d, $(SOURCE_CC))
 
@@ -32,7 +32,7 @@ clean:
 
 $(EXE) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(LIB)
 		echo "<**Linking**>"
-		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(STM_LIBS) -o $(EXE)
+		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(STM_LIBS) $(PY_LDFLAGS) -o $(EXE)
 
 $(LIB) : $(LIB_OBJ)
 	echo "<***Building Library**>" $(notdir $(LIB))

@@ -26,15 +26,12 @@ set(BOOST_COMPONENTS
 )
 
 # ---- PugiXML ----
-find_package(PugiXML REQUIRED)
-# Optional: show the version
-message(STATUS "Found PugiXML: ${PUGIXML_VERSION}")
 set(PUGIXML_INCLUDE_DIR /usr/include)
 set(PUGIXML_LIBRARY_DIR /usr/lib64/libpugixml.so)
 
 # ---- Python / pybind11 ----
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
-find_package(py-pybind11 REQUIRED)
+find_package(pybind11 REQUIRED)
 
 set(PYTHON_INCLUDE_DIRS
     ${Python3_INCLUDE_DIRS}

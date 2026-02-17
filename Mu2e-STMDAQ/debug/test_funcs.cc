@@ -7,7 +7,7 @@ TestFuncs::TestFuncs(const std::shared_ptr<SignalHandler>& signal_) : signal(sig
 
 // FOR TESTING ONLY
   dummy_data.resize(len);
-  for (int i = 0; i < len; ++i){
+  for (size_t i = 0; i < len; ++i){
     dummy_data[i] = (10-i);
   }
 
@@ -301,7 +301,7 @@ void TestFuncs::check_zs(std::shared_ptr<DataStruct>& buffer){
   const std::vector<int16_t>* data = &buffer->raw;
 
   // The data index
-  [[maybe_unused]] uint64_t ix = 0;
+  uint64_t i = 0;
 
   int low_print_count = 0;
   int high_print_count = 0;
@@ -313,7 +313,7 @@ void TestFuncs::check_zs(std::shared_ptr<DataStruct>& buffer){
   // std::cout << "START (i = " << i << ") low: check = " << low_check << ", data = " << (*data)[i] << "; high: check = " << high_check << ", data = " << (*data)[i+window] << std::endl;
   
   // Loop over all ADC values
-  for (size_t i = 0; i < n-buffer->zs_overflow_num; i++){
+  for (int i = 0; i < n-buffer->zs_overflow_num; i++){
     if (first_counter){
       low_check = (*data)[i];
       high_check = (*data)[i+window];
@@ -361,7 +361,7 @@ void TestFuncs::check_zs(std::shared_ptr<DataStruct>& buffer){
 
   }
 
-  ix = n-buffer->zs_overflow_num-1;
+  i = n-buffer->zs_overflow_num-1;
   // std::cout << "END (i = " << i << ") low: check = " << low_check-1 << ", data = " << (*data)[i] << "; high: check = " << high_check-1 << ", data = " << (*data)[i+window] << std::endl;
   // std::cout << "-----" << std::endl;
   

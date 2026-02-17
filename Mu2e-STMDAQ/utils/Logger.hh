@@ -1,6 +1,7 @@
-#ifndef STMLogger_hh
-#define STMLogger_hh
+#ifndef Logger_hh
+#define Logger_hh
 
+#include <memory>
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -14,7 +15,11 @@
 // Stop signal                                                           
 #include "Mu2e-STMDAQ/utils/stop_signal.hh"
 
-//Exception class thrown when STMLogger::ERROR written
+// Include DQM SHM helpers
+#include "Mu2e-STMDAQ/dqm/dqm_shm_block.hh"
+#include "Mu2e-STMDAQ/dqm/shm_manager.hh"
+
+//Exception class thrown when Logger::ERROR written
 class CriticalError : public std::exception {
 public:
   CriticalError() : std::exception() {}
@@ -46,11 +51,11 @@ namespace Color {
 }
 
 
-//STMLogger singleton class
-class STMLogger {
+//Logger singleton class
+class Logger {
 public:
-  static STMLogger* Instance();
-  static STMLogger* Instance(const unsigned int logLevel_);
+  static Logger* Instance();
+  static Logger* Instance(const unsigned int logLevel_);
 
   //Define various levels of debugging/print-out (less to more)
   static unsigned int const ERROR                    = 0;
@@ -67,6 +72,9 @@ public:
   void LogToFile(string fileName_);
   void CloseLogFile();
 
+  void initSHM(unsigned int max_shm_alarms);
+  void logToSHM(unsigned int level_, const std::string & message_);
+
   void enableCriticalErrorThrow() { _throwCriticalErrors = true; }
   void disableCriticalErrorThrow() { _throwCriticalErrors = false; }
 
@@ -77,6 +85,9 @@ public:
 
   std::string getMostRecentMsg() const;
 
+  // Get the current time in ns
+  uint64_t get_current_time_ns();
+
   //External access to color modifiers
   static Color::Modifier& red() { return _red; }
   static Color::Modifier& yellow() { return _yel; }
@@ -85,19 +96,27 @@ public:
 
   //static void setOutstream(const std::ostream & o ) { _outstream = o; }
 
+  // Registers a new SHM block
+  template <typename T>
+  void registerBlock(DQMPageType type, const std::string& shm_name, size_t size, bool persist);
+
+  // Gets typed pointer to SHM block
+  template <typename T>
+  T* get(DQMPageType type);
+
 protected:
-  STMLogger() { }
+  Logger() { }
   static void constructor(const unsigned int logLevel_);
   void write(unsigned int level_, const std::string & message_, const std::lock_guard<std::mutex> & lock_);
 
-  friend class Destroyer<STMLogger>;
-  virtual ~STMLogger() {
-    std::cout << "Destroyed instance of STMLogger." << std::endl;
+  friend class Destroyer<Logger>;
+  virtual ~Logger() {
+    std::cout << "Destroyed instance of Logger." << std::endl;
   }
 
 private:
-  static STMLogger* _instance;
-  static Destroyer<STMLogger> _destroyer;
+  static Logger* _instance;
+  static Destroyer<Logger> _destroyer;
   static unsigned int _logLevel;
   static unsigned int _style;
   static DateTime _time;
@@ -107,6 +126,9 @@ private:
   static string _opFileName; //Name and path of file to output to
   static std::ofstream _opFile;
   static bool _logToFile;
+
+  static bool _logToSHM;
+  std::unique_ptr<DQMBlock<dqm_data_alarm>> _alarmBlock;
 
   static bool _throwCriticalErrors;
 
@@ -120,6 +142,5 @@ private:
   static Color::Modifier _def;
 
 };
-
 
 #endif

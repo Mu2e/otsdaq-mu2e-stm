@@ -1,0 +1,11 @@
+/* CREATE USER stm_admin WITH PASSWORD 'stm_admin' CREATEDB;
+ALTER USER stm_admin WITH SUPERUSER;
+ALTER USER stm_admin WITH CREATEROLE;
+CREATE USER stm_writer WITH PASSWORD 'stm_writer';
+CREATE USER stm_reader WITH PASSWORD 'stm_reader';
+*/
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public to stm_writer;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO stm_writer;
+GRANT USAGE ON SCHEMA public to stm_reader; 
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO stm_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO stm_reader;

@@ -3,7 +3,7 @@
 
 // Include config files
 #include "Mu2e-STMDAQ/config/config.hh"
-#include "Mu2e-STMDAQ/config/include/ch_config.hh"
+#include "Mu2e-STMDAQ/config/include/master_config.hh"
 
 // UDP configurable variables
 struct udp_info{
@@ -29,8 +29,8 @@ struct udp_info{
   // Constructor
   udp_info(Config& cfg,
            const std::shared_ptr<AsyncLogger> logger,
-           ch_info ch_config) :
-    channel((ch_config.num) ? "stm.udp.labr." : "stm.udp.hpge."), // Channel descriptor 
+           master_info master_config) :
+    channel((master_config.ch_num) ? "stm.udp.labr." : "stm.udp.hpge."), // Channel descriptor 
     rcv_ip(cfg.getValue<std::string>(channel+"fw.ip")), // Receiving IP address
     rcv_port(cfg.getValue<int>(channel+"fw.port")), // Receiving port
     snd_ip(cfg.getValue<std::string>(channel+"sw.ip")), // Receiving IP address

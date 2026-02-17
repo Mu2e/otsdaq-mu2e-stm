@@ -3,14 +3,14 @@
 
 // Fast Randon Number Generator
 class FastRNG {
-
+  
 private:
 
   // internal state
-  uint64_t s;
+  uint64_t s; 
 
 public:
-
+  
   // --- Constructor / Seeder ---
   explicit FastRNG(uint64_t seed = 1) noexcept : s(seed) {}
 
@@ -45,4 +45,3 @@ public:
 };
 
 #endif
-

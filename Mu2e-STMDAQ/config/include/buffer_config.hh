@@ -35,7 +35,7 @@ struct buffer_info{
   
   // ADC baseline buffer (bytes, double data type)
   const size_t baseline_size;
-  // PH data buffer len (ADC values)
+  // ADC baseline data buffer len (ADC values)
   const size_t baseline_len;
 
   // Additional of the total allocated buffer size for extras

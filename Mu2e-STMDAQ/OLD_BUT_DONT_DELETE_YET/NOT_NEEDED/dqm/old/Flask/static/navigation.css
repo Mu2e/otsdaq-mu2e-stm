@@ -1,0 +1,155 @@
+.navigation {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  line-height: 0;
+}
+
+.navigation ul,
+.navigation ul li,
+
+.navigation ul ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation ul {
+  position: relative;
+  z-index: 500;
+  float: left;
+}
+
+.navigation ul li {
+  float: left;
+  min-height: 0.05em;
+  line-height: 1em;
+  vertical-align: middle;
+  position: relative;
+}
+
+.navigation ul li.hover,
+.navigation ul li:hover {
+  position: relative;
+  z-index: 510;
+  cursor: default;
+}
+
+.navigation ul ul {
+  visibility: hidden;
+  position: absolute;
+  top: 100%;
+  left: 0px;
+  z-index: 520;
+  width: 100%;
+}
+
+.navigation ul ul li { float: none; }
+
+.navigation ul ul ul {
+  top: 0;
+  right: 0;
+}
+
+.navigation ul li:hover > ul { visibility: visible; }
+
+.navigation ul ul {
+  top: 0;
+  left: 99%;
+}
+
+.navigation ul li { float: none;
+		  }
+
+.navigation ul ul { margin-top: 0.0em;
+		  }
+
+.navigation {
+  width: 13em;  /* this is offset from the left of the page to the left menu list */
+  background: #FFFFFF;
+  font-family: 'roboto', Tahoma, Arial, sans-serif;
+  zoom: 1;
+}
+
+.navigation:before {
+  content: '';
+  display: block;
+}
+
+.navigation:after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.navigation a {
+  display: block;
+  padding: 0.3em 0.3em; /* sets the gap between the menu items */
+  color: #000000;
+  text-decoration: bold;
+  text-transform: uppercase;
+}
+
+.navigation > ul { width: 11.5em; } /* sets the width of the orange block with the href */
+
+.navigation ul ul { width: 11.5em; } /* sets the width of the orange block with the href */
+
+.navigation > ul > li > a {
+  border-right: 0.1em solid #FFFFFF;
+  color: #000000;
+}
+
+.navigation > ul > li > a:hover { color: #000000; }
+
+.navigation > ul > li a:hover,
+.navigation > ul > li:hover a { background: #F28500; }
+
+.navigation li { position: relative; }
+
+.navigation ul li.has-sub > a:after {
+  content: '»';
+  position: absolute;
+  right: 1em;
+}
+
+.navigation ul ul { border: 1px solid #FFFFFF; }
+
+.navigation ul ul a { color: #000000; }
+
+.navigation ul ul a:hover { color: #000000; }
+
+.navigation ul ul li { border-bottom: 1px solid #FFFFFF; }
+
+.navigation ul ul li:hover > a {
+  background: #FFFF00;
+  color: #000000;
+}
+
+.navigation.align-right > ul > li > a {
+  border-left: 0.3em solid #34A65F;
+  border-right: none;
+}
+
+.navigation.align-right { float: right; }
+
+.navigation.align-right li { text-align: right; }
+
+.navigation.align-right ul li.has-sub > a:before {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  margin-top: -6px;
+}
+
+.navigation.align-right ul li.has-sub > a:after { content: none; }
+
+.navigation.align-right ul ul {
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: -100%;
+  z-index: 598;
+  width: 100%;
+}
+

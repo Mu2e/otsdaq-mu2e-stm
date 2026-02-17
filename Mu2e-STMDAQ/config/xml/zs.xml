@@ -1,0 +1,19 @@
+<!-- Zero Suppression -->
+<zs>
+  <!-- HPGe ZS -->
+  <hpge>
+    <store_before_peak>1</store_before_peak> <!-- Time (us) to store before the peak -->
+    <store_after_peak>2</store_after_peak> <!-- Time (us) to store after the peak -->
+    <grad_threshold>-100</grad_threshold> <!-- Gradient threshold -->
+    <grad_window>100</grad_window> <!-- The gradient window in ADC values -->
+    <n_avg>5</n_avg> <!-- Number of ADC values to average in the gradient -->
+  </hpge>
+  <!-- LaBr ZS -->
+  <labr>
+    <store_before_peak>0.15</store_before_peak> <!-- Time (us) to store before the peak -->
+    <store_after_peak>0.3</store_after_peak> <!-- Time (us) to store after the peak -->
+    <grad_threshold>-100</grad_threshold> <!-- Gradient threshold -->
+    <grad_window>13</grad_window> <!-- The gradient window in ADC values -->
+    <n_avg>5</n_avg> <!-- Number of ADC values to average in the gradient -->
+  </labr>
+</zs>

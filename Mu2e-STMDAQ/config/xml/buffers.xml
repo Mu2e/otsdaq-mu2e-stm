@@ -1,0 +1,9 @@
+<!-- Paramaters for data buffers and memory allocation -->
+<buffers>
+  <!-- <raw_size>16777216</raw_size> <!-\- Set each raw buffer size in bytes -\-> -->
+  <raw_size>1024000</raw_size> <!-- Set each raw buffer size in bytes -->
+  <baseline_size>4096</baseline_size> <!-- Set each noise buffer size in bytes -->
+  <extra>5</extra>  <!-- % allowance for metadata, etc -->
+  <queue_capacity>32</queue_capacity> <!-- Number of structs per ring buffer -->
+  <buffer_pool_size>32</buffer_pool_size> <!-- Maximum number of ring buffers -->
+</buffers>

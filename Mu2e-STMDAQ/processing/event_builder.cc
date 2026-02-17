@@ -12,7 +12,7 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
 
   // Check that the event vector is the right size
   if (event.size() < 3*stm->buffer_config.raw_len){
-    logger->log("EventBuilder::build_event: Error! Event size is < 3*stm->buffer_config.raw_len!",0);
+    if (logger) logger->log("EventBuilder::build_event: Error! Event size is < 3*stm->buffer_config.raw_len!",0);
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   
@@ -24,7 +24,7 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
 
   // Get this EWT
   EWT_info& ewt = buffer->EWTs[EWTidx];
-  [[maybe_unused]] uint64_t EWT = ewt.EWT;
+  uint64_t EWT = ewt.EWT;
 
   // -------------
   // EWT HEADER
@@ -61,7 +61,7 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
     // If this EWT's raw data has not be prescaled
     if (!ewt.zs.prescale){
       // Loop over all ZS regions
-      for (size_t i = 0; i < ewt.zs.zs_regions.size(); i++){
+      for (int i = 0; i < ewt.zs.zs_regions.size(); i++){
         // Start index of ZS region in buffer
         size_t start = ewt.zs.zs_regions[i].start;
         // Length of ZS regionin buffer
@@ -82,7 +82,7 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
     // PH DATA
     // -------------
     // Loop over all ZS regions
-    for (size_t i = 0; i < ewt.ph.size(); i++){
+    for (int i = 0; i < ewt.ph.size(); i++){
       // Pulse time
       int16_t time = ewt.ph[i].time;
       // Pulse height

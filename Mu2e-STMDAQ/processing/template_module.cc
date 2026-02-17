@@ -41,7 +41,7 @@ void TemplateClass::temp_func_1_inner(std::shared_ptr<DataStruct>& buffer){
   for (size_t i = 0; i < n; ++i) {
 
     // Cast the value as a double
-    [[maybe_unused]] const double data_i = (*data)[i];
+    const double data_i = (*data)[i];
     
   }
   

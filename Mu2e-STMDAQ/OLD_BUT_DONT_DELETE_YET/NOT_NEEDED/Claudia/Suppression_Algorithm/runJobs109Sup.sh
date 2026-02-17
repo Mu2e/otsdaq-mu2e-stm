@@ -1,0 +1,33 @@
+#!/bin/bash
+
+MAX_RUNNING_JOBS=19
+EXE=gradient_peaksuppression_v3.exe
+#EXE=nonpeaksuppression_newDan.exe
+NUM_RUNNING=0
+JOB_NUMBER=0
+MAX_JOBS_TO_RUN=20
+EXE_FULL=/work/cgarcia/STMDAQ-TestBeam/build/bin/gradient_peaksuppression_v3.exe
+BIN_FILE=/work/cgarcia/DATA/MWD_Analysis/RUN109/run00109.new.bin
+LOG_FILE=/work/cgarcia/DATA/Claudia/PulseShape_Analysis/SupRun109/logrun109
+
+while [ $JOB_NUMBER -lt $MAX_JOBS_TO_RUN ] ; do
+
+  NUM_RUNNING=`ps -au | grep -i $EXE | wc -l`
+  NUM_RUNNING=$[NUM_RUNNING-1]
+
+  if [ $JOB_NUMBER -lt 10 ] ; then
+       NUM=`echo "0"$JOB_NUMBER`
+  else
+       NUM=$JOB_NUMBER
+  fi
+
+  echo "# Jobs running : "$NUM_RUNNING 
+
+  if [ $NUM_RUNNING -le $MAX_RUNNING_JOBS ] ; then
+     EXEC_COMMAND="$EXE_FULL ${BIN_FILE}_${NUM} > ${LOG_FILE}_${NUM} 2>&1 &"
+     echo $EXEC_COMMAND
+     eval $EXEC_COMMAND
+     JOB_NUMBER=$[JOB_NUMBER+1]
+  fi
+  sleep 4
+done

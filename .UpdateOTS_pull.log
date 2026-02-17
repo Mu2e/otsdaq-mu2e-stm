@@ -1,168 +1,288 @@
-UpdateOTS.sh:562  	 log start:
-UpdateOTS.sh:619  	 ==================
+UpdateOTS.sh:585  	 log start:
+UpdateOTS.sh:671  	 ==================
 /home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e
-On branch develop
-Your branch is behind 'origin/develop' by 27 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-calorimeter
-On branch develop
-Your branch is up to date with 'origin/develop'.
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-dqm
-On branch develop
-Your branch is up to date with 'origin/develop'.
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-trigger
-On branch develop
-Your branch is up to date with 'origin/develop'.
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq
-On branch develop
-Your branch is behind 'origin/develop' by 72 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-crv
-On branch develop
-Your branch is behind 'origin/develop' by 12 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-epics
-On branch develop
-Your branch is behind 'origin/develop' by 1 commit, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-utilities
-On branch develop
-Your branch is behind 'origin/develop' by 33 commits, and can be fast-forwarded.
-  (use "git pull" to update your local branch)
-
-nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-extmon
 On branch develop
 Your branch is behind 'origin/develop' by 3 commits, and can be fast-forwarded.
   (use "git pull" to update your local branch)
 
 nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-tracker
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-calorimeter
 On branch develop
-Your branch is behind 'origin/develop' by 142 commits, and can be fast-forwarded.
+Your branch is behind 'origin/develop' by 39 commits, and can be fast-forwarded.
   (use "git pull" to update your local branch)
 
 nothing to commit, working tree clean
-UpdateOTS.sh:619  	 ==================
-/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-stm
-On branch stmdaq-develop
-Your branch is up to date with 'origin/stmdaq-develop'.
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-core-demo
+On branch develop
+Your branch is behind 'origin/develop' by 3 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-dqm
+On branch develop
+Your branch is behind 'origin/develop' by 2 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-mu2e
+On branch develop
+Your branch is behind 'origin/develop' by 2 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-database
+On branch feature/optimize_findConfigurationsContaining
+Your branch is up to date with 'origin/feature/optimize_findConfigurationsContaining'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/Offline
+HEAD detached at e3916352d
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-trigger
+On branch develop
+Your branch is behind 'origin/develop' by 18 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-crv
+On branch develop
+Your branch is behind 'origin/develop' by 3 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-epics
+On branch develop
+Your branch is behind 'origin/develop' by 4 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-core-mu2e
+On branch develop
+Your branch is behind 'origin/develop' by 10 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   artdaq-core-mu2e/Overlays/DTC_Packets/DTC_DataHeaderPacket.cpp
+	modified:   artdaq-core-mu2e/Overlays/DTC_Packets/DTC_SubEvent.cpp
+
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-utilities
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-extmon
+On branch develop
+Your branch is behind 'origin/develop' by 4 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-tracker
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/mu2e-pcie-utils
+On branch develop
+Your branch is behind 'origin/develop' by 3 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
 
 Changes not staged for commit:
-  (use "git add/rm <file>..." to update what will be committed)
+  (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   CMakeLists.txt
-	deleted:    STMDAQ-TestBeam/CMakeLists.txt
-	deleted:    STMDAQ-TestBeam/frontEnd/CMakeLists.txt
-	deleted:    STMDAQ-TestBeam/frontEnd/Makefile_bk.txt
-	deleted:    STMDAQ-TestBeam/frontEnd/fe_threads.cc
-	deleted:    STMDAQ-TestBeam/frontEnd/fe_threads.hh
-	deleted:    STMDAQ-TestBeam/frontEnd/genData.cc
-	deleted:    STMDAQ-TestBeam/frontEnd/genData.hh
-	deleted:    STMDAQ-TestBeam/frontEnd/testUDP.cc
-	deleted:    STMDAQ-TestBeam/frontEnd/test_funcs.cc
-	deleted:    STMDAQ-TestBeam/frontEnd/test_funcs.hh
-	deleted:    STMDAQ-TestBeam/processData/CMakeLists.txt
-	deleted:    STMDAQ-TestBeam/processData/Makefile_bk.txt
-	deleted:    STMDAQ-TestBeam/processData/checkData.cc
-	deleted:    STMDAQ-TestBeam/processData/checkData.hh
-	deleted:    STMDAQ-TestBeam/processData/formEvents.cc
-	deleted:    STMDAQ-TestBeam/processData/formEvents.hh
-	deleted:    STMDAQ-TestBeam/processData/prescale.cc
-	deleted:    STMDAQ-TestBeam/processData/prescale.hh
-	deleted:    STMDAQ-TestBeam/processData/zeroSuppress.cc
-	deleted:    STMDAQ-TestBeam/processData/zeroSuppress.hh
-	deleted:    STMDAQ-TestBeam/utils/BinaryFile.cc
-	deleted:    STMDAQ-TestBeam/utils/BinaryFile.hh
-	deleted:    STMDAQ-TestBeam/utils/CMakeLists.txt
-	deleted:    STMDAQ-TestBeam/utils/DateTime.hh
-	deleted:    STMDAQ-TestBeam/utils/Destroyer.hh
-	deleted:    STMDAQ-TestBeam/utils/EnvVars.cc
-	deleted:    STMDAQ-TestBeam/utils/EnvVars.hh
-	deleted:    STMDAQ-TestBeam/utils/Hex.hh
-	deleted:    STMDAQ-TestBeam/utils/Logger.cc
-	deleted:    STMDAQ-TestBeam/utils/Logger.hh
-	deleted:    STMDAQ-TestBeam/utils/Random.cc
-	deleted:    STMDAQ-TestBeam/utils/Random.hh
-	deleted:    STMDAQ-TestBeam/utils/UDPsocket.cc
-	deleted:    STMDAQ-TestBeam/utils/UDPsocket.hh
-	deleted:    STMDAQ-TestBeam/utils/dataVars.cc
-	deleted:    STMDAQ-TestBeam/utils/dataVars.hh
-	deleted:    STMDAQ-TestBeam/utils/dbase.cc
-	deleted:    STMDAQ-TestBeam/utils/dbase.hh
-	deleted:    STMDAQ-TestBeam/utils/queue.cc
-	deleted:    STMDAQ-TestBeam/utils/queue.hh
-	deleted:    STMDAQ-TestBeam/utils/queue_old.cc
-	deleted:    STMDAQ-TestBeam/utils/queue_old.hh
-	deleted:    STMDAQ-TestBeam/utils/queue_safe.cc
-	deleted:    STMDAQ-TestBeam/utils/queue_safe.hh
-	deleted:    STMDAQ-TestBeam/utils/queue_write.cc
-	deleted:    STMDAQ-TestBeam/utils/queue_write.hh
-	deleted:    STMDAQ-TestBeam/utils/sharedMem.cc
-	deleted:    STMDAQ-TestBeam/utils/sharedMem.hh
-	deleted:    STMDAQ-TestBeam/utils/xml.hh
-	deleted:    STMDAQ-TestBeam/utils/ziggurat.cc
-	deleted:    STMDAQ-TestBeam/utils/ziggurat.hh
-	modified:   UserWebGUI/html/STMStatus.html
+	modified:   dtcInterfaceLib/DTC.cpp
+
+no changes added to commit (use "git add" and/or "git commit -a")
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-core
+On branch develop
+Your branch is behind 'origin/develop' by 8 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/mu2e-trig-config
+On branch main
+Your branch is behind 'origin/main' by 158 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-stm
+On branch sweetmor/new_tcp
+Your branch is up to date with 'origin/sweetmor/new_tcp'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .UpdateOTS_pull.log
+	modified:   Mu2e-STMDAQ/.UpdateOTS_pull.log
+	modified:   Mu2e-STMDAQ/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/buffers/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/buffers/buffer_pool.cc
+	modified:   Mu2e-STMDAQ/buffers/buffer_pool.hh
+	modified:   Mu2e-STMDAQ/buffers/buffer_queue.cc
+	modified:   Mu2e-STMDAQ/buffers/data_struct.hh
+	modified:   Mu2e-STMDAQ/cmake/STMDAQConfig.cmake
+	modified:   Mu2e-STMDAQ/config/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/config/config.hh
+	modified:   Mu2e-STMDAQ/config/include/buffer_config.hh
+	modified:   Mu2e-STMDAQ/config/include/fw_config.hh
+	modified:   Mu2e-STMDAQ/config/include/udp_config.hh
+	modified:   Mu2e-STMDAQ/config/include/zs_config.hh
+	modified:   Mu2e-STMDAQ/config/stm_data.cc
+	modified:   Mu2e-STMDAQ/config/stm_data.hh
+	modified:   Mu2e-STMDAQ/config/stmdaq.xml
+	modified:   Mu2e-STMDAQ/debug/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/debug/test_funcs.cc
+	modified:   Mu2e-STMDAQ/dqm/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/dqm/app.py
+	modified:   Mu2e-STMDAQ/dqm/dqm_manager.cc
+	modified:   Mu2e-STMDAQ/dqm/dqm_manager.hh
+	modified:   Mu2e-STMDAQ/dqm/dqm_manager.tpp
+	modified:   Mu2e-STMDAQ/dqm/dqm_structs.hh
+	modified:   Mu2e-STMDAQ/dqm/pages/adc_baseline.py
+	modified:   Mu2e-STMDAQ/dqm/pages/overview.py
+	modified:   Mu2e-STMDAQ/dqm/pages/raw_data.py
+	modified:   Mu2e-STMDAQ/dqm/utils/config.py
+	modified:   Mu2e-STMDAQ/dqm/utils/shared_memory.py
+	modified:   Mu2e-STMDAQ/frontend/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/frontend/Makefile
+	modified:   Mu2e-STMDAQ/frontend/main.cc
+	modified:   Mu2e-STMDAQ/processing/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/processing/Makefile
+	modified:   Mu2e-STMDAQ/processing/baseline.cc
+	modified:   Mu2e-STMDAQ/processing/check_data.cc
+	modified:   Mu2e-STMDAQ/processing/event_builder.cc
+	modified:   Mu2e-STMDAQ/processing/form_events.cc
+	modified:   Mu2e-STMDAQ/processing/mwd.cc
+	modified:   Mu2e-STMDAQ/processing/operation_manager.cc
+	modified:   Mu2e-STMDAQ/processing/operation_manager.hh
+	modified:   Mu2e-STMDAQ/processing/prescale.cc
+	modified:   Mu2e-STMDAQ/processing/template_module.cc
+	modified:   Mu2e-STMDAQ/processing/thread_manager.cc
+	modified:   Mu2e-STMDAQ/processing/thread_manager.hh
+	modified:   Mu2e-STMDAQ/processing/udp.cc
+	modified:   Mu2e-STMDAQ/processing/write_manager.cc
+	modified:   Mu2e-STMDAQ/processing/write_manager.hh
+	modified:   Mu2e-STMDAQ/processing/zero_suppress.cc
+	modified:   Mu2e-STMDAQ/setup.sh
+	modified:   Mu2e-STMDAQ/simfw/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/simfw/Makefile
+	modified:   Mu2e-STMDAQ/simfw/gen_data.cc
+	modified:   Mu2e-STMDAQ/simfw/gen_data.hh
+	modified:   Mu2e-STMDAQ/simfw/run_sim.cc
+	modified:   Mu2e-STMDAQ/utils/CMakeLists.txt
+	modified:   Mu2e-STMDAQ/utils/FastRNG.hh
+	modified:   Mu2e-STMDAQ/utils/Logger.cc
+	modified:   Mu2e-STMDAQ/utils/Logger.hh
+	modified:   Mu2e-STMDAQ/utils/async_logger.cc
+	modified:   Mu2e-STMDAQ/utils/async_logger.hh
+	modified:   Mu2e-STMDAQ/utils/buffer_pool.cc
+	modified:   Mu2e-STMDAQ/utils/ring_buffer.cc
+	modified:   Mu2e-STMDAQ/utils/ring_buffer.hh
+	modified:   Mu2e-STMDAQ/utils/shm_manager.cc
+	modified:   Mu2e-STMDAQ/utils/signal_handler.cc
 	modified:   otsdaq-mu2e-stm/CMakeLists.txt
-	modified:   otsdaq-mu2e-stm/FEInterfaces/ROCStoppingTargetMonitorInterface_interface.cc
-	modified:   otsdaq-mu2e-stm/Generators/.UpdateOTS_pull.log
-	modified:   otsdaq-mu2e-stm/Generators/CMakeLists.txt
-	modified:   otsdaq-mu2e-stm/Generators/STMTCPReceiver.hh
-	modified:   otsdaq-mu2e-stm/Generators/STMTCPReceiver_generator.cc
-	modified:   otsdaq-mu2e-stm/Generators/STMUDPReceiver.hh
-	modified:   otsdaq-mu2e-stm/Generators/STMUDPReceiver_generator.cc
-	modified:   otsdaq-mu2e-stm/Generators/tcp_utils.hh
-	deleted:    stm_spack_requirements/daq13/Data_stm/ServiceData/CoreTableInfoNames.dat~
-	deleted:    stm_spack_requirements/daq13/Data_stm_readout/ServiceData/CoreTableInfoNames.dat~
-	deleted:    stm_spack_requirements/stm01/Data_stm/ServiceData/CoreTableInfoNames.dat~
-	deleted:    stm_spack_requirements/stm01/Data_stm_readout/ServiceData/CoreTableInfoNames.dat~
-	deleted:    stm_spack_requirements/stm02/Data_stm/ServiceData/CoreTableInfoNames.dat~
-	deleted:    stm_spack_requirements/stm02/Data_stm_readout/ServiceData/CoreTableInfoNames.dat~
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-	.UpdateOTS_pull.log
-	.ots_artdaq_setup_type.txt
-	.ots_setup_type.txt
-	.rte_stm_readout_setup_ots.sh
-	Mu2e-STMDAQ/
-	UserWebGUI/html/STMFFT.html
-	UserWebGUI/html/STMMain.html
-	UserWebGUI/images/stmdqm.png
-	otsdaq-mu2e-stm/Generators/bk_2/
-	otsdaq-mu2e-stm/Generators/gsim/new_hdr/
-	otsdaq-mu2e-stm/Generators/tcp_event_header.hh
-	otsdaq-mu2e-stm/Supervisor/
+	Mu2e-STMDAQ/.gitignore
+	Mu2e-STMDAQ/MWD/
+	Mu2e-STMDAQ/Makefile
+	Mu2e-STMDAQ/Makefile.inc
+	Mu2e-STMDAQ/OLD_BUT_DONT_DELETE_YET/
+	Mu2e-STMDAQ/STMDAQ_new_module_instructions.txt
+	Mu2e-STMDAQ/ZS/
+	Mu2e-STMDAQ/analysis_files/
+	Mu2e-STMDAQ/baseline/
+	Mu2e-STMDAQ/buffers/Makefile
+	Mu2e-STMDAQ/config/include/dqm_config.hh
+	Mu2e-STMDAQ/config/include/master_config.hh
+	Mu2e-STMDAQ/config/include/tcp_config.hh
+	Mu2e-STMDAQ/config/xml/
+	Mu2e-STMDAQ/dqm/dqm_block_writer.hh
+	Mu2e-STMDAQ/dqm/dqm_manager_old.tpp
+	Mu2e-STMDAQ/dqm/dqm_shm_block.hh
+	Mu2e-STMDAQ/dqm/old/home.py
+	Mu2e-STMDAQ/dqm/old/physics.py
+	Mu2e-STMDAQ/dqm/old/station2.py
+	Mu2e-STMDAQ/dqm/pages/cpu_speeds.py
+	Mu2e-STMDAQ/dqm/pages/examplePage.py
+	Mu2e-STMDAQ/dqm/pages/peak_data.py
+	Mu2e-STMDAQ/dqm/shared_memory.py
+	Mu2e-STMDAQ/dqm/shm_manager.hh
+	Mu2e-STMDAQ/dqm/worker_manager.py
+	Mu2e-STMDAQ/dqm/workers/
+	Mu2e-STMDAQ/hardware/
+	Mu2e-STMDAQ/processing/buffer_pool.cc
+	Mu2e-STMDAQ/processing/buffer_pool.hh
+	Mu2e-STMDAQ/processing/combine_streams.cc
+	Mu2e-STMDAQ/processing/dqm_manager.cc
+	Mu2e-STMDAQ/processing/dqm_manager.hh
+	Mu2e-STMDAQ/processing/noise.cc
+	Mu2e-STMDAQ/processing/noise.hh
+	Mu2e-STMDAQ/processing/operation.cc
+	Mu2e-STMDAQ/processing/operation.hh
+	Mu2e-STMDAQ/processing/prescale_raw.cc
+	Mu2e-STMDAQ/processing/prescale_raw.hh
+	Mu2e-STMDAQ/processing/tcp.cc
+	Mu2e-STMDAQ/processing/tcp.hh
+	Mu2e-STMDAQ/run_sim.sh
+	Mu2e-STMDAQ/sim/
+	Mu2e-STMDAQ/simdaq/
+	Mu2e-STMDAQ/testing/
+	Mu2e-STMDAQ/utils/Makefile
+	Mu2e-STMDAQ/utils/data_struct.hh
+	Mu2e-STMDAQ/utils/stm_data.cc
+	Mu2e-STMDAQ/utils/stm_data.hh
+	Mu2e-STMDAQ/utils/udp.cc
+	Mu2e-STMDAQ/utils/udp.hh
 
 no changes added to commit (use "git add" and/or "git commit -a")
-UpdateOTS.sh:619  	 ==================
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq
+On branch develop
+Your branch is behind 'origin/develop' by 24 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
 /home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-components
 On branch develop
-Your branch is behind 'origin/develop' by 1 commit, and can be fast-forwarded.
+Your branch is behind 'origin/develop' by 4 commits, and can be fast-forwarded.
   (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-daqinterface
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:671  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/artdaq-suite
+On branch develop
+Your branch is up to date with 'origin/develop'.
 
 nothing to commit, working tree clean

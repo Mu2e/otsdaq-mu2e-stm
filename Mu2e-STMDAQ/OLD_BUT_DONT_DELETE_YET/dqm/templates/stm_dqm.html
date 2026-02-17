@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+
+<html>
+
+  <!-- Start html head -->
+  <head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Start STM DQM style -->
+    <style>
+
+      /* center align h3 headers */
+      h3 {text-align: center;}
+
+      /* center align h3 headers */
+      h4 {text-align: center;}
+
+      /* Set header styles */
+      header {
+	  background-color: #333;
+          padding: 20px;
+          color: #fff;
+      }
+
+      /* Spacing for logo images */
+      .image-spacing { 
+	  margin-right: 10px; 
+      } 
+
+      /* Right spacing for charts */
+      .chart-spacing { 
+	  margin-right: 35px; 
+      } 
+
+      /* Ensure rows are vertically centered */
+      .row {
+	  width:100%;
+	  height:50%;
+      }
+      .row div {
+	  width:50%;
+	  height:100%;
+      }
+      
+      .sidenav {
+	  height: 100%;
+	  width: 160px;
+	  position: fixed;
+	  z-index: 1;
+	  top: 0;
+	  left: 0;
+	  background-color: #111;
+	  overflow-x: hidden;
+	  padding-top: 20px;
+      }
+
+      .sidenav a {
+	  padding: 6px 8px 6px 16px;
+	  text-decoration: none;
+	  font-size: 20px;
+	  color: #818181;
+	  display: block;
+      }
+
+      .sidenav a:hover {
+	  color: #f1f1f1;
+      }
+
+      .main {
+	  margin-left: 160px; /* Same as the width of the sidenav */
+      }
+
+      @media screen and (max-height: 450px) {
+	  .sidenav {padding-top: 15px;}
+	  .sidenav a {font-size: 18px;}
+      }
+
+    </style>
+    <!-- End STM DQM style -->
+  </head>
+  <!-- End html head -->
+
+  <!-- Import axios, which makes HTTP requests in JS a little easier-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js" integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Bootstrap Links -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849bl\
+									    E2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2`qE50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+  <!-- JQuery links  -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <!--High CHART LIVE  -->
+  <script src="http://code.highcharts.com/highcharts.js"></script>
+  <script src="http://code.highcharts.com/highcharts-more.js"></script>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  
+  <!-- Start html body -->
+  <body>
+    
+    <!-- Function to initialise ADC -->
+    <script type=text/javascript>
+      $(function() {
+	  $('a#adc').on('click', function(e) {
+	      e.preventDefault()
+	      $.getJSON('/init_adc',
+			function(data) {
+			    //do nothing
+			});
+	      return false;
+	  });
+      });
+    </script>
+
+    <!-- Function to check DTC comma characters -->
+    <script type=text/javascript>
+      $(function() {
+	  $('a#dtc').on('click', function(e) {
+	      e.preventDefault()
+	      $.getJSON('/dtc_check',
+			function(data) {
+			    //do nothing
+			});
+	      return false;
+	  });
+      });
+    </script>
+
+    <!-- Start 10G readout -->
+    <script type=text/javascript>
+      $(function() {
+          $('a#readout').on('click', function(e) {
+              e.preventDefault()
+              $.getJSON('/start_readout',
+                        function(data) {
+                            //do nothing
+                        });
+              return false;
+          });
+      });
+    </script>
+
+
+    <!-- Reset readout -->
+    <script type=text/javascript>
+      $(function() {
+          $('a#reset').on('click', function(e) {
+              e.preventDefault()
+              $.getJSON('/reset_readout',
+                        function(data) {
+                            //do nothing
+                        });
+              return false;
+          });
+      });
+    </script>
+
+    <!-- Start the DAQ -->
+    <script type=text/javascript>
+      $(function() {
+          $('a#daq').on('click', function(e) {
+              e.preventDefault()
+              $.getJSON('/start_daq',
+                        function(data) {
+                            //do nothing
+                        });
+              return false;
+          });
+      });
+    </script>
+
+
+    <!-- Side navigation bar -->
+    <div class="sidenav">
+      <!-- User instruction -->
+      <h4 style="text-align: left; width: 100%; margin-left: 10px; color: white">Press the following in order:</h4>
+      <form>
+        <a href=# id=adc>Initialise ADC</button></a>
+</form>
+<form>
+  <a href=# id=dtc>Check DTC</button></a>
+</form>
+<form>
+  <a href=# id=daq>Start DAQ</button></a>
+</form>
+<form>
+  <a href=# id=reset>Reset readout</button></a>
+</form>
+<form>
+  <a href=# id=readout>Start readout</button></a>
+</form>
+</div>
+
+<!-- Main page -->
+<div class="main">
+
+  <!-- Start DQM hesder -->
+  <header>      
+    <!-- Manchester logo -->
+    <img class="padded" align="right" src="https://assets.manchester.ac.uk/logos/hi-res/TAB_UNI_MAIN_logo/Coloured_backgrounds/TAB_col_background.png" alt="MCR" width="160">
+    <!-- Mu2e logo -->
+    <img align="right" src="https://rodare.hzdr.de/api/files/00000000-0000-0000-0000-000000000000/mu2e/logo.png" alt="Mu2e" width="110" class="image-spacing">
+    <!-- Header title -->
+    <h2>Mu2e STM DQM</h2>
+
+    <!-- Header title -->
+    <h5 style="font-family:courier;">Console output: <span id="output"></h5>
+
+  </header>
+  <!-- End DQM header -->
+
+  <!-- Aesthetic line break -->
+  <br>
+
+  <!-- Start STM info division -->
+  <div class="px-1 mx-5" style="width: 26%; float:left">
+
+    <!-- System ready header -->
+    <h4>System Ready?</h4>
+    <!-- Start STM checklist table -->
+    <table class="table table-bordered grocery-crud-table table-hover" style="float: left" border="0">
+      <!-- Start table header -->
+      <thead>
+	<!-- Table header row -->
+        <tr>
+	  <!-- Add registry headers -->
+          <th>Check</th><th>Outcome</th>
+	  <!-- End header row -->
+        </tr>
+	<!-- End table header -->
+      </thead>
+      <!-- Start table body -->
+      <tbody id="sys_table">
+	<!-- End table body -->
+      </tbody>
+      <!-- End table -->
+    </table>
+    
+    <!-- Aesthetic line breaks -->
+    <br>
+    <br>
+
+    <!-- System ready header -->
+    <h4>Firmware Error Counters</h4>
+    <!-- Start STM checklist table -->
+    <table class="table table-bordered grocery-crud-table table-hover" style="float: left" border="0">
+      <!-- Start table header -->
+      <thead>
+	<!-- Table header row -->
+        <tr>
+	  <!-- Add registry headers -->
+          <th>Error</th><th>Number</th>
+	  <!-- End header row -->
+        </tr>
+	<!-- End table header -->
+      </thead>
+      <!-- Start table body -->
+      <tbody id="counter_table">
+	<!-- End table body -->
+      </tbody>
+      <!-- End table -->
+    </table>
+    
+    <!-- Aesthetic line breaks -->
+    <br>
+    <br>
+
+    
+    <!-- STM data header -->	
+    <h3>STM Data</h3>
+    <!-- Start STM data table -->
+    <table class="table table-bordered grocery-crud-table table-hover" style="float: left">
+      <!-- Start table header -->
+      <thead>
+	<!-- Table header row -->
+        <tr>
+	  <!-- Loop through data headers from flask -->
+          {% for header in stm_headers %}
+	  <!-- Add data headers -->
+          <th>{{header}}</th>
+	  <!-- End loop -->
+          {% endfor %}
+	  <!-- End header row -->
+        </tr>
+	<!-- End table header -->
+      </thead>
+      <!-- Start table body -->
+      <tbody id="stm_table">
+	<!-- End table body -->
+      </tbody>
+      <!-- End table -->
+    </table>    
+    
+  </div>
+  <!-- End STM info division -->
+
+  <!-- Start STM charts division -->
+  <div class="chart-spacing" style="width:63%; float:right">
+
+    <!-- Channel 0 header -->
+    <h3>HPGe [Ch0]</h3>
+
+    <!-- ch0 data row -->
+    <div class="row">
+      
+      <!-- ch0 table divison -->
+      <div id="table-ch0" style="width:35%; float:left">
+	
+ 	<!-- Start Ch0 data table -->
+	<table class="table table-bordered grocery-crud-table table-hover">
+	  <!-- Start table header -->
+	  <thead>
+	    <!-- Table header row -->
+            <tr>
+	      <!-- Loop through data headers from flask -->
+	      {% for header in ch0_headers %}
+	      <!-- Add data headers -->
+	      <th>{{header}}</th>
+	      <!-- End loop -->
+	      {% endfor %}
+	      <!-- End header row -->
+            </tr>
+	    <!-- End table header -->
+	  </thead>
+	  <!-- Start table body -->
+	  <tbody id="ch0_table">
+	    <!-- End table body -->
+	  </tbody>
+	  <!-- End table -->
+	</table>   	  	  
+
+      </div>
+      <!-- End ch0 table divison -->
+
+      <!-- ch0 chart divison -->
+      <div class="container-fluid" id="data-ch0" style="width:65%; float:right">
+      </div>
+      <!-- End ch0 chart divison -->
+
+    </div>
+    <!-- End ch0 data row -->
+    
+    <!-- Aesthetic horizontal row -->
+    <hr>
+
+    <!-- Channel 0 header -->
+    <h3>LaBr [Ch1]</h3>
+
+    <!-- ch1 data row -->
+    <div class="row">
+
+      <!-- ch0 table divison -->
+      <div  id="table-ch1" style="width:35%; float:left">
+	
+ 	<!-- Start ch1 data table -->
+	<table class="table table-bordered grocery-crud-table table-hover">	    
+	  <!-- Start table header -->
+	  <thead>
+	    <!-- Table header row -->
+            <tr>
+	      <!-- Loop through data headers from flask -->
+	      {% for header in ch1_headers %}
+	      <!-- Add data headers -->
+	      <th>{{header}}</th>
+	      <!-- End loop -->
+	      {% endfor %}
+	      <!-- End header row -->
+            </tr>
+	    <!-- End table header -->
+	  </thead>
+	  <!-- Start table body -->
+	  <tbody id="ch1_table">
+	    <!-- End table body -->
+	  </tbody>
+	  <!-- End table -->
+	</table>    	 	
+      </div>
+      <!-- End ch1 table divison -->
+
+      <!-- ch1 chart divison -->
+      <div class="container-fluid" id="data-ch1" style="width:65%; float:right">
+      </div>
+      <!-- End ch1 chart divison -->
+      
+    </div>
+    <!-- End ch1 data row -->
+    
+    <!-- End STM charts division -->
+  </div>     
+</div>
+
+<!-- Start of script -->
+<script>
+
+  // Function to get table content from flask with repeated interval
+  setInterval(function getTableContent() {
+
+      let myRequest = new Request('/table');
+      fetch(myRequest).then(response => response.json()).then(
+          function (data) {
+              let sys_table = document.getElementById("sys_table");
+              sys_table.innerHTML = "";
+              let counter_table = document.getElementById("counter_table");
+              counter_table.innerHTML = "";
+              let stm_table = document.getElementById("stm_table");
+              stm_table.innerHTML = "";
+              let ch0_table = document.getElementById("ch0_table");
+              ch0_table.innerHTML = "";
+              let ch1_table = document.getElementById("ch1_table");
+              ch1_table.innerHTML = "";
+              var count = 0;
+              let ch0_baseline = ""
+              let ch1_baseline = ""
+              for (var key in data){
+                  if (key == "last_line"){
+                      document.getElementById("output").innerHTML = data.last_line;
+                  }
+                  else{
+                      var entry = data[key][0].description
+                      var value = data[key][0].value
+                      if (count < 5){
+		          if (value == "Yes" || value == 0){
+                              sys_table.innerHTML += `<tr><td>${entry}</td><td style="text-align: center" class="p-2 mb-2 bg-success text-white">${value}</td></tr>`
+	                  }
+		          else if (value == "Working..."){
+                              sys_table.innerHTML += `<tr><td>${entry}</td><td style="text-align: center" class="p-2 mb-2 bg-warning text-white">${value}</td></tr>`
+	                  }
+			  else{
+                              sys_table.innerHTML += `<tr><td>${entry}</td><td style="text-align: center" class="p-2 mb-2 bg-danger text-white">${value}</td></tr>`
+	                  }
+	              }    
+                      else if (count < 10){
+		          if (value == 0){
+                              counter_table.innerHTML += `<tr><td>${entry}</td><td style="text-align: center" class="p-2 mb-2 bg-success text-white">${value}</td></tr>`
+	                  }
+			  else{
+                              counter_table.innerHTML += `<tr><td>${entry}</td><td style="text-align: center" class="p-2 mb-2 bg-danger text-white">${value}</td></tr>`
+	                  }
+	              }    
+                      else if (count < 17){
+                          stm_table.innerHTML += `<tr><td>${entry}</td><td>${value}</td></tr>`
+	   	      }
+                      else if (count < 27){
+			  if (key == "b_mean_0"){
+			    ch0_baseline += value
+                          }
+			  else if (key == "b_rms_0"){
+			     ch0_baseline += " ± " + value
+                             ch0_table.innerHTML += `<tr><td>${entry}</td><td>${ch0_baseline}</td></tr>`
+                          }
+	                  else{
+                             ch0_table.innerHTML += `<tr><td>${entry}</td><td>${value}</td></tr>`
+                          }
+	 	      }
+                      else if (count < 38){
+			  if (key == "b_mean_1"){
+			    ch1_baseline += value
+                          }
+			  else if (key == "b_rms_1"){
+			     ch1_baseline += " ± " + value
+                             ch1_table.innerHTML += `<tr><td>${entry}</td><td>${ch1_baseline}</td></tr>`
+                          }
+	                  else{
+                             ch1_table.innerHTML += `<tr><td>${entry}</td><td>${value}</td></tr>`
+                          }
+	  	      }
+		      count++;
+                  }
+	      }
+          }
+      );
+
+      // Updated every 2 seconds
+  }, 2000);
+
+  // Define variables for charts
+  var chartCh0; // Ch0
+  var chartCh1; // Ch1
+  
+  // Function to request pulse/noise data from python
+  function requestData(){
+
+      // Ajax call to get the Data from Flask
+      var requests = $.get('/data');
+
+      // Once the data request is done
+      var tm = requests.done(
+
+          // Start create data function with
+	  // the data request as the argument
+	  function (result){
+
+              // Pulse series data
+	      var seriesCh0 = chartCh0.series[0],
+                  shiftCh0 = seriesCh0.data.length > 0;
+	      
+              // Add pulse data from result request
+	      chartCh0.series[0].setData(result[0]);
+
+              // Ch1 series data
+	      var seriesCh1 = chartCh1.series[0],
+                  shiftCh1 = seriesCh0.data.length > 0;
+
+              // Add pulse data from result request
+	      chartCh1.series[0].setData(result[1]);
+
+              // call it again after one second
+	      setTimeout(requestData, 1000);
+
+          } // End create data function
+      ); // End data request done
+  } // End request data function 
+
+  // When document is ready...
+  $(document).ready(
+      
+      // Start draw charts function
+      function(){
+	  
+	  // Create ch0 chart
+	  chartCh0 = new Highcharts.Chart({
+	      chart:
+              {
+		  // Render to data-ch0 container
+                  renderTo: 'data-ch0',
+		  // Aera series type
+                  defaultSeriesType: 'area',
+		  // Get the events
+                  events: {
+		      // Load the request data function
+                      load: requestData
+                  }
+              },
+	      // Set the chart title
+              title:
+              {
+                  text: null // Title text
+              },
+	      // Define the x-axis
+              xAxis: {
+		  // Linear axis
+                  type: 'Linear',
+		  // Set the tick interval
+                  tickPixelInterval: 150,
+		  // Set x-axis label
+		  title: {
+                      text: 'Time [ns]',
+                      margin: 20
+                  }		      
+              },
+	      // Define the x-axis
+              yAxis: {
+                  minPadding: 0.2,
+                  maxPadding: 0.2,
+		  // Define the y-axis title
+                  title: {
+		      // Set y-axis label
+                      text: 'ADC counts',
+                      margin: 20
+                  }
+              },
+	      // Include data series
+              series: [{
+		  // Set the line colour
+                  lineColor: '#1d82b8',
+		  // Set the data desgination
+                  name: 'HPGe [Ch0]',
+		  // Set data to be continuosly updated
+                  data: []
+              }]
+          }); // End ch0 chart
+	  
+	  // Create noise chart
+          chartCh1 = new Highcharts.Chart({
+              chart:
+              {
+		  // Render to data-noise container
+                  renderTo: 'data-ch1',
+		  // Aera series type
+                  defaultSeriesType: 'area',
+		  // Get the events
+                  events: {
+		      // Load the request data function
+                      load: requestData
+                  }
+              },
+	      // Set the chart title
+              title:
+              {
+                  text: null // Title text
+              },
+	      // Define the x-axis
+              xAxis: {
+		  // Linear axis
+                  type: 'Linear',
+		  // Set the tick interval
+                  tickPixelInterval: 150,
+		  // Set x-axis label
+		  title: {
+                      text: 'Time [ns]',
+                      margin: 20
+                  }		      
+              },
+	      // Define the x-axis
+              yAxis: {
+                  minPadding: 0.2,
+                  maxPadding: 0.2,
+		  // Define the y-axis title
+                  title: {
+		      // Set y-axis label
+                      text: 'ADC counts',
+                      margin: 20
+                  }
+              },
+	      // Include data series
+              series: [{
+		  // Set the color colour
+		  color : '#c23d23',
+		  // Set the line colour
+                  lineColor: '#303030',
+		  // Set the data desgination
+                  name: 'LaBr [Ch1]',
+		  // Set data to be continuosly updated
+                  data: []
+              }]
+          }); // End noise chart
+	  
+      } // End create charts function
+
+  ); // End when document is ready...
+
+    <!-- End of script -->
+    </script>
+
+<!-- End of script -->
+</body>
+
+<!-- End of body -->
+</html>
+

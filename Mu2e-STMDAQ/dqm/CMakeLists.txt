@@ -1,20 +1,42 @@
-set(LIB_CC
-  dqm_manager.cc 
+# dqm/CMakeLists.txt
+
+# ---- Sources (shared) ----                                                 
+set(DQM_SOURCES
+  dqm_manager.cc
 )
 
-cet_make_library(
-  LIBRARY_NAME DQMLibraryX
-  SOURCE
-    ${LIB_CC}
-  LIBRARIES PUBLIC
-    ${STMDAQ_EXTRA_LIBS}  # e.g., rt
-    ${PUGIXML_LIBRARY_DIR}  
-    UtilsLibraryX
-    ConfigLibraryX
-  )
+# ============================================================               
+#                         CET BUILD                                          
+# ============================================================               
+if(USE_CET)                                                                  
+                                                                             
+  cet_make_library(                                                          
+	  LIBRARY_NAME DQM
+    SOURCE                                                                   
+     ${DQM_SOURCES}
+    LIBRARIES PUBLIC
+      Utils          
+      Config
+    LIBRARIES PRIVATE
+      stmdaq_all_deps      
+    )                                                                          
+                                                                             
+  install_headers()                                                          
+  install_source()  
 
-# Include paths
-stmdaq_target_includes(DQMLibraryX)
+# ============================================================               
+#                    STANDARD CMAKE BUILD                                    
+# ============================================================               
+else()                                                                       
 
-install_headers()
-install_source()
+add_library(DQM SHARED
+  dqm_manager.cc
+)
+
+set_target_properties(DQM PROPERTIES OUTPUT_NAME "DQM")
+
+target_link_libraries(DQM PRIVATE
+  stmdaq_all_deps
+)
+
+endif()

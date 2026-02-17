@@ -18,25 +18,27 @@
 #include "Mu2e-STMDAQ/processing/baseline.hh" 
 // Zero suppression header
 #include "Mu2e-STMDAQ/processing/zero_suppress.hh" 
+// Noise header
+#include "Mu2e-STMDAQ/processing/noise.hh" 
 // MWD header
 #include "Mu2e-STMDAQ/processing/mwd.hh"
-// MWD header
+// Prescale header
 #include "Mu2e-STMDAQ/processing/prescale.hh"
 // Template module header
 #include "Mu2e-STMDAQ/processing/template_module.hh"
 // Write manager header
 #include "Mu2e-STMDAQ/processing/write_manager.hh"
+// UDP header
+#include "Mu2e-STMDAQ/processing/tcp.hh" 
 // Write manager header
-#include "Mu2e-STMDAQ/dqm/dqm_manager.hh"
+#include "Mu2e-STMDAQ/processing/dqm_manager.hh"
 // UDP header
 #include "Mu2e-STMDAQ/debug/test_funcs.hh" 
 // SHM header
 #include "Mu2e-STMDAQ/utils/shm_manager.hh" 
 
-#include "Mu2e-STMDAQ/interfaces/operation_provider.hh"
-
 // Standard thread functions
-class OperationManager : public IOperationProvider {
+class OperationManager {
 
 private:
   
@@ -85,6 +87,9 @@ private:
     {"ZeroSuppress",
      { [this]() { return std::make_shared<ZeroSuppress>(cfg,logger,stm, signal);},
        {"prep_data", "find_peaks", "suppress_data"} }},
+    {"Noise",
+     { [this]() { return std::make_shared<Noise>(cfg, logger, stm);},
+       {"get_noise_data", "check_noise", "noise_fft"} }},
     {"Prescale",
      { [this]() { return std::make_shared<Prescale>(logger,stm);},
        {"prescale_data"} }},    
@@ -94,8 +99,11 @@ private:
     {"WriteManager",
      { [this]() { return std::make_shared<WriteManager>(logger, stm, signal);},
        {"write_events", "write_raw", "write_zs", "write_ph"} }},
+    {"TCP",
+     { [this]() { return std::make_shared<TCP>(logger, stm, signal); },
+       {"send_data"} }},
     {"DQM",
-     { [this]() { return std::make_shared<DQM>(cfg,logger, stm, signal); },
+     { [this]() { return std::make_shared<DQM>(cfg,logger, stm, signal, this); },
        {"update_dqm"} }},
     {"TestFuncs",
      { [this]() { return std::make_shared<TestFuncs>(signal); },
@@ -111,7 +119,7 @@ public:
                             const std::shared_ptr<SignalHandler>& signal_);
   
   // Return the selected subset of operations
-  const std::vector<std::pair<std::string, op_any>>& getUseOps() const override;
+  std::vector<std::pair<std::string, op_any>> getUseOps() const;
 
   // Return how many classes have been selected
   std::size_t class_num() const { return classes.size(); }

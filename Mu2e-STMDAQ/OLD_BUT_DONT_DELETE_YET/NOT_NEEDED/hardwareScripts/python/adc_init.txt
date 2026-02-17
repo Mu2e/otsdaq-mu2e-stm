@@ -1,0 +1,28 @@
+tp
+ZCU102-FMC120
+Info
+1st step
+0x28c0020
+0x62ab191d
+Get the diagnostics from the FMC120 daughter board
+1st step
+2nd step
+32955
+Temp (AD7291) : OK 46.75
+1573
+Vin0 (0.9Va) : OK 0.96V
+5983
+Vin1 (1.15Va) : OK 1.15V
+11160
+Vin2 (1.8Va) : OK 1.81V
+15441
+Vin3 (1.9Va) : OK 1.92V
+18524
+Vin4 (2.6Va) : OK 2.61V
+22972
+Vin5 (3.0Va) : OK 3.04V
+27307
+Vin6 (3.3Va) : OK 3.33V
+29278
+Vin7 (-2.6Va) : OK -2.56V
+Test pattern output from the ADC

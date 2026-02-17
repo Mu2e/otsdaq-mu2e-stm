@@ -50,6 +50,19 @@ OperationManager::OperationManager(Config& cfg_,
       continue;
     }
 
+    // Check if ZS find peaks is on for Noise module
+    // If it isn't on, turn Noise off
+    std::pair<std::string,std::string> find_peaks_op = {"ZeroSuppress","find_peaks"};
+    if (class_.first == "Noise" && std::find(useOpsFlag.begin(), useOpsFlag.end(), find_peaks_op) == useOpsFlag.end()){
+      logger->log("WARNING: " + class_.first +
+		  " ON when " + find_peaks_op.first + "::" +
+		  find_peaks_op.second + 
+		  " operation is OFF. Switching off " + class_.first
+		  + ".",2);
+      logger->log(class_.first + " is OFF.", 1);
+      continue;
+    }
+
     // Log class is on
     logger->log(class_.first + " class is ON.", 1);
 
@@ -176,11 +189,17 @@ OperationManager::OperationManager(Config& cfg_,
   
   // Notify user
   logger->log("OperationManager initialised a total of " + std::to_string(useOps.size()) + " operations",1);
+
+  // Now number of ops known DQM can allocate shm
+  if (classes.count("DQM")) {
+    auto dqm_ptr = std::dynamic_pointer_cast<DQM>(classes["DQM"]);
+    if (dqm_ptr) dqm_ptr->init_shm(); 
+  }
   
 }
 
 // Get the list of selected operations
-const std::vector<std::pair<std::string, op_any>>&
+std::vector<std::pair<std::string, op_any>>
 OperationManager::getUseOps() const {
   return useOps;
 }

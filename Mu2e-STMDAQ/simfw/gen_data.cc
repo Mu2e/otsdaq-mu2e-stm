@@ -2,8 +2,9 @@
 #include "gen_data.hh"
 
 // Constructor
-GenData::GenData(size_t event_num_, size_t event_period_,
+GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
 		 const std::string& filepath) :
+  channel(channel_),
   event_num(static_cast<double>(event_num_)),
   event_period(event_period_),
   event_len((double)event_period*1e-9 * fADC*1e6){
@@ -170,7 +171,7 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
     	// Get remaining in packet
     	uint16_t start = MAX_PACKET_LEN - left_in_packet;
     	// Fill remainder of packet with 0xDEADBEEF
-    	for (size_t j = start; j < start+left_in_packet; j++){
+    	for (int j = start; j < start+left_in_packet; j++){
     	  // If odd entry
     	  if (j % 2 != 0) (*packet)[j] = BEEF;
     	  // If event entry
@@ -192,7 +193,7 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
       size_t event_start = this_event_len - left_in_event;
       
       // Create event header
-      std::vector<int16_t> header = form_event_header(EWT,1,this_event_len,
+      std::vector<int16_t> header = form_event_header(channel,EWT,1,this_event_len,
 						      event_start,
 						      event_in_packet);
 
@@ -247,7 +248,8 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
 	// Else, if there is a space for the nullhb header in this packet
 	else{
 	  // Create event header
-	  std::vector<int16_t> header = form_event_header(0,
+	  std::vector<int16_t> header = form_event_header(channel,
+			  				  0,
 							  0,
 							  0,
 							  0,
@@ -324,7 +326,8 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
     left_in_packet -= pHdr_Len;
 
     // Create event header
-    std::vector<int16_t> header = form_event_header(0,
+    std::vector<int16_t> header = form_event_header(channel,
+						    0,
 						    0,
 						    0,
 						    0,
@@ -367,14 +370,15 @@ void GenData::gen_packets(const std::shared_ptr<BufferQueue<std::vector<int16_t>
 }
 
 // Generate a new event header
-std::vector<int16_t> GenData::form_event_header(size_t EWT_,
+std::vector<int16_t> GenData::form_event_header(size_t channel_,
+						size_t EWT_,
 						size_t EM_,
 						size_t len,
 						size_t event_start,
 						size_t event_in_packet){
 
   // Get first event header inputs
-  uint16_t chan = 0;
+  uint16_t chan = channel_;
   uint64_t eventNum = EWT_;
   uint64_t ADCclock = EWT_*75e6; // 75 MHz
   uint64_t EWT = EWT_;
@@ -386,7 +390,7 @@ std::vector<int16_t> GenData::form_event_header(size_t EWT_,
   uint16_t ZSflag = 0;
   uint16_t PreVal = 0; 
   // Find event length to read
-  [[maybe_unused]] uint16_t eventLen = len;
+  uint16_t eventLen = len;
   uint64_t runNum = 0; 
   uint64_t DTCclock = EWT_*40e6; // 40 MHz
 
@@ -414,18 +418,18 @@ std::vector<int16_t> GenData::form_event_header(size_t EWT_,
   header[fw_eHdr.EM_0] = EM & 0xFFFF;
   header[fw_eHdr.EM_1] = EM >> 16;
   // Event Mode 2 + Delivery Ring TDC  
-  header[fw_eHdr.EM_2_DRTDC] = ((DRTDC & 0xFF) << 8) | ((EM >> 32) & 0xFF);
+  header[fw_eHdr.EM_2_DRTDC] = (DRTDC & 0xFF) << 8 | (EM >> 32) & 0xFF;
   // Event Start Offset
   header[fw_eHdr.EvStart] = eventStart;
   // Event Length (To Read)
   header[fw_eHdr.EvInPacket] = len_in_packet;
   // Beef placeholder
-  header[fw_eHdr.Beef] = int16_t(0xBEEF);
+  header[fw_eHdr.Beef] = 0xBEEF;
   // Subrun number from FW
   header[fw_eHdr.SubRunNum_0] = subRunNum & 0xFFFF;
   header[fw_eHdr.SubRunNum_1] = subRunNum >> 16;
   // ZS flag and Prescale value
-  header[fw_eHdr.ZSflag_PreVal] = ((ZSflag & 0xFF) << 8) | (PreVal & 0xff);
+  header[fw_eHdr.ZSflag_PreVal] = (ZSflag & 0xFF) << 8 | PreVal & 0xff;
   // Total event length
   header[fw_eHdr.EvLen] = len;
   // Run number [DCS write]
@@ -434,7 +438,7 @@ std::vector<int16_t> GenData::form_event_header(size_t EWT_,
   header[fw_eHdr.RunNum_2] = runNum >> 32;
   header[fw_eHdr.RunNum_3] = runNum >> 48;
   // Channel + DTC Clock 0 
-  header[fw_eHdr.Ch_DTCclk_0] = ((DTCclock & 0xFF) << 8) | (chan & 0xff);
+  header[fw_eHdr.Ch_DTCclk_0] = (DTCclock & 0xFF) << 8 | chan & 0xff;
   // DTC Clock 1-3
   header[fw_eHdr.DTCclk_1] = DTCclock >> 8;
   header[fw_eHdr.DTCclk_2] = DTCclock >> 24;

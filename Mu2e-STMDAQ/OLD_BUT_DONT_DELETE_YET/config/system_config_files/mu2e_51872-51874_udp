@@ -1,0 +1,2 @@
+# udp ports 51872-51874
+-p udp -m udp --dport 51872:51874 -m comment --comment 'mu2e_51872-51874_udp - udp ports 51872-51874' -j ACCEPT

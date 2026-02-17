@@ -1,0 +1,12 @@
+# Configuration file for baseline calculation
+
+# Histogram parameters
+nbins = 1024
+min_adc = -7000
+max_adc = 300
+
+# Expectation-Maximization (EM) parameters
+max_iters = 100
+tol = 1e-6
+var_floor = 1e-6
+

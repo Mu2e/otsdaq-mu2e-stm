@@ -11,6 +11,11 @@
 #include "Mu2e-STMDAQ/utils/async_logger.hh"
 // Signal handler header
 #include "Mu2e-STMDAQ/utils/signal_handler.hh"
+// Data structs header                                                                             
+#include "Mu2e-STMDAQ/buffers/data_struct.hh"
+// Shared memory helpers
+#include "Mu2e-STMDAQ/dqm/dqm_shm_block.hh"
+#include "Mu2e-STMDAQ/dqm/shm_manager.hh"
 // Operations base header
 #include "Mu2e-STMDAQ/processing/operations_base.hh"
 
@@ -22,49 +27,9 @@ namespace boost {
   }
 }
 
-// Enum representing unique pages of the DQM
-enum class DQMPageType {
-  BASELINE,
-  RAW,
-  PHYSICS
-};
+// Forward declare Op manager so can access number of operations
+class OperationManager;
 
-// Base class for all shared memory blocks
-class DQMBlockBase {  
-public:
-  // Get raw void* pointer to shared memory
-  virtual void* get() = 0;
-  // Virtual destructor
-  virtual ~DQMBlockBase() = default;  
-};
-
-// Template class that manages shared memory for a data structure of type T
-template <typename T>
-class DQMBlock : public DQMBlockBase {
-  
-public:
-
-  // Constructor that creates SHM block
-  DQMBlock(const std::string& shm_name);
-  // Return typed pointer to shared memory
-  T* getTyped();
-  // Raw pointer for base access
-  void* get() override;
-  // Destructor cleans up SHM
-  ~DQMBlock();                            
-  
-private:
-
-  // Shared memory name
-  std::string shm_name_;
-  // Size of the shared memory region
-  size_t shm_size_;
-  // Boost shm object
-  std::unique_ptr<boost::interprocess::shared_memory_object> shm_;
-  // Boost shm region
-  std::unique_ptr<boost::interprocess::mapped_region> region_;
-  
-};
 
 // Manager class that controls all shared memory blocks and updates them periodically
 class DQM : public OperationMap {
@@ -75,17 +40,21 @@ public:
   DQM(const Config& cfg_,
       const std::shared_ptr<AsyncLogger>& logger,
       const std::shared_ptr<STMdata>& stm_,
-      const std::shared_ptr<SignalHandler>& signal_);
-  
+      const std::shared_ptr<SignalHandler>& signal_,
+      OperationManager* op_man_);
+ 
   // Destructor stops and joins background thread
   ~DQM(){
     std::cout << "DQM destructor called." << std::endl;
 
   };     
 
+  // Need operations number after init 
+  void init_shm(); 
+
   // Registers a new SHM block
   template <typename T>
-  void registerBlock(DQMPageType type, const std::string& shm_name);  
+  void registerBlock(DQMPageType type, const std::string& shm_name, size_t size);  
 
   // Gets typed pointer to SHM block
   template <typename T>
@@ -104,17 +73,55 @@ private:
   
   // Shared SignalHandler
   const std::shared_ptr<SignalHandler>& signal;
+  
+  // Operation manager pointer
+  OperationManager* op_man;
 
   // The reference baseline mean and sigma to be displayed
   const double baseline_mean_prev;
   const double baseline_sigma_prev;
 
+  // Histogram bins in baseline
+  size_t baseline_nbins;
+
   // Max noise length
-  static constexpr size_t noise_len = 3000;
+  size_t noise_len;
 
   // Raw data length
-  static constexpr size_t raw_len = 300000;
+  size_t raw_len;
   
+  // Peak hist param
+  size_t peak_nbins;
+  size_t min_ph;
+  float inv_wid;
+
+  // Sliding window histogram
+  std::vector<uint64_t> peak_hist_window;
+  // All data histogram
+  std::vector<uint64_t> peak_hist_all;
+
+  // The number of buffers in the sliding window histogram
+  const size_t window_size_buffers;
+  // Total histogram counts
+  uint64_t total_window = 0; // Window histogram
+  uint64_t total_all = 0; // All
+
+  // Buffer histogram variables
+  std::vector<std::vector<uint64_t>> per_buffer_hists;
+  std::size_t window_index = 0;
+  
+  // Running counter of dropped packets
+  size_t num_dropped_packets;
+  
+  // Number of operations
+  size_t op_num;
+
+  // Write alarms to shared memory
+  void alarm_info(std::shared_ptr<DataStruct>& buffer);   
+
+  // Histogram peak data for DQM
+  void histogram_peaks(std::shared_ptr<DataStruct>& buffer);   
+
   // Periodic writer loop for shared memory updates
   void update_dqm(std::shared_ptr<DataStruct>& buffer);   
 
@@ -123,6 +130,9 @@ private:
 
   // Periodic writer loop for raw adc data
   void update_dqm_raw(std::shared_ptr<DataStruct>& buffer);   
+
+  // Periodic writer loop for peak data
+  void update_dqm_peak(std::shared_ptr<DataStruct>& buffer);   
 
   // Update CPU performace DQM
   void update_cpu_performance(std::shared_ptr<DataStruct>& buffer);
@@ -138,6 +148,7 @@ private:
   std::atomic<bool> running_;
 
 };
+
 
 // Include template implementation
 #include "dqm_manager.tpp"  

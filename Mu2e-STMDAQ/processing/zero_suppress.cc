@@ -27,7 +27,7 @@ void ZeroSuppress::find_peaks(std::shared_ptr<DataStruct>& buffer,
                               std::shared_ptr<DataStruct>& prev_buffer){
 
   // Store peak info from previous call first
-  for (size_t i = 0; i < next_peak_data.size(); i++){
+  for (int i = 0; i < next_peak_data.size(); i++){
     buffer->zs_data.emplace_back(next_peak_data[i]);
   }
   // Set size of next peak data buffer to zero for this call
@@ -56,7 +56,7 @@ void ZeroSuppress::find_peaks(std::shared_ptr<DataStruct>& buffer,
     double av_ADCtime = 0;    
 
     // Loop over all average entries                                     
-    for(size_t k = 0; k < n_average; k++){
+    for(int k = 0; k < n_average; k++){
 
       // Low/high window indices
       size_t idx_low  = j;
@@ -127,7 +127,7 @@ void ZeroSuppress::find_peaks(std::shared_ptr<DataStruct>& buffer,
       size_t data_len = total_peak;
 
       // If the peak starts in the previous buffer
-      if (peak_start < 0) {
+      if (!first_buffer && peak_start < 0) {
         // No previous buffer = no prev_data --> ERROR
         if (!prev_buffer){
           logger->log("ZeroSuppress::find_peaks Error! peak_start < 0 but no prev buffer avavilable!",0);
@@ -212,7 +212,7 @@ void ZeroSuppress::suppress_data(std::shared_ptr<DataStruct>& buffer){
   size_t last_copy_end = 0;
   
   // EWT counter
-  [[maybe_unused]] size_t EWT_count = 0;
+  size_t EWT_count = 0;
   
   // The buffer's EWT data
   EWTinfo& EWTs = buffer->EWTs;
@@ -224,7 +224,7 @@ void ZeroSuppress::suppress_data(std::shared_ptr<DataStruct>& buffer){
   size_t last_EWT_j = 0;
 
   // Loop over all zs data regions in buffer
-  for (size_t i = 0; i < buffer->zs_data.size(); i++){
+  for (int i = 0; i < buffer->zs_data.size(); i++){
     // ZS data region start index
     size_t start = buffer->zs_data[i].start;
     // Zs data region length
@@ -338,7 +338,7 @@ void ZeroSuppress::suppress_data(std::shared_ptr<DataStruct>& buffer){
   }
   
   // Loop over all EWTs
-  for (size_t j = 0; j < buffer->EWT_count; j++){
+  for (int j = 0; j < buffer->EWT_count; j++){
     // Get the EWT info
     EWT_info* this_EWT = &EWTs[j];
     //    uint64_t EWT = this_EWT->EWT;

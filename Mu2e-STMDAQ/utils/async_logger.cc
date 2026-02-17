@@ -5,25 +5,28 @@
 AsyncLogger::AsyncLogger(const Config& cfg, const std::shared_ptr<cpu_utils>& cpu_) :
   done(false), cfg(cfg), cpu(cpu_)  {
 
-  // Get current date and time
-  auto t = std::time(nullptr);
-  auto tm = *std::localtime(&t);
-  std::ostringstream oss;
-  oss << std::put_time(&tm,"%Y-%m-%d_%H-%M-%S");
-  std::string date_time = oss.str(); 
+  // Get run start date and time
+  // auto t = std::time(nullptr);
+  // auto tm = *std::localtime(&t);
+  // std::ostringstream oss;
+  // oss << std::put_time(&tm,"%Y-%m-%d_%H-%M-%S");
+  std::string date_time = Timer::run_start_timestamp();
 
   // Get the log directory
   std::string log_dir = EnvVars::expand("${LOG_DIR}");
   // Get log file name
   std::string log_file = cfg.getValue<std::string>("stm.write_data.logfile")+"_"+date_time+".log";
+  // Get number alarms to store in SHM
+  size_t max_shm_alarms = cfg.getValue<int>("stm.dqm.max_num_alarms");
   
   // Logger
-  STMLogger::Instance(STMLogger::DEBUG);
-  STMLogger::Instance()->setStylePlain();
-  STMLogger::Instance()->LogToFile(log_dir+log_file);
-  STMLogger::Instance()->write(1,"STM DAQ started: " + date_time);
-  STMLogger::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());
-  STMLogger::Instance()->write(1,"Logger initialised");   
+  Logger::Instance(Logger::DEBUG);
+  Logger::Instance()->setStylePlain();
+  Logger::Instance()->initSHM(max_shm_alarms);
+  Logger::Instance()->LogToFile(log_dir+log_file);
+  Logger::Instance()->write(1,"STM DAQ started: " + date_time);
+  Logger::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());
+  Logger::Instance()->write(1,"Logger initialised");   
 
   // Start thread to print to screen
   printerThread = std::thread(&AsyncLogger::printerThreadFunc, this);
@@ -34,7 +37,7 @@ AsyncLogger::AsyncLogger(const Config& cfg, const std::shared_ptr<cpu_utils>& cp
 void AsyncLogger::printerThreadFunc() {
 
   // Pin thread to core
-  [[maybe_unused]] size_t core = cpu->get_next_core("AsyncLogger");
+  cpu->get_next_core("AsyncLogger");
   
   // Inifinte loop
   while (true) {
@@ -51,7 +54,7 @@ void AsyncLogger::printerThreadFunc() {
       // Unlock before printing to minimize mutex hold time
       lock.unlock();
       // Print message to screen (CHANGE TO LOGGER)
-      STMLogger::Instance()->write(msg.second,msg.first);
+      Logger::Instance()->write(msg.second,msg.first);
       //      std::cout << msg << std::endl;
       // Reacquire lock for next iteration
       lock.lock();   

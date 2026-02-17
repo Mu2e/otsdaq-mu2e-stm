@@ -5,17 +5,18 @@
 STMdata::STMdata(Config& cfg_,
                  const std::shared_ptr<AsyncLogger>& logger_) :
   cfg(cfg_), logger(logger_),
-  ch_config(cfg,logger), // channel config
+  master_config(cfg,logger), // STMDAQ master config
   fw_config(cfg,logger), // firmware config
   mu2e_config(cfg,logger,fw_config), // mu2e config
-  udp_config(cfg,logger,ch_config), // udp config
-  zs_config(cfg,logger,ch_config,fw_config,mu2e_config), // zero suppression config
+  udp_config(cfg,logger,master_config), // udp config
+  zs_config(cfg,logger,master_config,fw_config,mu2e_config), // zero suppression config
   prescale_config(cfg,logger), // prescale config  
   write_config(cfg,logger), // file writing config
   buffer_config(cfg,logger,fw_config,mu2e_config,zs_config,MAX_PACKET_SIZE), // buffer config
   baseline_config(cfg,logger,fw_config,buffer_config,MAX_PACKET_LEN - pHdr_Len - fw_eHdr_len), // adc baseline config
-  mwd_config(cfg,logger,fw_config,baseline_config) // mwd config
-  
+  mwd_config(cfg,logger,fw_config,baseline_config), // mwd config  
+  tcp_config(cfg,logger,master_config), // tcp config  
+  dqm_config(cfg,logger,fw_config) // dqm config
 {}
 
 
@@ -199,7 +200,7 @@ sw_event_header STMdata::create_sw_eHdr(int16_t* data, uint64_t hdr_index){
   hdr[sw_eHdr.EM_1] = data[hdr_index + fw_eHdr.EM_1];
   hdr[sw_eHdr.EM_2_DRTDC] = data[hdr_index + fw_eHdr.EM_2_DRTDC]; 
 
-  // Starting anchor = 0xCAFE
+  // Ending anchor = 0xCAFE
   hdr[sw_eHdr.anchor_end] = sw_eHdr.anchor;
   
   return hdr;
