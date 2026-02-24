@@ -89,6 +89,7 @@ namespace mu2e {
     std::atomic<size_t> raw_frag_count_{0}; // Number of raw frags produced
     std::atomic<size_t> zs_frag_count_{0}; // Number of ZS frags produced
     std::atomic<size_t> ph_frag_count_{0}; // Number of PH frags produced
+    std::atomic<size_t> batch_count_{0}; // Number of event batches produced
     std::atomic<uint64_t> total_bytes_received_{0}; // Total bytes received over TCP
 
     // getNext() wakeup control
@@ -108,9 +109,9 @@ namespace mu2e {
     int tcpDebugLevel() const { return debug_level_ + 5; }
     
     // Queue capacity
-    static constexpr size_t DEFAULT_RECV_QCAP = 5000;
-    static constexpr size_t DEFAULT_EVT_QCAP  = 5000;
-    static constexpr size_t DEFAULT_BATCH_QCAP  = 5000;
+    static constexpr size_t DEFAULT_RECV_QCAP  = 10000;
+    static constexpr size_t DEFAULT_EVT_QCAP   = 10000;
+    static constexpr size_t DEFAULT_BATCH_QCAP = 10000;
 
     // Receiver -> Parser (raw bulk byte buffers)
     using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
@@ -137,9 +138,9 @@ namespace mu2e {
 
     // --- Header Fetch ---
     bool getEventHeaderPtr(const uint8_t*& header_ptr,
-			   uint8_t* header_tmp,
-			   std::deque<std::shared_ptr<std::vector<uint8_t>>>& chunks,
-			   size_t& offset_in_first_chunk) const
+                           uint8_t* header_tmp,
+                           std::deque<std::shared_ptr<std::vector<uint8_t>>>& chunks,
+                           size_t& offset_in_first_chunk) const
     {
       if (chunks.empty()) return false;
 
@@ -151,10 +152,10 @@ namespace mu2e {
         const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(chunks.front()->data() + offset_in_first_chunk);
         if (hdr_words[anchor_start] == event_anchor_word_ &&
             hdr_words[anchor_end]   == event_anchor_word_) 
-	  {
+          {
             header_ptr = chunks.front()->data() + offset_in_first_chunk;
             return true;
-	  }
+          }
       }
 
       // Anchor scan across chunks
@@ -167,13 +168,13 @@ namespace mu2e {
 
         // Only scan new bytes since last check
         for (size_t i = 0; i + EVENT_HEADER_BYTES <= avail; ++i) {
-	  const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(chunk->data() + scan_offset + i);
-	  if (hdr_words[anchor_start] == event_anchor_word_ &&
-	      hdr_words[anchor_end]   == event_anchor_word_) 
+          const uint16_t* hdr_words = reinterpret_cast<const uint16_t*>(chunk->data() + scan_offset + i);
+          if (hdr_words[anchor_start] == event_anchor_word_ &&
+              hdr_words[anchor_end]   == event_anchor_word_) 
             {
-	      offset_in_first_chunk = scan_offset + i;
-	      header_ptr = chunk->data() + offset_in_first_chunk;
-	      return true;
+              offset_in_first_chunk = scan_offset + i;
+              header_ptr = chunk->data() + offset_in_first_chunk;
+              return true;
             }
         }
 
@@ -205,9 +206,9 @@ namespace mu2e {
       const bool is_raw = (&ds == &evt.raw);
 
       size_t byte_offset =
-	is_raw
-	? ds.offset * sizeof(int16_t)
-	: ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
+        is_raw
+        ? ds.offset * sizeof(int16_t)
+        : ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
 
       size_t byte_size   = ds.size   * sizeof(int16_t);
 
@@ -237,35 +238,36 @@ namespace mu2e {
       const uint16_t* hdr_words = evt.header;
 
       if (!hdr_words) {
-	TLOG(TLVL_ERROR) << "[PARSER] Null event header pointer";
-	return false;
+        TLOG(TLVL_ERROR) << "[PARSER] Null event header pointer";
+        return false;
       }
 
       if (hdr_words[anchor_start] != event_anchor_word_ ||
-	  hdr_words[anchor_end]   != event_anchor_word_) {
+          hdr_words[anchor_end]   != event_anchor_word_) {
 
-	TLOG(TLVL_ERROR)
-	  << "[PARSER] Anchor mismatch: start=0x"
-	  << std::hex << hdr_words[anchor_start]
-	  << " end=0x" << hdr_words[anchor_end]
-	  << " expected=0x" << event_anchor_word_;
-	return false;
+        TLOG(TLVL_ERROR)
+          << "[PARSER] Anchor mismatch: start=0x"
+          << std::hex << hdr_words[anchor_start]
+          << " end=0x" << hdr_words[anchor_end]
+          << " expected=0x" << event_anchor_word_;
+        return false;
       }
 
       const uint16_t raw_len = hdr_words[RAW_LEN];
-      const uint16_t zs_len  = hdr_words[ZS_LEN];
+      const uint16_t zs_regs = hdr_words[ZS_REGIONS];
+      const uint16_t zs_len  = hdr_words[ZS_LEN] + static_cast<uint16_t>(zs_regs * 2);
       const uint16_t ph_num  = hdr_words[PH_NUM];
       const uint16_t ph_len = static_cast<uint16_t>(ph_num * 2);
 
       if (raw_len > MAX_RAW_WORDS ||
-	  zs_len  > MAX_ZS_WORDS  ||
-	  ph_len  > MAX_PH_WORDS) {
+          zs_len  > MAX_ZS_WORDS  ||
+          ph_len  > MAX_PH_WORDS) {
 
-	TLOG(TLVL_ERROR)
-	  << "[RECV] Invalid dataset sizes: RAW=" << raw_len
-	  << " ZS=" << zs_len
-	  << " PH=" << ph_len;
-	return false;
+        TLOG(TLVL_ERROR)
+          << "[RECV] Invalid dataset sizes: RAW=" << raw_len
+          << " ZS=" << zs_len
+          << " PH=" << ph_len;
+        return false;
       }
 
       size_t offset = 0;
@@ -290,9 +292,9 @@ namespace mu2e {
       const bool is_raw = (&ds == &evt.raw);
 
       size_t byte_offset =
-	is_raw
-	? ds.offset * sizeof(int16_t)
-	: ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
+        is_raw
+        ? ds.offset * sizeof(int16_t)
+        : ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
 
       size_t byte_size = ds.size * sizeof(int16_t);
 
@@ -365,9 +367,9 @@ namespace mu2e {
 
     // Fragment creation helper
     std::unique_ptr<artdaq::Fragment> makeFragment_(uint64_t fragment_id,
-						    uint64_t sequence_id,
-						    const int16_t* data,
-						    size_t n_words)
+                                                    uint64_t sequence_id,
+                                                    const int16_t* data,
+                                                    size_t n_words)
     {
       const size_t n_bytes = n_words * sizeof(int16_t);
 
@@ -382,9 +384,9 @@ namespace mu2e {
       frag->setFragmentID(fragment_id);
       
       if (n_bytes > 0) {
-	if (!data || !frag->dataBeginBytes()) {
-	  TLOG(TLVL_ERROR) << "[makeFragment_] null data pointer";
-	  return nullptr;
+        if (!data || !frag->dataBeginBytes()) {
+          TLOG(TLVL_ERROR) << "[makeFragment_] null data pointer";
+          return nullptr;
         }
         std::memcpy(frag->dataBeginBytes(), data, n_bytes);
       }
