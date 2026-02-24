@@ -65,9 +65,9 @@ namespace mu2e {
   {
     // Log configuration
     TLOG_DEBUG(1) << "STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
-		  << " rcvbuf=" << rcvbuf_bytes_;
+                  << " rcvbuf=" << rcvbuf_bytes_;
     TLOG_DEBUG(1) << "STMTCPReceiver: recv_to_parser queue capacity=" << DEFAULT_RECV_QCAP
-		  << ", parser_to_cons queue capacity=" << DEFAULT_EVT_QCAP;  
+                  << ", parser_to_cons queue capacity=" << DEFAULT_EVT_QCAP;  
 
     // Create lockfree SPSC queues
     recv_to_parser_queue_     = std::make_unique<RecvToParserQ>();
@@ -102,7 +102,7 @@ namespace mu2e {
     // accept() and recv() happen in the receiver thread.
 
     TLOG(TLVL_INFO) << "Starting STMTCPReceiver, opening listening socket... host="
-		    << host_ << " port=" << port_;
+                    << host_ << " port=" << port_;
 
     listen_fd_ = setup_tcp_socket(host_, port_, rcvbuf_bytes_);
     if (listen_fd_ < 0) {
@@ -141,13 +141,13 @@ namespace mu2e {
     while (!receiver_done_.load()) {
       int ret = poll(&lfd, 1, 100);
       if (ret < 0) {
-	if (errno == EINTR) continue;
-	perror("poll(listen_fd)");
-	return;
+        if (errno == EINTR) continue;
+        perror("poll(listen_fd)");
+        return;
       }
       if (ret > 0 && (lfd.revents & POLLIN)) {
-	client_fd_ = accept(listen_fd_, nullptr, nullptr);
-	break;
+        client_fd_ = accept(listen_fd_, nullptr, nullptr);
+        break;
       }
     }
 
@@ -180,76 +180,76 @@ namespace mu2e {
       int ret = poll(&pfd, 1, 50);
 
       if (ret == 0) {
-	// Idle timeout handling
-	if (received_first_packet && idle_timeout_ms_ > 0) {
-	  auto now = std::chrono::steady_clock::now();
-	  auto elapsed =
-	    std::chrono::duration_cast<std::chrono::milliseconds>(
-								  now - last_recv_time).count();
+        // Idle timeout handling
+        if (received_first_packet && idle_timeout_ms_ > 0) {
+          auto now = std::chrono::steady_clock::now();
+          auto elapsed =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                                  now - last_recv_time).count();
 
-	  if (elapsed > idle_timeout_ms_) {
-	    TLOG(TLVL_INFO) << "[RECEIVER] Idle timeout reached, closing client";
-	    eof = true;
-	  }
-	}
-	continue;
+          if (elapsed > idle_timeout_ms_) {
+            TLOG(TLVL_INFO) << "[RECEIVER] Idle timeout reached, closing client";
+            eof = true;
+          }
+        }
+        continue;
       }
 
       if (ret < 0) {
-	if (errno == EINTR) continue;
-	perror("poll(client_fd)");
-	break;
+        if (errno == EINTR) continue;
+        perror("poll(client_fd)");
+        break;
       }
 
       if (pfd.revents & POLLIN) {
-	for (;;) {
-	  ssize_t n = recv(client_fd_,
-			   byte_buffer.data(),
-			   byte_buffer.size(),
-			   0);
+        for (;;) {
+          ssize_t n = recv(client_fd_,
+                           byte_buffer.data(),
+                           byte_buffer.size(),
+                           0);
 
-	  if (n > 0) {
-	    if (!received_first_packet) {
-	      received_first_packet = true;
-	      TLOG(tcpDebugLevel())
-		<< "[RECEIVER] First packet received";
-	    }
+          if (n > 0) {
+            if (!received_first_packet) {
+              received_first_packet = true;
+              TLOG(tcpDebugLevel())
+                << "[RECEIVER] First packet received";
+            }
 
-	    last_recv_time = std::chrono::steady_clock::now();
-	    total_bytes_received_.fetch_add(n, std::memory_order_relaxed);
+            last_recv_time = std::chrono::steady_clock::now();
+            total_bytes_received_.fetch_add(n, std::memory_order_relaxed);
 
-	    auto bulk = std::make_shared<std::vector<uint8_t>>(
-							       byte_buffer.begin(),
-							       byte_buffer.begin() + n);
+            auto bulk = std::make_shared<std::vector<uint8_t>>(
+                                                               byte_buffer.begin(),
+                                                               byte_buffer.begin() + n);
 
-	    while (!recv_to_parser_queue_->push(bulk)) {
-	      if (receiver_done_.load()) break;
-	      std::this_thread::sleep_for(std::chrono::microseconds(1));
-	    }
+            while (!recv_to_parser_queue_->push(bulk)) {
+              if (receiver_done_.load()) break;
+              std::this_thread::sleep_for(std::chrono::microseconds(1));
+            }
 
-	    continue; // try draining socket
-	  }
+            continue; // try draining socket
+          }
 
-	  if (n == 0) {
-	    TLOG(TLVL_INFO) << "[RECEIVER] Client closed connection (EOF)";
-	    eof = true;
-	    break;
-	  }
+          if (n == 0) {
+            TLOG(TLVL_INFO) << "[RECEIVER] Client closed connection (EOF)";
+            eof = true;
+            break;
+          }
 
-	  // n < 0
-	  if (errno == EAGAIN || errno == EWOULDBLOCK) {
-	    break; // no more data right now
-	  }
+          // n < 0
+          if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            break; // no more data right now
+          }
 
-	  perror("recv");
-	  eof = true;
-	  break;
-	}
+          perror("recv");
+          eof = true;
+          break;
+        }
       }
 
       if (pfd.revents & (POLLHUP | POLLERR | POLLNVAL)) {
-	TLOG(TLVL_INFO) << "[RECEIVER] Socket hangup/error";
-	eof = true;
+        TLOG(TLVL_INFO) << "[RECEIVER] Socket hangup/error";
+        eof = true;
       }
     }
 
@@ -292,22 +292,22 @@ namespace mu2e {
       // ------------------------------------------------------------
       if (!recv_to_parser_queue_->pop(incoming)) {
 
-	// Receiver is finished AND no more input possible
-	if (receiver_done_.load(std::memory_order_acquire) &&
-	    recv_to_parser_queue_->empty() &&
-	    chunks.empty()) {
-	  break; }
+        // Receiver is finished AND no more input possible
+        if (receiver_done_.load(std::memory_order_acquire) &&
+            recv_to_parser_queue_->empty() &&
+            chunks.empty()) {
+          break; }
 
-	std::this_thread::yield();
-	continue;
+        std::this_thread::yield();
+        continue;
       }
 
       // ------------------------------------------------------------
       // Sentinel from receiver = no more chunks will arrive
       // ------------------------------------------------------------
       if (!incoming) {
-	// Receiver is done; no more chunks will arrive
-	continue;
+        // Receiver is done; no more chunks will arrive
+        continue;
       }
 
       chunks.push_back(incoming);
@@ -317,118 +317,118 @@ namespace mu2e {
       // ------------------------------------------------------------
       while (!chunks.empty()) {
 
-	size_t total_bytes = 0;
-	for (auto& c : chunks) total_bytes += c->size();
-	total_bytes -= offset_in_first_chunk;
+        size_t total_bytes = 0;
+        for (auto& c : chunks) total_bytes += c->size();
+        total_bytes -= offset_in_first_chunk;
 
-	if (total_bytes < EVENT_HEADER_BYTES) {
-	  break;
-	}
+        if (total_bytes < EVENT_HEADER_BYTES) {
+          break;
+        }
 
-	const uint8_t* header_ptr = nullptr;
-	uint8_t header_tmp[EVENT_HEADER_BYTES];
+        const uint8_t* header_ptr = nullptr;
+        uint8_t header_tmp[EVENT_HEADER_BYTES];
 
-	if (!getEventHeaderPtr(header_ptr, header_tmp,
-			       chunks, offset_in_first_chunk)) {
-	  break;
-	}
+        if (!getEventHeaderPtr(header_ptr, header_tmp,
+                               chunks, offset_in_first_chunk)) {
+          break;
+        }
 
-	const uint16_t* hdr_words =
-	  reinterpret_cast<const uint16_t*>(header_ptr);
+        const uint16_t* hdr_words =
+          reinterpret_cast<const uint16_t*>(header_ptr);
 
-	const uint16_t raw_len = hdr_words[RAW_LEN];
-	const uint16_t zs_len  = hdr_words[ZS_LEN];
-	const uint16_t ph_num  = hdr_words[PH_NUM];
-	const uint16_t ph_len  = static_cast<uint16_t>(ph_num * 2);
+        const uint16_t raw_len = hdr_words[RAW_LEN];
+        const uint16_t zs_len  = hdr_words[ZS_LEN];
+        const uint16_t ph_num  = hdr_words[PH_NUM];
+        const uint16_t ph_len  = static_cast<uint16_t>(ph_num * 2);
 
-	size_t evt_total_bytes =
-	  EVENT_HEADER_BYTES +
-	  static_cast<size_t>(raw_len + zs_len + ph_len) *
+        size_t evt_total_bytes =
+          EVENT_HEADER_BYTES +
+          static_cast<size_t>(raw_len + zs_len + ph_len) *
           sizeof(uint16_t);
 
-	if (total_bytes < evt_total_bytes) {
-	  break;
-	}
+        if (total_bytes < evt_total_bytes) {
+          break;
+        }
 
-	// ----------------------------------------------------------
-	// Build EventView across chunks
-	// ----------------------------------------------------------
-	std::vector<ChunkRef> temp_refs;
-	size_t bytes_needed = evt_total_bytes;
-	size_t off = offset_in_first_chunk;
+        // ----------------------------------------------------------
+        // Build EventView across chunks
+        // ----------------------------------------------------------
+        std::vector<ChunkRef> temp_refs;
+        size_t bytes_needed = evt_total_bytes;
+        size_t off = offset_in_first_chunk;
 
-	for (size_t i = 0; i < chunks.size() && bytes_needed > 0; ++i) {
-	  const auto& chunk = chunks[i];
+        for (size_t i = 0; i < chunks.size() && bytes_needed > 0; ++i) {
+          const auto& chunk = chunks[i];
 
-	  if (off >= chunk->size()) {
-	    off = 0;
-	    continue;
-	  }
+          if (off >= chunk->size()) {
+            off = 0;
+            continue;
+          }
 
-	  size_t avail = chunk->size() - off;
-	  size_t take  = std::min(avail, bytes_needed);
+          size_t avail = chunk->size() - off;
+          size_t take  = std::min(avail, bytes_needed);
 
-	  temp_refs.push_back({chunk, off, take});
-	  bytes_needed -= take;
-	  off = 0;
-	}
+          temp_refs.push_back({chunk, off, take});
+          bytes_needed -= take;
+          off = 0;
+        }
 
-	if (bytes_needed != 0) {
-	  break;
-	}
+        if (bytes_needed != 0) {
+          break;
+        }
 
-	EventView evt;
-	evt.buffer_chunks = std::move(temp_refs);
-	evt.size_bytes    = evt_total_bytes;
+        EventView evt;
+        evt.buffer_chunks = std::move(temp_refs);
+        evt.size_bytes    = evt_total_bytes;
 
-	if (header_ptr == header_tmp) {
-	  std::memcpy(evt.header_copy.data(),
-		      header_tmp,
-		      EVENT_HEADER_BYTES);
-	  evt.header = evt.header_copy.data();
-	} else {
-	  evt.header = reinterpret_cast<const uint16_t*>(header_ptr);
-	}
+        if (header_ptr == header_tmp) {
+          std::memcpy(evt.header_copy.data(),
+                      header_tmp,
+                      EVENT_HEADER_BYTES);
+          evt.header = evt.header_copy.data();
+        } else {
+          evt.header = reinterpret_cast<const uint16_t*>(header_ptr);
+        }
 
-	const uint16_t* hdr = evt.header;
+        const uint16_t* hdr = evt.header;
 
-	evt.event_num =
-	  int64_t(hdr[EWT_0]) |
-	  (int64_t(hdr[EWT_1]) << 16) |
-	  (int64_t(hdr[EWT_2]) << 32);
+        evt.event_num =
+          int64_t(hdr[EWT_0]) |
+          (int64_t(hdr[EWT_1]) << 16) |
+          (int64_t(hdr[EWT_2]) << 32);
 
-	evt.template_id = hdr[EM_0];
-	evt.spill_flag  = hdr[Ch_DTCclk_0] & 0x1;
-	/*TLOG(TLVL_DEBUG) << "[PARSER] event=" << evt.event_num
-			 << " spill_flag=" << evt.spill_flag
-			 << " hdr[Ch_DTCclk_0]=" << hdr[Ch_DTCclk_0];*/
+        evt.template_id = hdr[EM_0];
+        evt.spill_flag  = hdr[Ch_DTCclk_0] & 0x1;
+        /*TLOG(TLVL_DEBUG) << "[PARSER] event=" << evt.event_num
+          << " spill_flag=" << evt.spill_flag
+          << " hdr[Ch_DTCclk_0]=" << hdr[Ch_DTCclk_0];*/
 
 
-	if (!computeDatasetView(evt)) {
-	  TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed, aborting parser";
-	  break;
-	}
+        if (!computeDatasetView(evt)) {
+          TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed, aborting parser";
+          break;
+        }
 
-	// ----------------------------------------------------------
-	// Push event downstream
-	// ----------------------------------------------------------
-	while (!parser_to_consumer_queue_->push(evt)) {
-	  std::this_thread::yield();
-	}
+        // ----------------------------------------------------------
+        // Push event downstream
+        // ----------------------------------------------------------
+        while (!parser_to_consumer_queue_->push(evt)) {
+          std::this_thread::yield();
+        }
 
-	parser_cv_.notify_one();
+        parser_cv_.notify_one();
 
-	// ----------------------------------------------------------
-	// Advance chunk deque
-	// ----------------------------------------------------------
-	offset_in_first_chunk += evt_total_bytes;
+        // ----------------------------------------------------------
+        // Advance chunk deque
+        // ----------------------------------------------------------
+        offset_in_first_chunk += evt_total_bytes;
 
-	auto it = chunks.begin();
-	while (it != chunks.end() &&
-	       offset_in_first_chunk >= (*it)->size()) {
-	  offset_in_first_chunk -= (*it)->size();
-	  it = chunks.erase(it);
-	}
+        auto it = chunks.begin();
+        while (it != chunks.end() &&
+               offset_in_first_chunk >= (*it)->size()) {
+          offset_in_first_chunk -= (*it)->size();
+          it = chunks.erase(it);
+        }
       }
     }
 
@@ -465,75 +465,75 @@ namespace mu2e {
       // ------------------------------------------------------------
       if (parser_to_consumer_queue_->pop(evt)) {
 
-	/*TLOG(TLVL_DEBUG) << "[BATCHER] got event="
-			 << evt.event_num
-			 << " spill_flag=" << evt.spill_flag
-			 << " batch_size(before)=" << batch.events.size();*/
+        TLOG(TLVL_DEBUG) << "[BATCHER] got event="
+          << evt.event_num
+          << " spill_flag=" << evt.spill_flag
+          << " batch_size(before)=" << batch.events.size();
 
-	// First event in a new batch
-	if (batch.events.empty()) {
-	  batch.container_seq_id = evt.event_num;
-	  batch_spill_flag = evt.spill_flag;
-	}
+        // First event in a new batch
+        if (batch.events.empty()) {
+          batch.container_seq_id = evt.event_num;
+          batch_spill_flag = evt.spill_flag;
+        }
 
-	batch.events.emplace_back(std::move(evt));
+        batch.events.emplace_back(std::move(evt));
 
-	// ----------------------------------------------------------
-	// Emit full batch (NON-BLOCKING!)
-	// ----------------------------------------------------------
-	if (batch.events.size() >= events_per_container_) {
+        // ----------------------------------------------------------
+        // Emit full batch (NON-BLOCKING!)
+        // ----------------------------------------------------------
+        if (batch.events.size() >= events_per_container_) {
 
-	  EventBatch full_batch = std::move(batch);   // move once
-	  batch = make_new_batch();                   // brand new object
+          EventBatch full_batch = std::move(batch);   // move once
+          batch = make_new_batch();                   // brand new object
 
-	  if (!batcher_to_getNext_queue_->push(std::move(full_batch))) {
-	    TLOG(TLVL_ERROR)
-	      << "[BATCHER] batcher_to_getNext_queue FULL — stopping batcher";
-	    batcher_done_.store(true, std::memory_order_release);
-	    batcher_cv_.notify_all();
-	    return;
-	  }
+          if (!batcher_to_getNext_queue_->push(std::move(full_batch))) {
+            TLOG(TLVL_ERROR)
+              << "[BATCHER] batcher_to_getNext_queue FULL — stopping batcher";
+            batcher_done_.store(true, std::memory_order_release);
+            batcher_cv_.notify_all();
+            return;
+          }
 
-	  /*TLOG(TLVL_INFO) << "[BATCHER] Emitted batch: events="
-			  << events_per_container_
-			  << " seq=" << batch.container_seq_id
-			  << " spill=" << batch_spill_flag;*/
+          /*TLOG(TLVL_INFO) << "[BATCHER] Emitted batch: events="
+            << events_per_container_
+            << " seq=" << batch.container_seq_id
+            << " spill=" << batch_spill_flag;*/
 
-	  batcher_cv_.notify_one();
+          batcher_cv_.notify_one();
 
-	  batch = make_new_batch();
-	  batch_spill_flag = 0;
-	}
+          batch = make_new_batch();
+          batch_spill_flag = 0;
+        }
 
-	continue;
+        continue;
       }
 
       // ------------------------------------------------------------
       // Parser finished and no more events
       // ------------------------------------------------------------
       if (parser_done_.load(std::memory_order_acquire) &&
-	  parser_to_consumer_queue_->empty()) {
+          parser_to_consumer_queue_->empty()) {
 
-	// Flush final partial batch
-	if (!batch.events.empty()) {
+        // Flush final partial batch
+        if (!batch.events.empty()) {
 
-	  EventBatch final_batch = std::move(batch);
+          EventBatch final_batch = std::move(batch);
 	  
-	  if (!batcher_to_getNext_queue_->push(std::move(final_batch))) {
-	    TLOG(TLVL_ERROR)
-	      << "[BATCHER] final batch lost: output queue full";
-	  } else {
-	    TLOG(TLVL_INFO) << "[BATCHER] Emitted final batch: events="
-			    << batch.events.size()
-			    << " seq=" << batch.container_seq_id
-			    << " spill=" << batch_spill_flag;
-	    batcher_cv_.notify_one();
-	  }
-	}
+          if (!batcher_to_getNext_queue_->push(std::move(final_batch))) {
+            TLOG(TLVL_ERROR)
+              << "[BATCHER] final batch lost: output queue full";
+          } else {
+            TLOG(TLVL_INFO) << "[BATCHER] Emitted final batch: events="
+                            << batch.events.size()
+                            << " seq=" << batch.container_seq_id
+                            << " spill=" << batch_spill_flag;
+            batcher_cv_.notify_one();
+          }
+        }
 
-	batcher_done_.store(true, std::memory_order_release);
-	batcher_cv_.notify_all();
-	return;
+        batcher_done_.store(true, std::memory_order_release);
+        batcher_cv_.notify_all();
+        return;
       }
 
       // ------------------------------------------------------------
@@ -541,8 +541,8 @@ namespace mu2e {
       // ------------------------------------------------------------
       std::unique_lock<std::mutex> lk(parser_cv_mutex_);
       parser_cv_.wait(lk, [&] {
-	return parser_done_.load(std::memory_order_acquire) ||
-	  !parser_to_consumer_queue_->empty();
+        return parser_done_.load(std::memory_order_acquire) ||
+          !parser_to_consumer_queue_->empty();
       });
     }
 
@@ -564,18 +564,18 @@ namespace mu2e {
 
       std::unique_lock<std::mutex> lk(batcher_cv_mutex_);
       batcher_cv_.wait(lk, [&] {
-	return batcher_done_.load(std::memory_order_acquire) ||
-	  !batcher_to_getNext_queue_->empty();
+        return batcher_done_.load(std::memory_order_acquire) ||
+          !batcher_to_getNext_queue_->empty();
       });
 
       if (batcher_done_.load(std::memory_order_acquire) &&
-	  batcher_to_getNext_queue_->empty()) {
-	return false;
+          batcher_to_getNext_queue_->empty()) {
+        return false;
       }
 
       // Guaranteed either batch available or artDAQ will call again
       if (!batcher_to_getNext_queue_->pop(batch)) {
-	return true;
+        return true;
       }
     }
 
@@ -587,7 +587,7 @@ namespace mu2e {
     container_frag->setFragmentID(batch.container_frag_id);
 
     artdaq::ContainerFragmentLoader loader(*container_frag,
-					   FragmentType::STM);
+                                           FragmentType::STM);
 
     // ------------------------------------------------------------
     // Loop over events in batch
@@ -598,26 +598,26 @@ namespace mu2e {
 
       auto process = [&](const DatasetView& ds, uint64_t stream_id) {
 
-	const uint64_t frag_id = start_fragment_id_ + stream_id;
+        const uint64_t frag_id = start_fragment_id_ + stream_id;
 
-	if (ds.size == 0) {
-	  if (auto frag = makeFragment_(frag_id, seq, nullptr, 0)) {
-	    loader.addFragment(*frag);
-	  }
-	  return;
-	}
+        if (ds.size == 0) {
+          if (auto frag = makeFragment_(frag_id, seq, nullptr, 0)) {
+            loader.addFragment(*frag);
+          }
+          return;
+        }
 
-	auto p = try_get_single_chunk_ptr(e, ds);
-	if (p.second) {
-	  if (auto frag = makeFragment_(frag_id, seq, p.first, ds.size)) {
-	    loader.addFragment(*frag);
-	  }
-	} else {
-	  auto tmp = copy_dataset_to_temp(e, ds);
-	  if (auto frag = makeFragment_(frag_id, seq, tmp.data(), tmp.size())) {
-	    loader.addFragment(*frag);
-	  }
-	}
+        auto p = try_get_single_chunk_ptr(e, ds);
+        if (p.second) {
+          if (auto frag = makeFragment_(frag_id, seq, p.first, ds.size)) {
+            loader.addFragment(*frag);
+          }
+        } else {
+          auto tmp = copy_dataset_to_temp(e, ds);
+          if (auto frag = makeFragment_(frag_id, seq, tmp.data(), tmp.size())) {
+            loader.addFragment(*frag);
+          }
+        }
       };
 
       process(e.raw, raw_stream_id_);
