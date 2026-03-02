@@ -17,6 +17,10 @@
 #include <thread>
 #include <vector>
 #include <tuple>
+#include <fstream>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
 #include <boost/lockfree/spsc_queue.hpp>
 
 // =====================================================================================
@@ -92,14 +96,27 @@ namespace mu2e {
     std::atomic<size_t> batch_count_{0}; // Number of event batches produced
     std::atomic<uint64_t> total_bytes_received_{0}; // Total bytes received over TCP
 
+    // Throughput
+    using clock = std::chrono::steady_clock;
+
+    std::chrono::time_point<clock> run_start_time_;
+
+    std::chrono::nanoseconds receiver_active_{0};
+    std::chrono::nanoseconds parser_active_{0};
+    std::chrono::nanoseconds builder_active_{0};
+
+    std::atomic<size_t> receiver_loops_{0};
+    std::atomic<size_t> parser_loops_{0};
+    std::atomic<size_t> builder_loops_{0};
+    
     // getNext() wakeup control
-    std::mutex parser_cv_mutex_;
-    std::condition_variable parser_cv_;
     std::mutex batcher_cv_mutex_;
     std::condition_variable batcher_cv_;
+    std::mutex builder_cv_mutex_;
+    std::condition_variable builder_cv_;
     std::atomic<bool> receiver_done_{false};
-    std::atomic<bool> parser_done_{false};  
-    std::atomic<bool> batcher_done_{false};
+    std::atomic<bool> batcher_done_{false};  
+    std::atomic<bool> builder_done_{false};
     
     // TCP sockets
     int listen_fd_{-1}; // Listening TCP socket fd (created in start())
@@ -110,32 +127,47 @@ namespace mu2e {
     
     // Queue capacity
     static constexpr size_t DEFAULT_RECV_QCAP  = 10000;
-    static constexpr size_t DEFAULT_EVT_QCAP   = 10000;
     static constexpr size_t DEFAULT_BATCH_QCAP = 10000;
+    static constexpr size_t DEFAULT_FRAG_QCAP = 10000;
 
     // Receiver -> Parser (raw bulk byte buffers)
     using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
-    // Parser -> Batcher (parsed event objects)
-    using ParserToConsQ = boost::lockfree::spsc_queue<EventView, boost::lockfree::capacity<DEFAULT_EVT_QCAP>>;
-    // Batcher -> Consumer (batch events per container)
-    using BatcherToGNQ = boost::lockfree::spsc_queue<EventBatch, boost::lockfree::capacity<DEFAULT_BATCH_QCAP>>;
+    // Batcher -> Builder (batch events per container)
+    using BatcherToBuildQ = boost::lockfree::spsc_queue<EventBatch, boost::lockfree::capacity<DEFAULT_BATCH_QCAP>>;
+    // Builder -> getNext (sent fragment container)
+    using BuilderToGNQ = boost::lockfree::spsc_queue<artdaq::Fragment*, boost::lockfree::capacity<DEFAULT_FRAG_QCAP>>;
 
     std::unique_ptr<RecvToParserQ> recv_to_parser_queue_;
-    std::unique_ptr<ParserToConsQ> parser_to_consumer_queue_;
-    std::unique_ptr<BatcherToGNQ> batcher_to_getNext_queue_; 
+    std::unique_ptr<BatcherToBuildQ> batcher_to_builder_queue_; 
+    std::unique_ptr<BuilderToGNQ> builder_to_getNext_queue_;
 
     // ----------------- Threads -----------------
     std::thread receiver_thread_;
     std::thread parser_thread_;
-    std::thread batcher_thread_;
+    std::thread builder_thread_;
 
     // Thread functions
     void receiverThread_();
     void parserThread_();
-    void batcherThread_();
+    void builderThread_();
 
     // ----------------- Helpers -----------------
 
+    // --- Get RMEM Max ---
+    size_t get_rmem_max()
+    {
+      std::ifstream rmem("/proc/sys/net/core/rmem_max");
+      size_t val = 0;
+
+      if (!(rmem >> val)) {
+        TLOG(TLVL_ERROR)
+          << "[RECEIVER] Failed to read /proc/sys/net/core/rmem_max";
+        return 0;
+      }
+
+      return val;
+    }
+    
     // --- Header Fetch ---
     bool getEventHeaderPtr(const uint8_t*& header_ptr,
                            uint8_t* header_tmp,
@@ -253,23 +285,40 @@ namespace mu2e {
         return false;
       }
 
-      const uint16_t raw_len = hdr_words[RAW_LEN];
-      const uint16_t zs_regs = hdr_words[ZS_REGIONS];
-      const uint16_t zs_len  = hdr_words[ZS_LEN] + static_cast<uint16_t>(zs_regs * 2);
-      const uint16_t ph_num  = hdr_words[PH_NUM];
-      const uint16_t ph_len = static_cast<uint16_t>(ph_num * 2);
-
+      // --- Decode prescale flags FIRST ---
+      uint16_t ps = hdr_words[PRESCALE];
+      
+      bool raw_prescaled = (ps >> 15) & 0x1;
+      bool zs_prescaled  = (ps >> 7)  & 0x1;
+      
+      // --- Read header lengths ---
+      uint16_t raw_len = hdr_words[RAW_LEN];
+      uint16_t zs_regs = hdr_words[ZS_REGIONS];
+      uint16_t zs_len  = hdr_words[ZS_LEN] + static_cast<uint16_t>(zs_regs * 2);
+      uint16_t ph_num  = hdr_words[PH_NUM];
+      uint16_t ph_len  = static_cast<uint16_t>(ph_num * 2);
+      
+      // --- Apply prescale overrides ---
+      if (raw_prescaled) {
+        raw_len = 0;
+      }
+      
+      if (zs_prescaled) {
+        zs_regs = 0;
+        zs_len  = 0;
+      }
+      
       if (raw_len > MAX_RAW_WORDS ||
           zs_len  > MAX_ZS_WORDS  ||
           ph_len  > MAX_PH_WORDS) {
-
+        
         TLOG(TLVL_ERROR)
           << "[RECV] Invalid dataset sizes: RAW=" << raw_len
           << " ZS=" << zs_len
           << " PH=" << ph_len;
         return false;
       }
-
+      
       size_t offset = 0;
 
       // RAW includes header
@@ -372,7 +421,6 @@ namespace mu2e {
                                                     size_t n_words)
     {
       const size_t n_bytes = n_words * sizeof(int16_t);
-
       auto frag = artdaq::Fragment::FragmentBytes(n_bytes);
       if (!frag) {
         TLOG(TLVL_ERROR) << "[makeFragment_] allocation failed";

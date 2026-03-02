@@ -68,19 +68,19 @@ namespace mu2e {
     TLOG_DEBUG(1) << "STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
                   << " rcvbuf=" << rcvbuf_bytes_;
     TLOG_DEBUG(1) << "STMTCPReceiver: recv_to_parser queue capacity=" << DEFAULT_RECV_QCAP
-                  << ", parser_to_cons queue capacity=" << DEFAULT_EVT_QCAP;  
+                  << ", parser_to_cons queue capacity=" << DEFAULT_BATCH_QCAP;  
 
     // Create lockfree SPSC queues
     recv_to_parser_queue_     = std::make_unique<RecvToParserQ>();
-    parser_to_consumer_queue_ = std::make_unique<ParserToConsQ>();
-    batcher_to_getNext_queue_ = std::make_unique<BatcherToGNQ>();
+    batcher_to_builder_queue_ = std::make_unique<BatcherToBuildQ>();
+    builder_to_getNext_queue_ = std::make_unique<BuilderToGNQ>();
   }
 
   STMTCPReceiver::~STMTCPReceiver() {
     // Signal end of datastream
     receiver_done_.store(true);
-    parser_cv_.notify_all();
     batcher_cv_.notify_all();
+    builder_cv_.notify_all();
 
     // Wake up blocking calls
     if (listen_fd_ >= 0) ::shutdown(listen_fd_, SHUT_RDWR);
@@ -89,7 +89,7 @@ namespace mu2e {
     // Close all threads and socket
     if (receiver_thread_.joinable()) receiver_thread_.join();
     if (parser_thread_.joinable()) parser_thread_.join();
-    if (batcher_thread_.joinable()) batcher_thread_.join();
+    if (builder_thread_.joinable()) builder_thread_.join();
     if (listen_fd_ >= 0) ::close(listen_fd_);
     if (client_fd_ >= 0) ::close(client_fd_);
   }
@@ -101,10 +101,14 @@ namespace mu2e {
     // NOTE:
     // start() MUST NOT block in ART. We ONLY create the listening socket here.
     // accept() and recv() happen in the receiver thread.
-
+    
     TLOG(TLVL_INFO) << "Starting STMTCPReceiver, opening listening socket... host="
                     << host_ << " port=" << port_;
 
+    // Start global timer
+    run_start_time_ = clock::now();
+
+    // Setup socket
     listen_fd_ = setup_tcp_socket(host_, port_, rcvbuf_bytes_);
     if (listen_fd_ < 0) {
       TLOG(TLVL_ERROR) << "Failed to set up TCP listening socket";
@@ -122,8 +126,8 @@ namespace mu2e {
     if (pin_threads_) pin_thread_to_least_busy_core(parser_thread_, "[PARSER]");
 
     // Start batcher thread
-    batcher_thread_ = std::thread(&STMTCPReceiver::batcherThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(batcher_thread_, "[BATCHER]");
+    builder_thread_ = std::thread(&STMTCPReceiver::builderThread_, this);
+    if (pin_threads_) pin_thread_to_least_busy_core(builder_thread_, "[BUILDER]");
   }
 
   // =====================================================================================
@@ -164,9 +168,37 @@ namespace mu2e {
     int flags = fcntl(client_fd_, F_GETFL, 0);
     fcntl(client_fd_, F_SETFL, flags | O_NONBLOCK);
 
-    int bufsize = rcvbuf_bytes_;
-    setsockopt(client_fd_, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
+    // Get RMEM from server
+    size_t rmem_max = get_rmem_max();
 
+    if (rmem_max > 0) {
+
+      int bufsize = static_cast<int>(rmem_max);
+
+      if (setsockopt(client_fd_,
+                     SOL_SOCKET,
+                     SO_RCVBUF,
+                     &bufsize,
+                     sizeof(bufsize)) < 0){
+        perror("setsockopt(SO_RCVBUF)");
+      }
+
+      // Verify actual size
+      socklen_t len = sizeof(bufsize);
+      getsockopt(client_fd_,
+                 SOL_SOCKET,
+                 SO_RCVBUF,
+                 &bufsize,
+                 &len);
+
+      TLOG(TLVL_INFO)
+        << "[RECEIVER] SO_RCVBUF set to "
+        << bufsize << " bytes (kernel may double this internally)";
+    } else {
+      int bufsize = rcvbuf_bytes_;
+      setsockopt(client_fd_, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
+    }
+    
     std::vector<uint8_t> byte_buffer(recv_buffer_size_);
     bool received_first_packet = false;
     auto last_recv_time = std::chrono::steady_clock::now();
@@ -178,23 +210,9 @@ namespace mu2e {
     bool eof = false;
 
     while (!receiver_done_.load() && !eof) {
-      int ret = poll(&pfd, 1, 50);
+      int ret = poll(&pfd, 1, 100);
 
-      if (ret == 0) {
-        // Idle timeout handling
-        if (received_first_packet && idle_timeout_ms_ > 0) {
-          auto now = std::chrono::steady_clock::now();
-          auto elapsed =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                                  now - last_recv_time).count();
-
-          if (elapsed > idle_timeout_ms_) {
-            TLOG(TLVL_INFO) << "[RECEIVER] Idle timeout reached, closing client";
-            eof = true;
-          }
-        }
-        continue;
-      }
+      if (ret == 0) continue;
 
       if (ret < 0) {
         if (errno == EINTR) continue;
@@ -203,6 +221,11 @@ namespace mu2e {
       }
 
       if (pfd.revents & POLLIN) {
+
+        // Start timer
+        auto work_start = clock::now();
+        
+        // Start infinite loop
         for (;;) {
           ssize_t n = recv(client_fd_,
                            byte_buffer.data(),
@@ -246,6 +269,11 @@ namespace mu2e {
           eof = true;
           break;
         }
+
+        // Increment timer
+        receiver_active_ += (clock::now() - work_start);
+        receiver_loops_.fetch_add(1, std::memory_order_relaxed);
+        
       }
 
       if (pfd.revents & (POLLHUP | POLLERR | POLLNVAL)) {
@@ -269,61 +297,68 @@ namespace mu2e {
     }
 
     receiver_done_.store(true, std::memory_order_release);
-    parser_cv_.notify_all();
+    batcher_cv_.notify_all();
 
     TLOG(TLVL_INFO) << "[RECEIVER] Receiver thread exiting";
   }
   
   // =====================================================================================
-  // Parser Thread: Assembles events across chunk boundaries
+  // Parser Thread: Assembles events across chunk boundaries puts into batches
   // =====================================================================================
   void mu2e::STMTCPReceiver::parserThread_()
   {
-    TLOG(TLVL_INFO) << "[PARSER] Parser thread started";
- 
+    TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher thread started";
+
+    auto make_new_batch = [&] {
+      EventBatch b;
+      b.events.reserve(events_per_container_);
+      b.container_frag_id = start_fragment_id_ + container_stream_id_;
+      b.container_seq_id  = 0;
+      return b;
+    };
+
+    EventBatch batch = make_new_batch();
+    uint16_t batch_spill_flag = 0;
+
     std::deque<std::shared_ptr<std::vector<uint8_t>>> chunks;
     size_t offset_in_first_chunk = 0;
     std::shared_ptr<std::vector<uint8_t>> incoming;
 
     while (true) {
 
-      // ------------------------------------------------------------
-      // Try to get new input from receiver
-      // ------------------------------------------------------------
+      // ---------------------------------------------
+      // Receive chunk
+      // ---------------------------------------------
       if (!recv_to_parser_queue_->pop(incoming)) {
 
-        // Receiver is finished AND no more input possible
         if (receiver_done_.load(std::memory_order_acquire) &&
-            recv_to_parser_queue_->empty() &&
-            chunks.empty()) {
-          break; }
+            recv_to_parser_queue_->empty() ) {
+          break;
+        }
 
         std::this_thread::yield();
         continue;
       }
 
-      // ------------------------------------------------------------
-      // Sentinel from receiver = no more chunks will arrive
-      // ------------------------------------------------------------
       if (!incoming) {
-        // Receiver is done; no more chunks will arrive
         continue;
       }
 
       chunks.push_back(incoming);
 
-      // ------------------------------------------------------------
-      // Assemble events from accumulated chunks
-      // ------------------------------------------------------------
+      // ---------------------------------------------
+      // Assemble events
+      // ---------------------------------------------
       while (!chunks.empty()) {
 
+        // Start timer
+        auto work_start = clock::now();
+        
         size_t total_bytes = 0;
         for (auto& c : chunks) total_bytes += c->size();
         total_bytes -= offset_in_first_chunk;
 
-        if (total_bytes < EVENT_HEADER_BYTES) {
-          break;
-        }
+        if (total_bytes < EVENT_HEADER_BYTES) break;
 
         const uint8_t* header_ptr = nullptr;
         uint8_t header_tmp[EVENT_HEADER_BYTES];
@@ -336,24 +371,37 @@ namespace mu2e {
         const uint16_t* hdr_words =
           reinterpret_cast<const uint16_t*>(header_ptr);
 
-        const uint16_t raw_len = hdr_words[RAW_LEN];
-        const uint16_t zs_regs = hdr_words[ZS_REGIONS];
-        const uint16_t zs_len  = hdr_words[ZS_LEN] + static_cast<uint16_t>(zs_regs * 2);
-        const uint16_t ph_num  = hdr_words[PH_NUM];
-        const uint16_t ph_len  = static_cast<uint16_t>(ph_num * 2);
+        // --- Decode prescale flags FIRST ---
+        uint16_t ps = hdr_words[PRESCALE];
+      
+        bool raw_prescaled = (ps >> 15) & 0x1;
+        bool zs_prescaled  = (ps >> 7)  & 0x1;  
+
+        uint16_t raw_len = hdr_words[RAW_LEN];
+        uint16_t zs_regs = hdr_words[ZS_REGIONS];
+        uint16_t zs_len  = hdr_words[ZS_LEN] + zs_regs * 2;
+        uint16_t ph_num  = hdr_words[PH_NUM];
+        uint16_t ph_len  = ph_num * 2;
+
+        // --- Apply prescale overrides ---
+        if (raw_prescaled) {
+          raw_len = 0;
+        }
+      
+        if (zs_prescaled) {
+          zs_regs = 0;
+          zs_len  = 0;
+        }
 
         size_t evt_total_bytes =
           EVENT_HEADER_BYTES +
-          static_cast<size_t>(raw_len + zs_len + ph_len) *
-          sizeof(uint16_t);
+          size_t(raw_len + zs_len + ph_len) * sizeof(uint16_t);
 
-        if (total_bytes < evt_total_bytes) {
-          break;
-        }
+        if (total_bytes < evt_total_bytes) break;
 
-        // ----------------------------------------------------------
-        // Build EventView across chunks
-        // ----------------------------------------------------------
+        // ---------------------------------------------
+        // Build EventView
+        // ---------------------------------------------
         std::vector<ChunkRef> temp_refs;
         size_t bytes_needed = evt_total_bytes;
         size_t off = offset_in_first_chunk;
@@ -374,9 +422,7 @@ namespace mu2e {
           off = 0;
         }
 
-        if (bytes_needed != 0) {
-          break;
-        }
+        if (bytes_needed != 0) break;
 
         EventView evt;
         evt.buffer_chunks = std::move(temp_refs);
@@ -398,29 +444,71 @@ namespace mu2e {
           (int64_t(hdr[EWT_1]) << 16) |
           (int64_t(hdr[EWT_2]) << 32);
 
+        // For testing remove later
         evt.template_id = hdr[EM_0];
-        evt.spill_flag  = hdr[Ch_DTCclk_0] & 0x1;
-        /*TLOG(TLVL_DEBUG) << "[PARSER] event=" << evt.event_num
-          << " spill_flag=" << evt.spill_flag
-          << " hdr[Ch_DTCclk_0]=" << hdr[Ch_DTCclk_0];*/
+        
+        // Get Event Mode (Spill flag)
+        uint16_t EM2 = hdr[EM_2_DRTDC] & 0xFF;
+        uint64_t EM =
+          static_cast<uint64_t>(hdr[EM_0]) |
+          (static_cast<uint64_t>(hdr[EM_1]) << 16) |
+          (static_cast<uint64_t>(EM2)       << 32);
+
+        evt.spill_flag = EM;
 
         if (!computeDatasetView(evt)) {
-          TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed, aborting parser";
+          TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed";
           break;
         }
 
-        // ----------------------------------------------------------
-        // Push event downstream
-        // ----------------------------------------------------------
-        while (!parser_to_consumer_queue_->push(evt)) {
-          std::this_thread::yield();
+        event_count_.fetch_add(1, std::memory_order_relaxed);
+
+        // =============================================
+        // ========  BATCHING STARTS HERE  ============
+        // =============================================
+
+        if (batch.events.empty()) {
+          batch.container_seq_id = evt.event_num;
+          batch_spill_flag = evt.spill_flag;
+        }
+        else if (use_spill_condition_ &&
+                 evt.spill_flag != batch_spill_flag) {
+
+          EventBatch flushed = std::move(batch);
+          batch = make_new_batch();
+
+          while (!batcher_to_builder_queue_->push(std::move(flushed))) {
+            std::this_thread::yield();
+          }
+
+          batcher_cv_.notify_one();
+
+          batch.container_seq_id = evt.event_num;
+          batch_spill_flag = evt.spill_flag;
         }
 
-        parser_cv_.notify_one();
+        batch.events.emplace_back(std::move(evt));
 
-        // ----------------------------------------------------------
+        const size_t target_batch_size =
+          (batch_spill_flag == 0)
+          ? offspill_events_per_container_
+          : events_per_container_;
+
+        if (batch.events.size() >= target_batch_size) {
+
+          EventBatch full_batch = std::move(batch);
+          batch = make_new_batch();
+
+          while (!batcher_to_builder_queue_->push(std::move(full_batch))) {
+            std::this_thread::yield();
+          }
+
+          batcher_cv_.notify_one();
+        }
+
+        // =============================================
+
         // Advance chunk deque
-        // ----------------------------------------------------------
         offset_in_first_chunk += evt_total_bytes;
 
         auto it = chunks.begin();
@@ -429,243 +517,148 @@ namespace mu2e {
           offset_in_first_chunk -= (*it)->size();
           it = chunks.erase(it);
         }
+
+        // Increment timers
+        parser_active_ += (clock::now() - work_start);
+        parser_loops_.fetch_add(1, std::memory_order_relaxed);
+        
+      } // End chunks empty
+    } // End while true loop
+
+    // ---------------------------------------------
+    // Final flush
+    // ---------------------------------------------
+    if (!batch.events.empty()) {
+
+      EventBatch final_batch = std::move(batch);
+
+      while (!batcher_to_builder_queue_->push(std::move(final_batch))) {
+        std::this_thread::yield();
       }
+
+      batcher_cv_.notify_one();
     }
 
-    // ------------------------------------------------------------
-    // Parser finished completely
-    // ------------------------------------------------------------
-    parser_done_.store(true, std::memory_order_release);
-    parser_cv_.notify_all();
+    batcher_done_.store(true, std::memory_order_release);
+    batcher_cv_.notify_all();
 
-    TLOG(TLVL_INFO) << "[PARSER] Parser thread exiting";
+    TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher exiting";
   }
 
-  void mu2e::STMTCPReceiver::batcherThread_()
+  // =====================================================================================
+  // Builder Thread: Assembles event batchers into fragment containers
+  // =====================================================================================
+  void mu2e::STMTCPReceiver::builderThread_()
   {
-    TLOG(TLVL_INFO) << "[BATCHER] Batcher thread started";
+    TLOG(TLVL_INFO) << "[BUILDER] Builder thread started";
 
-    auto make_new_batch = [&] {
-      EventBatch b;
-      b.events.reserve(events_per_container_);
-      b.container_frag_id = start_fragment_id_ + container_stream_id_;
-      b.container_seq_id  = 0;
-      return b;
-    };
-
-    EventBatch batch = make_new_batch();
-    uint16_t batch_spill_flag = 0;
-
-    EventView evt;
+    EventBatch batch;
 
     while (true) {
 
-      // ------------------------------------------------------------
-      // Consume parsed events
-      // ------------------------------------------------------------
-      if (parser_to_consumer_queue_->pop(evt)) {
+      if (!batcher_to_builder_queue_->pop(batch)) {
 
-        // First event in a new batch
-        if (batch.events.empty()) {
-          batch.container_seq_id = evt.event_num;
-          batch_spill_flag       = evt.spill_flag;
-        }
-        // ----------------------------------------------------------
-        // Spill transition -> flush immediately
-        // ----------------------------------------------------------
-        else if (use_spill_condition_ && evt.spill_flag != batch_spill_flag) {
+        if (batcher_done_.load(std::memory_order_acquire) &&
+            batcher_to_builder_queue_->empty())
+          break;
 
-          EventBatch flushed = std::move(batch);
-          batch = make_new_batch();
-
-          if (!batcher_to_getNext_queue_->push(std::move(flushed))) {
-            TLOG(TLVL_ERROR)
-              << "[BATCHER] spill-transition flush failed: output queue full";
-            batcher_done_.store(true, std::memory_order_release);
-            batcher_cv_.notify_all();
-            return;
-          }
-
-          batcher_cv_.notify_one();
-
-          // Start new batch with this event
-          batch.container_seq_id = evt.event_num;
-          batch_spill_flag       = evt.spill_flag;
-        }
-
-        batch.events.emplace_back(std::move(evt));
-
-        // ----------------------------------------------------------
-        // Spill-dependent batch size
-        // ----------------------------------------------------------
-        const size_t target_batch_size =
-          (batch_spill_flag == 0)
-          ? offspill_events_per_container_
-          : events_per_container_;
-
-        // ----------------------------------------------------------
-        // Emit full batch (NON-BLOCKING)
-        // ----------------------------------------------------------
-        if (batch.events.size() >= target_batch_size) {
-
-          EventBatch full_batch = std::move(batch);
-          batch = make_new_batch();
-          batch_spill_flag = 0;
-
-          if (!batcher_to_getNext_queue_->push(std::move(full_batch))) {
-            TLOG(TLVL_ERROR)
-              << "[BATCHER] batcher_to_getNext_queue FULL - stopping batcher";
-            std::this_thread::yield();
-            //batcher_done_.store(true, std::memory_order_release);
-            //batcher_cv_.notify_all();
-            //return;
-          }
-
-          batcher_cv_.notify_one();
-        }
-
+        std::this_thread::yield();
         continue;
       }
 
-      // ------------------------------------------------------------
-      // Parser finished and no more events
-      // ------------------------------------------------------------
-      if (parser_done_.load(std::memory_order_acquire) &&
-          parser_to_consumer_queue_->empty()) {
+      auto work_start = clock::now();
 
-        if (!batch.events.empty()) {
-          EventBatch final_batch = std::move(batch);
+      // Create container fragment
+      auto* container_frag = new artdaq::Fragment();
 
-          if (!batcher_to_getNext_queue_->push(std::move(final_batch))) {
-            TLOG(TLVL_ERROR)
-              << "[BATCHER] final batch lost: output queue full";
-          } else {
-            batcher_cv_.notify_one();
+      container_frag->setSequenceID(batch.container_seq_id);
+      container_frag->setFragmentID(batch.container_frag_id);
+
+      artdaq::ContainerFragmentLoader loader(
+                                             *container_frag, FragmentType::STM);
+
+      // Collect all inner fragments first
+      artdaq::Fragments batch_frags;
+      batch_frags.reserve(batch.events.size() * 3);
+
+      for (const auto& e : batch.events) {
+
+        const uint64_t seq = e.event_num;
+
+        auto process = [&](const DatasetView& ds,
+                           uint64_t stream_id,
+                           std::atomic<size_t>& counter)
+        {
+          const uint64_t frag_id =
+            start_fragment_id_ + stream_id;
+
+          std::unique_ptr<artdaq::Fragment> frag;
+
+          if (ds.size == 0) {
+            frag = makeFragment_(frag_id, seq, nullptr, 0);
           }
-        }
+          else {
+            auto p = try_get_single_chunk_ptr(e, ds);
+            if (p.second) {
+              frag = makeFragment_(frag_id, seq,
+                                   p.first, ds.size);
+            }
+            else {
+              auto tmp = copy_dataset_to_temp(e, ds);
+              frag = makeFragment_(frag_id, seq,
+                                   tmp.data(), tmp.size());
+            }
+          }
 
-        batcher_done_.store(true, std::memory_order_release);
-        batcher_cv_.notify_all();
-        return;
+          if (frag) {
+            batch_frags.emplace_back(*frag);
+            counter.fetch_add(1, std::memory_order_relaxed);
+          }
+        };
+
+        process(e.raw, raw_stream_id_, raw_frag_count_);
+        process(e.zs,  zs_stream_id_,  zs_frag_count_);
+        process(e.ph,  ph_stream_id_,  ph_frag_count_);
       }
 
-      // ------------------------------------------------------------
-      // Wait
-      // ------------------------------------------------------------
-      std::unique_lock<std::mutex> lk(parser_cv_mutex_);
-      parser_cv_.wait(lk, [&] {
-        return parser_done_.load(std::memory_order_acquire) ||
-          !parser_to_consumer_queue_->empty();
-      });
+      // Single addFragments call
+      loader.addFragments(batch_frags);
+
+      // Push container
+      while (!builder_to_getNext_queue_->push(container_frag)) {
+        std::this_thread::yield();
+      }
+
+      builder_active_ += (clock::now() - work_start);
+      builder_loops_.fetch_add(1, std::memory_order_relaxed);
     }
+
+    builder_done_.store(true, std::memory_order_release);
+    TLOG(TLVL_INFO) << "[BUILDER] Builder exiting";
   }
 
   // =====================================================================================
-  // getNext_: Convert batch of parsed events to artdaq::Fragments
+  // getNext_: Send container of fragments to EB
   // =====================================================================================
   bool mu2e::STMTCPReceiver::getNext_(artdaq::FragmentPtrs& frags)
   {
-    TLOG(TLVL_ERROR)
-      << "[getNext_] getNext entered";
-    
-    EventBatch batch;
 
-    // ------------------------------------------------------------
-    // Get a batch (block if needed)
-    // ------------------------------------------------------------
+    artdaq::Fragment* raw_ptr = nullptr;
+  
     while (true) {
-
-      if (batcher_to_getNext_queue_->pop(batch)) {
-        break;  // got a real batch
-      }
-
-      if (batcher_done_.load(std::memory_order_acquire) &&
-          batcher_to_getNext_queue_->empty()) {
-        return false;  // real end of stream
-      }
-
-      std::unique_lock<std::mutex> lk(batcher_cv_mutex_);
-      batcher_cv_.wait(lk);
-    }
-
-    /*if (!batcher_to_getNext_queue_->pop(batch)) {
-
-      std::unique_lock<std::mutex> lk(batcher_cv_mutex_);
-      batcher_cv_.wait(lk, [&] {
-      return batcher_done_.load(std::memory_order_acquire) ||
-      !batcher_to_getNext_queue_->empty();
-      });
-
-      if (batcher_done_.load(std::memory_order_acquire) &&
-      batcher_to_getNext_queue_->empty()) {
-      return false;
-      }
-
-      // Guaranteed either batch available or artDAQ will call again
-      if (!batcher_to_getNext_queue_->pop(batch)) {
-      return true;
-      }
-      }*/
-
-    TLOG(TLVL_ERROR)
-      << "[getNext_] got batch! Batch(#) = "<< batch_count_.load() << " with size = " << batch.events.size() << " and seqID = " << batch.container_seq_id;
-    batch_count_.fetch_add(1);
+      if (builder_to_getNext_queue_->pop(raw_ptr))
+        break;
     
-    // ------------------------------------------------------------
-    // Build container fragment
-    // ------------------------------------------------------------
-    auto container_frag = std::make_unique<artdaq::Fragment>();
-    container_frag->setSequenceID(batch.container_seq_id);
-    container_frag->setFragmentID(batch.container_frag_id);
-
-    artdaq::ContainerFragmentLoader loader(*container_frag,
-                                           FragmentType::STM);
-
-    // ------------------------------------------------------------
-    // Loop over events in batch
-    // ------------------------------------------------------------
-    for (const auto& e : batch.events) {
-
-      const uint64_t seq = e.event_num;
-
-      auto process = [&](const DatasetView& ds, uint64_t stream_id) {
-
-        const uint64_t frag_id = start_fragment_id_ + stream_id;
-
-        if (ds.size == 0) {
-          if (auto frag = makeFragment_(frag_id, seq, nullptr, 0)) {
-            loader.addFragment(*frag);
-          }
-          return;
-        }
-
-        auto p = try_get_single_chunk_ptr(e, ds);
-        if (p.second) {
-          if (auto frag = makeFragment_(frag_id, seq, p.first, ds.size)) {
-            loader.addFragment(*frag);
-          }
-        } else {
-          auto tmp = copy_dataset_to_temp(e, ds);
-          if (auto frag = makeFragment_(frag_id, seq, tmp.data(), tmp.size())) {
-            loader.addFragment(*frag);
-          }
-        }
-      };
-
-      process(e.raw, raw_stream_id_);
-      process(e.zs,  zs_stream_id_);
-      process(e.ph,  ph_stream_id_);
-
-      event_count_.fetch_add(1);
-      raw_frag_count_.fetch_add(1);
-      zs_frag_count_.fetch_add(1);
-      ph_frag_count_.fetch_add(1);
+      if (builder_done_.load(std::memory_order_acquire) &&
+          builder_to_getNext_queue_->empty())
+        return false;
+    
+      std::this_thread::yield();
     }
 
-    frags.emplace_back(std::move(container_frag));
+    frags.emplace_back(std::unique_ptr<artdaq::Fragment>(raw_ptr));
     return true;
   }
-
   
   // =====================================================================================
   // Stop function
@@ -678,8 +671,8 @@ namespace mu2e {
     receiver_done_.store(true);
 
     // Wake up getNext_() if it is waiting
-    parser_cv_.notify_all();
     batcher_cv_.notify_all();
+    builder_cv_.notify_all();
     
     // Close sockets to unblock poll()/recv()/accept()
     if (client_fd_ >= 0) {
@@ -697,15 +690,51 @@ namespace mu2e {
     // Join threads safely
     if (receiver_thread_.joinable()) receiver_thread_.join();
     if (parser_thread_.joinable()) parser_thread_.join();
-    if (batcher_thread_.joinable()) batcher_thread_.join();
+    if (builder_thread_.joinable()) builder_thread_.join();
 
+    // Print summary
     TLOG(TLVL_INFO)
       << "[STOP] Summary: events=" << event_count_.load()
       << " bytes_received=" << total_bytes_received_.load()
       << " | produced RAW/ZS/PH frags= " << raw_frag_count_.load() << " / "
       << zs_frag_count_.load() << " / " << ph_frag_count_.load();
-  }
 
+    // Print throughput
+    auto total_runtime = clock::now() - run_start_time_;
+
+    double runtime_sec =
+      std::chrono::duration<double>(total_runtime).count();
+
+    double receiver_sec =
+      std::chrono::duration<double>(receiver_active_).count();
+
+    double parser_sec =
+      std::chrono::duration<double>(parser_active_).count();
+
+    double builder_sec =
+      std::chrono::duration<double>(builder_active_).count();
+
+    TLOG(TLVL_INFO)
+      << "\n===== [STOP] PERFORMANCE REPORT =====\n"
+      << "Total runtime: " << runtime_sec << " s\n"
+      << "Events: " << event_count_.load() << "\n"
+      << "Throughput: "
+      << (event_count_.load() / runtime_sec) << " events/sec\n\n"
+      << "Receiver active: " << receiver_sec
+      << " s (" << (receiver_sec/runtime_sec*100.0) << "%)\n"
+      << "Parser active:   " << parser_sec
+      << " s (" << (parser_sec/runtime_sec*100.0) << "%)\n"
+      << "Builder active:  " << builder_sec
+      << " s (" << (builder_sec/runtime_sec*100.0) << "%)\n"
+      << "Avg parse time per event: "
+      << (parser_sec / event_count_.load()) * 1e6
+      << " us\n"
+      << "Avg build time per event: "
+      << (builder_sec / event_count_.load()) * 1e6
+      << " us\n"
+      << "=====================================\n";
+  }
+  
 } // namespace mu2e
 
   // =====================================================================================

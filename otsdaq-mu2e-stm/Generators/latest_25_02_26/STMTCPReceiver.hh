@@ -96,19 +96,6 @@ namespace mu2e {
     std::atomic<size_t> batch_count_{0}; // Number of event batches produced
     std::atomic<uint64_t> total_bytes_received_{0}; // Total bytes received over TCP
 
-    // Throughput
-    using clock = std::chrono::steady_clock;
-
-    std::chrono::time_point<clock> run_start_time_;
-
-    std::chrono::nanoseconds receiver_active_{0};
-    std::chrono::nanoseconds parser_active_{0};
-    std::chrono::nanoseconds builder_active_{0};
-
-    std::atomic<size_t> receiver_loops_{0};
-    std::atomic<size_t> parser_loops_{0};
-    std::atomic<size_t> builder_loops_{0};
-    
     // getNext() wakeup control
     std::mutex batcher_cv_mutex_;
     std::condition_variable batcher_cv_;
@@ -134,8 +121,8 @@ namespace mu2e {
     using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
     // Batcher -> Builder (batch events per container)
     using BatcherToBuildQ = boost::lockfree::spsc_queue<EventBatch, boost::lockfree::capacity<DEFAULT_BATCH_QCAP>>;
-    // Builder -> getNext (sent fragment container)
-    using BuilderToGNQ = boost::lockfree::spsc_queue<artdaq::Fragment*, boost::lockfree::capacity<DEFAULT_FRAG_QCAP>>;
+     // Builder -> getNext (sent fragment container)
+    using BuilderToGNQ = boost::lockfree::spsc_queue<std::unique_ptr<artdaq::Fragment>, boost::lockfree::capacity<DEFAULT_FRAG_QCAP>>;
 
     std::unique_ptr<RecvToParserQ> recv_to_parser_queue_;
     std::unique_ptr<BatcherToBuildQ> batcher_to_builder_queue_; 
@@ -421,6 +408,7 @@ namespace mu2e {
                                                     size_t n_words)
     {
       const size_t n_bytes = n_words * sizeof(int16_t);
+
       auto frag = artdaq::Fragment::FragmentBytes(n_bytes);
       if (!frag) {
         TLOG(TLVL_ERROR) << "[makeFragment_] allocation failed";
