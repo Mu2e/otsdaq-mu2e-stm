@@ -60,7 +60,7 @@ namespace mu2e {
     , debug_level_(ps.get<int>("debug_level", 0)) // Set debug levels
     , pin_threads_(ps.get<bool>("pin_threads", true)) // Pin thread to specific cores
     , idle_timeout_ms_(ps.get<int>("idle_timeout_ms", 5000)) // Idle timeout AFTER first packet (ms)
-    , events_per_container_(ps.get<size_t>("events_per_container", 600)) // Default number of events per container in getNext()
+    , events_per_container_(ps.get<size_t>("events_per_container", 500)) // Default number of events per container in getNext()
     , offspill_events_per_container_(ps.get<size_t>("offspill_events_per_container", 100)) // Number of off-spill events per container in getNext()
     , use_spill_condition_(ps.get<bool>("use_spill_condition", false)) // Condition for batching on spill flags
   {
@@ -251,6 +251,14 @@ namespace mu2e {
               std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
+            // Check queue capacity after successful push
+            static uint64_t push_counter = 0;
+            if (++push_counter % 1000 == 0) {
+              TLOG(TLVL_INFO)
+                << "[RECEIVER] recv_to_parser_queue fill="
+                << recv_to_parser_queue_->read_available();
+            }
+            
             continue; // try draining socket
           }
 
@@ -324,6 +332,9 @@ namespace mu2e {
     size_t offset_in_first_chunk = 0;
     std::shared_ptr<std::vector<uint8_t>> incoming;
 
+    // Counter for capacity check
+    static uint64_t push_counter = 0;
+    
     while (true) {
 
       // ---------------------------------------------
@@ -481,6 +492,13 @@ namespace mu2e {
             std::this_thread::yield();
           }
 
+          // Check queue capacity after successful push
+          if (++push_counter % 100 == 0) {
+            TLOG(TLVL_INFO)
+              << "[PARSER] batcher_to_builder_queue fill="
+              << batcher_to_builder_queue_->read_available();
+          }
+                    
           batcher_cv_.notify_one();
 
           batch.container_seq_id = evt.event_num;
@@ -501,6 +519,13 @@ namespace mu2e {
 
           while (!batcher_to_builder_queue_->push(std::move(full_batch))) {
             std::this_thread::yield();
+          }
+          
+          // Check queue capacity after successful push
+          if (++push_counter % 100 == 0) {
+            TLOG(TLVL_INFO)
+              << "[PARSER] batcher_to_builder_queue fill="
+              << batcher_to_builder_queue_->read_available();
           }
 
           batcher_cv_.notify_one();
@@ -536,6 +561,13 @@ namespace mu2e {
         std::this_thread::yield();
       }
 
+      // Check queue capacity after successful push
+      if (++push_counter % 100 == 0) {
+        TLOG(TLVL_INFO)
+          << "[PARSER] batcher_to_builder_queue fill="
+          << batcher_to_builder_queue_->read_available();
+      }
+      
       batcher_cv_.notify_one();
     }
 
@@ -574,8 +606,7 @@ namespace mu2e {
       container_frag->setSequenceID(batch.container_seq_id);
       container_frag->setFragmentID(batch.container_frag_id);
 
-      artdaq::ContainerFragmentLoader loader(
-                                             *container_frag, FragmentType::STM);
+      artdaq::ContainerFragmentLoader loader(*container_frag, FragmentType::STM);
 
       // Collect all inner fragments first
       artdaq::Fragments batch_frags;
@@ -629,6 +660,14 @@ namespace mu2e {
         std::this_thread::yield();
       }
 
+      // Check queue capacity after successful push
+      static uint64_t push_counter = 0;
+      if (++push_counter % 50 == 0) {
+        TLOG(TLVL_INFO)
+          << "[BUILDER] builder_to_getNext_queue fill="
+          << builder_to_getNext_queue_->read_available();
+      }
+
       builder_active_ += (clock::now() - work_start);
       builder_loops_.fetch_add(1, std::memory_order_relaxed);
     }
@@ -646,9 +685,19 @@ namespace mu2e {
     artdaq::Fragment* raw_ptr = nullptr;
   
     while (true) {
-      if (builder_to_getNext_queue_->pop(raw_ptr))
+      if (builder_to_getNext_queue_->pop(raw_ptr)){
+        
+        // Check queue capacity after successful pull
+        static uint64_t pull_counter = 0;
+        if (++pull_counter % 50 == 0) {
+          TLOG(TLVL_INFO)
+            << "[getNext] builder_to_getNext_queue fill="
+            << builder_to_getNext_queue_->read_available();
+        }
+        
         break;
-    
+      }
+      
       if (builder_done_.load(std::memory_order_acquire) &&
           builder_to_getNext_queue_->empty())
         return false;
