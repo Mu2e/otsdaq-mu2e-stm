@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 
 #include "tcp_event_header.hh"  // Header defintion
+#include "tcp_event_buffer.hh"  // RB defintion
 
 // Config
 constexpr size_t RAW_HEADER_LEN = 32; // length in words of RAW header
@@ -46,14 +47,15 @@ struct DatasetView {
   size_t size;
 };
 
-struct EventView {
-  std::vector<ChunkRef> buffer_chunks;
+struct EventView
+{
+  const uint8_t* data;
+  const uint16_t* header;
+
   size_t size_bytes;
-  const uint16_t* header = nullptr;
-  std::array<uint16_t, EVENT_HEADER_WORDS> header_copy{}; 
+
   int64_t event_num;
-  int16_t template_id;
-  int16_t spill_flag;
+  uint64_t spill_flag;
 
   DatasetView raw;
   DatasetView zs;
