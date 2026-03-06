@@ -237,20 +237,7 @@ namespace mu2e {
                 << "[RECEIVER] First packet received";
             }
 
-            static uint64_t total_bytes = 0;
-            static uint64_t total_calls = 0;
-
-            total_bytes += n;
-            total_calls++;
-
-            if (total_calls % 10000 == 0) {
-              TLOG(TLVL_INFO)
-                << "[RECV] avg recv size = "
-                << (total_bytes / total_calls);
-            }
-
-            total_bytes_received_.fetch_add(
-                                            n, std::memory_order_relaxed);
+            total_bytes_received_.fetch_add(n, std::memory_order_relaxed);
 
             // -----------------------------
             // SAFE RING BUFFER WRITE
@@ -332,7 +319,7 @@ namespace mu2e {
     }
 
     receiver_done_.store(true,std::memory_order_release);
-
+    
     TLOG(TLVL_INFO)
       << "[RECEIVER] Receiver thread exiting";
   }
@@ -359,197 +346,224 @@ namespace mu2e {
     uint8_t header_tmp[EVENT_HEADER_BYTES];
 
     while (true){
-        size_t available = ring_->readable();
 
-        if (available < EVENT_HEADER_BYTES){
-            if (receiver_done_.load()) break;
-            _mm_pause();
-            continue;
-          }
+      if (receiver_done_.load() && ring_->readable() == 0)
+        break;
+      
+      size_t available = ring_->readable();
 
-        const uint8_t* ptr = ring_->readPtr();
-        size_t contiguous = ring_->contiguousReadable();
-
-        // -------------------------
-        // Safe header read
-        // -------------------------
-
-        const uint16_t* hdr;
-
-        if (contiguous >= EVENT_HEADER_BYTES){
-            hdr = reinterpret_cast<const uint16_t*>(ptr);
-          }
-        else{
-            std::memcpy(header_tmp, ptr, contiguous);
-
-            std::memcpy(header_tmp + contiguous,
-                        ring_->begin(),
-                        EVENT_HEADER_BYTES - contiguous);
-
-            hdr = reinterpret_cast<const uint16_t*>(header_tmp);
-          }
-
-        // -------------------------
-        // Anchor validation
-        // -------------------------
-        if (hdr[anchor_start] != event_anchor_word_ ||
-            hdr[anchor_end] != event_anchor_word_)
-          {
-            ring_->advanceRead(2);
-            continue;
-          }
-
-        // -------------------------
-        // Decode header
-        // -------------------------
-
-        uint16_t ps = hdr[PRESCALE];
-
-        bool raw_prescaled = (ps >> 15) & 1;
-        bool zs_prescaled  = (ps >> 7) & 1;
-
-        uint16_t raw_len = hdr[RAW_LEN];
-        uint16_t zs_regs = hdr[ZS_REGIONS];
-        uint16_t zs_len  = hdr[ZS_LEN] + zs_regs * 2;
-        uint16_t ph_num  = hdr[PH_NUM];
-        uint16_t ph_len  = ph_num * 2;
-
-        if (raw_prescaled) raw_len = 0;
-
-        if (zs_prescaled){
-            zs_regs = 0;
-            zs_len  = 0;
-          }
-
-        size_t evt_total_bytes =
-          EVENT_HEADER_BYTES +
-          size_t(raw_len + zs_len + ph_len) * sizeof(uint16_t);
-
-        if (available < evt_total_bytes){
-            _mm_pause();
-            continue;
-          }
-
-        // -------------------------
-        // Handle ring wrap
-        // -------------------------
-
-        bool wrapped = contiguous < evt_total_bytes;
-
-        const uint8_t* event_ptr;
-
-        if (!wrapped){
-            event_ptr = ptr;
-          }
-        else{
-            size_t first = contiguous;
-            size_t second = evt_total_bytes - first;
-
-            std::memcpy(wrap_buffer, ptr, first);
-
-            std::memcpy(wrap_buffer + first,
-                        ring_->begin(),
-                        second);
-
-            event_ptr = wrap_buffer;
-          }
-
-        const uint16_t* event_hdr =
-          reinterpret_cast<const uint16_t*>(event_ptr);
-
-        // -------------------------
-        // Build EventView
-        // -------------------------
-
-        EventView evt;
-
-        evt.data       = event_ptr;
-        evt.header     = event_hdr;
-        evt.size_bytes = evt_total_bytes;
-
-        evt.event_num =
-          int64_t(event_hdr[EWT_0]) |
-          (int64_t(event_hdr[EWT_1]) << 16) |
-          (int64_t(event_hdr[EWT_2]) << 32);
-
-        uint16_t EM2 = event_hdr[EM_2_DRTDC] & 0xFF;
-
-        uint64_t EM =
-          uint64_t(event_hdr[EM_0]) |
-          (uint64_t(event_hdr[EM_1]) << 16) |
-          (uint64_t(EM2) << 32);
-
-        evt.spill_flag = EM;
-
-        if (!computeDatasetView(evt))
-          {
-            TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed";
-            ring_->advanceRead(2);
-            continue;
-          }
-
-        event_count_.fetch_add(1, std::memory_order_relaxed);
-
-        // -------------------------
-        // Batching logic
-        // -------------------------
-
-        if (batch.events.empty()){
-            batch.container_seq_id = evt.event_num;
-            batch_spill_flag = evt.spill_flag;
-          }
-        else if (use_spill_condition_ &&
-                 evt.spill_flag != batch_spill_flag){
-            EventBatch flushed = std::move(batch);
-            batch = make_new_batch();
-
-            while (!batcher_to_builder_queue_->push(std::move(flushed)))
-              _mm_pause();
-
-            batcher_cv_.notify_one();
-
-            batch.container_seq_id = evt.event_num;
-            batch_spill_flag = evt.spill_flag;
-          }
-
-        batch.events.emplace_back(evt);
-
-        const size_t target_batch_size =
-          (batch_spill_flag == 0)
-          ? offspill_events_per_container_
-          : events_per_container_;
-
-        if (batch.events.size() >= target_batch_size){
-            EventBatch full_batch = std::move(batch);
-            batch = make_new_batch();
-
-            while (!batcher_to_builder_queue_->push(std::move(full_batch)))
-              _mm_pause();
-
-            batcher_cv_.notify_one();
-          }
-
-        // -------------------------
-        // Advance ring
-        // -------------------------
-        ring_->advanceRead(evt_total_bytes);
+      // -------------------------
+      // Header check
+      // -------------------------      
+      if (available < EVENT_HEADER_BYTES){
+        if (receiver_done_.load()) break;
+        _mm_pause();
+        continue;
       }
+
+      const uint8_t* ptr = ring_->readPtr();
+      size_t contiguous = ring_->contiguousReadable();
+
+      // -------------------------
+      // Safe header read
+      // -------------------------
+      const uint16_t* hdr;
+
+      if (contiguous >= EVENT_HEADER_BYTES){
+        hdr = reinterpret_cast<const uint16_t*>(ptr);
+      }
+      else{
+        std::memcpy(header_tmp, ptr, contiguous);
+
+        std::memcpy(header_tmp + contiguous,
+                    ring_->begin(),
+                    EVENT_HEADER_BYTES - contiguous);
+
+        hdr = reinterpret_cast<const uint16_t*>(header_tmp);
+      }
+
+      // -------------------------
+      // Anchor validation
+      // -------------------------
+      if (hdr[anchor_start] != event_anchor_word_){
+        // search for next anchor
+        const uint16_t* p = reinterpret_cast<const uint16_t*>(ptr);
+        size_t words = contiguous / 2;
+        
+        size_t i = 1;
+        for (; i < words; ++i) {
+          if (p[i] == event_anchor_word_)
+            break;
+        }
+        
+        if (i == words) {
+          // no anchor in this chunk
+          ring_->advanceRead(contiguous - 2);
+        } else {
+          ring_->advanceRead(i * 2);
+        }
+
+        continue;
+      }
+      
+      if(hdr[anchor_end] != event_anchor_word_){
+        ring_->advanceRead(2);
+        continue;
+      }
+
+      // -------------------------
+      // Decode header
+      // -------------------------
+
+      uint16_t ps = hdr[PRESCALE];
+
+      bool raw_prescaled = (ps >> 15) & 1;
+      bool zs_prescaled  = (ps >> 7) & 1;
+
+      uint16_t raw_len = hdr[RAW_LEN];
+      uint16_t zs_regs = hdr[ZS_REGIONS];
+      uint16_t zs_len  = hdr[ZS_LEN] + zs_regs * 2;
+      uint16_t ph_num  = hdr[PH_NUM];
+      uint16_t ph_len  = ph_num * 2;
+
+      if (raw_prescaled) raw_len = 0;
+
+      if (zs_prescaled){
+        zs_regs = 0;
+        zs_len  = 0;
+      }
+
+      size_t evt_total_bytes =
+        EVENT_HEADER_BYTES +
+        size_t(raw_len + zs_len + ph_len) * sizeof(uint16_t);
+
+      if (available < evt_total_bytes){
+        _mm_pause();
+        continue;
+      }
+
+      // -------------------------
+      // Handle ring wrap
+      // -------------------------
+
+      bool wrapped = contiguous < evt_total_bytes;
+
+      const uint8_t* event_ptr;
+
+      if (!wrapped){
+        event_ptr = ptr;
+      }
+      else{
+        size_t first = contiguous;
+        size_t second = evt_total_bytes - first;
+
+        std::memcpy(wrap_buffer, ptr, first);
+
+        std::memcpy(wrap_buffer + first,
+                    ring_->begin(),
+                    second);
+
+        event_ptr = wrap_buffer;
+      }
+
+      const uint16_t* event_hdr =
+        reinterpret_cast<const uint16_t*>(event_ptr);
+
+      // -------------------------
+      // Build EventView
+      // -------------------------
+
+      EventView evt;
+      evt.owned_data.resize(evt_total_bytes);
+      std::memcpy(evt.owned_data.data(), event_ptr, evt_total_bytes);
+      evt.data   = evt.owned_data.data();
+      evt.header = reinterpret_cast<const uint16_t*>(evt.data);
+      evt.size_bytes = evt_total_bytes;
+
+      evt.event_num =
+        int64_t(event_hdr[EWT_0]) |
+        (int64_t(event_hdr[EWT_1]) << 16) |
+        (int64_t(event_hdr[EWT_2]) << 32);
+
+      uint16_t EM2 = event_hdr[EM_2_DRTDC] & 0xFF;
+
+      uint64_t EM =
+        uint64_t(event_hdr[EM_0]) |
+        (uint64_t(event_hdr[EM_1]) << 16) |
+        (uint64_t(EM2) << 32);
+
+      evt.spill_flag = EM;
+
+      if (!computeDatasetView(evt))
+        {
+          TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed";
+          ring_->advanceRead(2);
+          continue;
+        }
+
+      event_count_.fetch_add(1, std::memory_order_relaxed);
+
+      // -------------------------
+      // Batching logic
+      // -------------------------
+
+      if (batch.events.empty()){
+        batch.container_seq_id = evt.event_num;
+        batch_spill_flag = evt.spill_flag;
+      }
+      else if (use_spill_condition_ &&
+               evt.spill_flag != batch_spill_flag){
+        EventBatch flushed = std::move(batch);
+        batch = make_new_batch();
+
+        while (!batcher_to_builder_queue_->push(std::move(flushed)))
+          _mm_pause();
+
+        batcher_cv_.notify_one();
+
+        batch.container_seq_id = evt.event_num;
+        batch_spill_flag = evt.spill_flag;
+      }
+
+      batch.events.emplace_back(evt);
+
+      const size_t target_batch_size =
+        (batch_spill_flag == 0)
+        ? offspill_events_per_container_
+        : events_per_container_;
+
+      if (batch.events.size() >= target_batch_size){
+        EventBatch full_batch = std::move(batch);
+        batch = make_new_batch();
+
+        while (!batcher_to_builder_queue_->push(std::move(full_batch)))
+          _mm_pause();
+
+        batcher_cv_.notify_one();
+      }
+
+      // -------------------------
+      // Advance ring
+      // -------------------------
+      ring_->advanceRead(evt_total_bytes);
+    }
 
     // -------------------------
     // Final flush
     // -------------------------
 
     if (!batch.events.empty()){
-        EventBatch final_batch = std::move(batch);
+      EventBatch final_batch = std::move(batch);
 
-        while (!batcher_to_builder_queue_->push(std::move(final_batch)))
-          _mm_pause();
+      while (!batcher_to_builder_queue_->push(std::move(final_batch)))
+        _mm_pause();
 
-        batcher_cv_.notify_one();
-      }
+      batcher_cv_.notify_one();
+    }
 
     batcher_done_.store(true, std::memory_order_release);
     batcher_cv_.notify_all();
+    builder_cv_.notify_all();
 
     TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher exiting";
   }
@@ -563,97 +577,89 @@ namespace mu2e {
 
     EventBatch batch;
 
-    while (true)
-      {
-        if (!batcher_to_builder_queue_->pop(batch))
-          {
-            if (batcher_done_.load(std::memory_order_acquire) &&
-                batcher_to_builder_queue_->empty())
-              break;
+    while (true){
 
-            _mm_pause();
-            continue;
-          }
-
-        auto work_start = clock::now();
-
-        // ------------------------------------------------
-        // Create container fragment
-        // ------------------------------------------------
-
-        auto* container_frag = new artdaq::Fragment();
-
-        container_frag->setSequenceID(batch.container_seq_id);
-        container_frag->setFragmentID(batch.container_frag_id);
-
-        artdaq::ContainerFragmentLoader loader(
-                                               *container_frag,
-                                               FragmentType::STM);
-
-        // ------------------------------------------------
-        // Collect fragments for this batch
-        // ------------------------------------------------
-
-        artdaq::Fragments batch_frags;
-        batch_frags.reserve(batch.events.size() * 3);
-
-        for (const auto& e : batch.events)
-          {
-            const uint64_t seq = e.event_num;
-
-            auto process =
-              [&](const DatasetView& ds,
-                  uint64_t stream_id,
-                  std::atomic<size_t>& counter)
-              {
-                const uint64_t frag_id =
-                  start_fragment_id_ + stream_id;
-
-                std::unique_ptr<artdaq::Fragment> frag;
-
-                if (ds.size == 0)
-                  {
-                    frag = makeFragment_(frag_id, seq, nullptr, 0);
-                  }
-                else
-                  {
-                    const int16_t* ptr = reinterpret_cast<const int16_t*>(e.data + ds.offset);
-
-                    frag = makeFragment_(
-                                         frag_id,
-                                         seq,
-                                         ptr,
-                                         ds.size);
-                  }
-
-                if (frag)
-                  {
-                    batch_frags.emplace_back(*frag);
-                    counter.fetch_add(1, std::memory_order_relaxed);
-                  }
-              };
-
-            process(e.raw, raw_stream_id_, raw_frag_count_);
-            process(e.zs,  zs_stream_id_,  zs_frag_count_);
-            process(e.ph,  ph_stream_id_,  ph_frag_count_);
-          }
-
-        // ------------------------------------------------
-        // Add fragments to container
-        // ------------------------------------------------
-
-        loader.addFragments(batch_frags);
-
-        // ------------------------------------------------
-        // Send container to getNext
-        // ------------------------------------------------
-
-        while (!builder_to_getNext_queue_->push(container_frag))
-          _mm_pause();
-
-        builder_active_ += (clock::now() - work_start);
-        builder_loops_.fetch_add(1, std::memory_order_relaxed);
+      if (batcher_done_.load(std::memory_order_acquire) &&
+          batcher_to_builder_queue_->empty()){
+        break;
       }
+
+      if (!batcher_to_builder_queue_->pop(batch)) {
+        _mm_pause();
+        continue;
+      }
+
+      auto work_start = clock::now();
+
+      // ------------------------------------------------
+      // Create container fragment
+      // ------------------------------------------------
+
+      auto* container_frag = new artdaq::Fragment();
+
+      container_frag->setSequenceID(batch.container_seq_id);
+      container_frag->setFragmentID(batch.container_frag_id);
+
+      artdaq::ContainerFragmentLoader loader(*container_frag,
+                                             FragmentType::STM);
+
+      // ------------------------------------------------
+      // Collect fragments for this batch
+      // ------------------------------------------------
+
+      artdaq::Fragments batch_frags;
+      batch_frags.reserve(batch.events.size() * 3);
+
+      for (const auto& e : batch.events)
+        {
+          const uint64_t seq = e.event_num;
+
+          auto process =
+            [&](const DatasetView& ds,
+                uint64_t stream_id,
+                std::atomic<size_t>& counter)
+            {
+              const uint64_t frag_id =
+                start_fragment_id_ + stream_id;
+
+              std::unique_ptr<artdaq::Fragment> frag;
+
+              if (ds.size == 0){
+                frag = makeFragment_(frag_id, seq, nullptr, 0);
+              }
+              else{
+                const int16_t* ptr = reinterpret_cast<const int16_t*>(e.data + ds.offset);
+
+                frag = makeFragment_(frag_id,seq,ptr,ds.size);
+              }
+
+              if (frag){
+                batch_frags.emplace_back(*frag);
+                counter.fetch_add(1, std::memory_order_relaxed);
+              }
+            };
+
+          process(e.raw, raw_stream_id_, raw_frag_count_);
+          process(e.zs,  zs_stream_id_,  zs_frag_count_);
+          process(e.ph,  ph_stream_id_,  ph_frag_count_);
+        }
+
+      // ------------------------------------------------
+      // Add fragments to container
+      // ------------------------------------------------
+
+      loader.addFragments(batch_frags);
+
+      // ------------------------------------------------
+      // Send container to getNext
+      // ------------------------------------------------
+
+      while (!builder_to_getNext_queue_->push(container_frag))
+        _mm_pause();
+
+      builder_active_ += (clock::now() - work_start);
+      builder_loops_.fetch_add(1, std::memory_order_relaxed);
+    }
 
     builder_done_.store(true, std::memory_order_release);
 
@@ -670,15 +676,6 @@ namespace mu2e {
   
     while (true) {
       if (builder_to_getNext_queue_->pop(raw_ptr)){
-
-        // Check queue capacity after successful pull
-        /*static uint64_t pull_counter = 0;
-          if (++pull_counter % 50 == 0) {
-          TLOG(TLVL_INFO)
-          << "[getNext] builder_to_getNext_queue fill="
-          << builder_to_getNext_queue_->read_available();
-          }*/
-        
         break;
       }
       

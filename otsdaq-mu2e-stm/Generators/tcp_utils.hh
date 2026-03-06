@@ -49,6 +49,7 @@ struct DatasetView {
 
 struct EventView
 {
+  std::vector<uint8_t> owned_data;
   const uint8_t* data;
   const uint16_t* header;
 
