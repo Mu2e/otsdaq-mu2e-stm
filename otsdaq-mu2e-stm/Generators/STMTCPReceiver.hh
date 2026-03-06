@@ -116,7 +116,7 @@ namespace mu2e {
     std::atomic<bool> receiver_done_{false};
     std::atomic<bool> batcher_done_{false};  
     std::atomic<bool> builder_done_{false};
-    static constexpr uint16_t END_SENTINEL = 0xDEAD;
+    std::atomic<bool> stop_requested_{false};
     
     // TCP sockets
     int listen_fd_{-1}; // Listening TCP socket fd (created in start())

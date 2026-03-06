@@ -47,8 +47,7 @@ struct DatasetView {
   size_t size;
 };
 
-struct EventView
-{
+struct EventView {
   std::vector<uint8_t> owned_data;
   const uint8_t* data;
   const uint16_t* header;
@@ -61,13 +60,18 @@ struct EventView
   DatasetView raw;
   DatasetView zs;
   DatasetView ph;
+
+  // Ring buffer
+  size_t ring_start;
+  size_t ring_end;
 };
 
-struct EventBatch
-{
+struct EventBatch {
   uint64_t container_seq_id;   // = first event_num in batch
   uint64_t container_frag_id;  // fixed per receiver / stream
   std::vector<EventView> events;
+
+  bool is_shutdown = false;
 };
 
 #endif // TCP_UTILS_HH
