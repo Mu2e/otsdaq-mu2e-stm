@@ -139,187 +139,234 @@ namespace mu2e {
   void mu2e::STMTCPReceiver::receiverThread_()
   {
     TLOG(TLVL_INFO) << "[RECEIVER] Receiver thread started";
-    TLOG(tcpDebugLevel()) << "[RECEIVER] Waiting for TCP client connection...";
-
-    struct pollfd lfd{};
-    lfd.fd = listen_fd_;
-    lfd.events = POLLIN;
-
-    while (!receiver_done_.load()) {
-
-      int ret = poll(&lfd, 1, 100);
-
-      if (ret < 0) {
-        if (errno == EINTR) continue;
-        perror("poll(listen_fd)");
-        return;
-      }
-
-      if (ret > 0 && (lfd.revents & POLLIN)) {
-        client_fd_ = accept(listen_fd_, nullptr, nullptr);
-        break;
-      }
-    }
-
-    if (client_fd_ < 0) {
-      TLOG(TLVL_ERROR) << "[RECEIVER] accept failed";
-      receiver_done_.store(true);
-      return;
-    }
-
-    TLOG(TLVL_INFO) << "[RECEIVER] Client connected (fd=" << client_fd_ << ")";
-
-    int flags = fcntl(client_fd_, F_GETFL, 0);
-    fcntl(client_fd_, F_SETFL, flags | O_NONBLOCK);
-
-    size_t rmem_max = get_rmem_max();
-
-    if (rmem_max > 0) {
-
-      int bufsize = static_cast<int>(rmem_max);
-
-      if (setsockopt(client_fd_, SOL_SOCKET,
-                     SO_RCVBUF, &bufsize,
-                     sizeof(bufsize)) < 0) {
-        perror("setsockopt(SO_RCVBUF)");
-      }
-
-      socklen_t len = sizeof(bufsize);
-
-      getsockopt(client_fd_,
-                 SOL_SOCKET,
-                 SO_RCVBUF,
-                 &bufsize,
-                 &len);
-
-      TLOG(TLVL_INFO)
-        << "[RECEIVER] SO_RCVBUF set to "
-        << bufsize << " bytes";
-    }
 
     std::vector<uint8_t> byte_buffer(recv_buffer_size_);
 
-    bool received_first_packet = false;
-    bool eof = false;
+    struct pollfd listen_pfd{};
+    listen_pfd.fd = listen_fd_;
+    listen_pfd.events = POLLIN;
 
-    struct pollfd pfd{};
-    pfd.fd = client_fd_;
-    pfd.events = POLLIN;
+    while (!receiver_done_.load(std::memory_order_acquire)) {
 
-    while (!receiver_done_.load() && !eof) {
+      // ======================================
+      // Wait for TCP client connection
+      // ======================================
 
-      int ret = poll(&pfd, 1, 100);
+      TLOG(tcpDebugLevel())
+        << "[RECEIVER] Waiting for TCP client connection...";
 
-      if (ret == 0) continue;
+      while (!receiver_done_.load(std::memory_order_acquire)) {
 
-      if (ret < 0) {
-        if (errno == EINTR) continue;
-        perror("poll(client_fd)");
-        break;
+        int ret = poll(&listen_pfd, 1, 100);
+
+        // Check stop
+        if (receiver_done_.load(std::memory_order_acquire))
+          break;
+        
+        if (ret < 0) {
+          if (errno == EINTR) continue;
+          perror("poll(listen_fd)");
+          return;
+        }
+
+        if (ret == 0)
+          continue;
+
+        if (listen_pfd.revents & POLLIN) {
+
+          client_fd_ = accept(listen_fd_, nullptr, nullptr);
+
+          if (client_fd_ >= 0)
+            break;
+
+          // Accept can occasionally fail after poll
+          if (errno == EAGAIN || errno == EWOULDBLOCK)
+            continue;
+
+          if (errno == EINTR)
+            continue;
+
+          perror("accept");
+          continue;
+        }
       }
 
-      if (pfd.revents & POLLIN) {
+      if (receiver_done_.load(std::memory_order_acquire))
+        break;
 
-        auto work_start = clock::now();
+      TLOG(TLVL_INFO)
+        << "[RECEIVER] Client connected (fd=" << client_fd_ << ")";
 
-        for (;;) {
+      // ======================================
+      // Configure client socket
+      // ======================================
 
-          ssize_t n = recv(client_fd_,
-                           byte_buffer.data(),
-                           byte_buffer.size(),
-                           0);
+      int flags = fcntl(client_fd_, F_GETFL, 0);
+      fcntl(client_fd_, F_SETFL, flags | O_NONBLOCK);
 
-          if (n > 0) {
+      size_t rmem_max = get_rmem_max();
 
-            if (!received_first_packet) {
-              received_first_packet = true;
-              TLOG(tcpDebugLevel())
-                << "[RECEIVER] First packet received";
-            }
+      if (rmem_max > 0) {
 
-            total_bytes_received_.fetch_add(n, std::memory_order_relaxed);
+        int bufsize = static_cast<int>(rmem_max);
 
-            // -----------------------------
-            // SAFE RING BUFFER WRITE
-            // -----------------------------
+        if (setsockopt(client_fd_,
+                       SOL_SOCKET,
+                       SO_RCVBUF,
+                       &bufsize,
+                       sizeof(bufsize)) < 0) {
+          perror("setsockopt(SO_RCVBUF)");
+        }
 
-            size_t remaining = n;
-            size_t copied = 0;
+        socklen_t len = sizeof(bufsize);
 
-            while (remaining > 0) {
+        getsockopt(client_fd_,
+                   SOL_SOCKET,
+                   SO_RCVBUF,
+                   &bufsize,
+                   &len);
 
-              size_t writable = ring_->writable();
+        TLOG(TLVL_INFO)
+          << "[RECEIVER] SO_RCVBUF set to "
+          << bufsize << " bytes";
+      }
 
-              if (writable == 0) {
-                std::this_thread::sleep_for(
-                                            std::chrono::microseconds(1));
-                continue;
-              }
+      // ======================================
+      // Data receive loop
+      // ======================================
 
-              size_t contiguous =
-                ring_->contiguousWritable();
+      struct pollfd client_pfd{};
+      client_pfd.fd = client_fd_;
+      client_pfd.events = POLLIN;
 
-              size_t to_copy =
-                std::min({remaining,
-                    contiguous,
-                    writable});
+      bool received_first_packet = false;
+      bool connection_alive = true;
 
-              uint8_t* dst = ring_->writePtr();
+      while (connection_alive &&
+             !receiver_done_.load(std::memory_order_acquire)) {
 
-              std::memcpy(dst,
-                          byte_buffer.data() + copied,
-                          to_copy);
+        int ret = poll(&client_pfd, 1, 100);
 
-              ring_->advanceWrite(to_copy);
+        // Check stop
+        if (receiver_done_.load(std::memory_order_acquire))
+          break;
 
-              copied += to_copy;
-              remaining -= to_copy;
-            }
-
-            continue; // drain socket
-          }
-
-          if (n == 0) {
-            TLOG(TLVL_INFO)
-              << "[RECEIVER] Client closed connection (EOF)";
-            eof = true;
-            break;
-          }
-
-          if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            break;
-          }
-
-          perror("recv");
-          eof = true;
+        if (ret < 0) {
+          if (errno == EINTR) continue;
+          perror("poll(client_fd)");
           break;
         }
 
-        receiver_active_ +=
-          (clock::now() - work_start);
+        if (ret == 0)
+          continue;
 
-        receiver_loops_.fetch_add(
-                                  1, std::memory_order_relaxed);
+        if (client_pfd.revents & POLLIN) {
+
+          auto work_start = clock::now();
+
+          for (;;) {
+
+            ssize_t n = recv(client_fd_,
+                             byte_buffer.data(),
+                             byte_buffer.size(),
+                             0);
+
+            if (n > 0) {
+
+              if (!received_first_packet) {
+                received_first_packet = true;
+                TLOG(tcpDebugLevel())
+                  << "[RECEIVER] First packet received";
+              }
+
+              total_bytes_received_.fetch_add(
+                                              n, std::memory_order_relaxed);
+
+              // ======================================
+              // Write into ring buffer
+              // ======================================
+
+              size_t remaining = n;
+              size_t copied = 0;
+
+              while (remaining > 0) {
+
+                size_t writable = ring_->writable();
+
+                if (writable == 0) {
+                  std::this_thread::yield();
+                  continue;
+                }
+
+                size_t contiguous =
+                  ring_->contiguousWritable();
+
+                size_t to_copy =
+                  std::min(remaining, contiguous);
+
+                uint8_t* dst = ring_->writePtr();
+
+                std::memcpy(dst,
+                            byte_buffer.data() + copied,
+                            to_copy);
+
+                ring_->advanceWrite(to_copy);
+
+                copied += to_copy;
+                remaining -= to_copy;
+              }
+
+              continue;
+            }
+
+            if (n == 0) {
+              TLOG(TLVL_WARNING)
+                << "[RECEIVER] Sender disconnected";
+              connection_alive = false;
+              break;
+            }
+
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+              break;
+
+            perror("recv");
+            connection_alive = false;
+            break;
+          }
+
+          receiver_active_ +=
+            (clock::now() - work_start);
+
+          receiver_loops_.fetch_add(
+                                    1, std::memory_order_relaxed);
+        }
+
+        if (client_pfd.revents &
+            (POLLHUP | POLLERR | POLLNVAL)) {
+
+          TLOG(TLVL_WARNING)
+            << "[RECEIVER] Socket hangup/error";
+
+          connection_alive = false;
+        }
       }
 
-      if (pfd.revents &
-          (POLLHUP | POLLERR | POLLNVAL)) {
+      // ======================================
+      // Cleanup connection
+      // ======================================
 
+      if (client_fd_ >= 0) {
+        shutdown(client_fd_, SHUT_RDWR);
+        close(client_fd_);
+        client_fd_ = -1;
+      }
+
+      if (!receiver_done_.load(std::memory_order_acquire)) {
         TLOG(TLVL_INFO)
-          << "[RECEIVER] Socket hangup/error";
-
-        eof = true;
+          << "[RECEIVER] Waiting for new sender connection";
       }
     }
 
-    if (client_fd_ >= 0) {
-      shutdown(client_fd_, SHUT_RDWR);
-      close(client_fd_);
-      client_fd_ = -1;
-    }
-
-    receiver_done_.store(true,std::memory_order_release);
-    
     TLOG(TLVL_INFO)
       << "[RECEIVER] Receiver thread exiting";
   }
@@ -347,6 +394,9 @@ namespace mu2e {
 
     while (true){
 
+      if (should_stop())
+        break;
+      
       if (receiver_done_.load() && ring_->readable() == 0)
         break;
       
@@ -517,7 +567,7 @@ namespace mu2e {
         batch = make_new_batch();
 
         while (!batcher_to_builder_queue_->push(std::move(flushed)))
-          _mm_pause();
+          std::this_thread::yield();
 
         batcher_cv_.notify_one();
 
@@ -537,15 +587,14 @@ namespace mu2e {
         batch = make_new_batch();
 
         while (!batcher_to_builder_queue_->push(std::move(full_batch)))
-          _mm_pause();
+          std::this_thread::yield();
 
         batcher_cv_.notify_one();
       }
 
-      // -------------------------
-      // Advance ring
-      // -------------------------
+      // Advance parser position in ring
       ring_->advanceRead(evt_total_bytes);
+      
     }
 
     // -------------------------
@@ -556,7 +605,7 @@ namespace mu2e {
       EventBatch final_batch = std::move(batch);
 
       while (!batcher_to_builder_queue_->push(std::move(final_batch)))
-        _mm_pause();
+        std::this_thread::yield();
 
       batcher_cv_.notify_one();
     }
@@ -565,6 +614,12 @@ namespace mu2e {
     batcher_cv_.notify_all();
     builder_cv_.notify_all();
 
+    EventBatch shutdown_batch;
+    shutdown_batch.is_shutdown = true;
+    
+    while (!batcher_to_builder_queue_->push(std::move(shutdown_batch)))
+      _mm_pause();
+    
     TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher exiting";
   }
   
@@ -579,14 +634,21 @@ namespace mu2e {
 
     while (true){
 
-      if (batcher_done_.load(std::memory_order_acquire) &&
-          batcher_to_builder_queue_->empty()){
+      if (should_stop())
         break;
-      }
-
+      
       if (!batcher_to_builder_queue_->pop(batch)) {
+
+        if (should_stop())
+          break;
+        
         _mm_pause();
         continue;
+      }
+      
+      if (batch.is_shutdown) {
+        TLOG(TLVL_INFO) << "[BUILDER] Shutdown batch received";
+        break;
       }
 
       auto work_start = clock::now();
@@ -642,6 +704,7 @@ namespace mu2e {
           process(e.raw, raw_stream_id_, raw_frag_count_);
           process(e.zs,  zs_stream_id_,  zs_frag_count_);
           process(e.ph,  ph_stream_id_,  ph_frag_count_);
+
         }
 
       // ------------------------------------------------
@@ -654,8 +717,22 @@ namespace mu2e {
       // Send container to getNext
       // ------------------------------------------------
 
-      while (!builder_to_getNext_queue_->push(container_frag))
+      uint64_t push_spins = 0;
+
+      while (!builder_to_getNext_queue_->push(container_frag)) {
+
+        if (should_stop())
+          break;
+        
+        if (batcher_done_.load(std::memory_order_acquire)) {
+
+          if ((++push_spins & ((1<<20)-1)) == 0) {
+            TLOG(TLVL_INFO) << "[BUILDER] waiting for getNext queue during shutdown";
+          }
+        }
+
         _mm_pause();
+      }
 
       builder_active_ += (clock::now() - work_start);
       builder_loops_.fetch_add(1, std::memory_order_relaxed);
@@ -663,6 +740,9 @@ namespace mu2e {
 
     builder_done_.store(true, std::memory_order_release);
 
+    while (!builder_to_getNext_queue_->push(nullptr))
+      std::this_thread::yield();
+    
     TLOG(TLVL_INFO) << "[BUILDER] Builder exiting";
   }
 
@@ -673,16 +753,20 @@ namespace mu2e {
   {
 
     artdaq::Fragment* raw_ptr = nullptr;
-  
+
     while (true) {
-      if (builder_to_getNext_queue_->pop(raw_ptr)){
+
+      if (builder_to_getNext_queue_->pop(raw_ptr)) {
+
+        if (raw_ptr == nullptr)
+          return false;
+
         break;
       }
-      
-      if (builder_done_.load(std::memory_order_acquire) &&
-          builder_to_getNext_queue_->empty())
+
+      if (should_stop())
         return false;
-    
+
       std::this_thread::yield();
     }
 
@@ -697,6 +781,9 @@ namespace mu2e {
   {
     TLOG(TLVL_INFO) << "[STOP] STMTCPReceiver stop() called";
 
+    // Signal stop requested
+    stop_requested_.store(true, std::memory_order_release);
+    
     // Signal threads to exit
     receiver_done_.store(true);
 
