@@ -43,38 +43,35 @@ struct ChunkRef {
 };
 
 struct DatasetView {
-  const int16_t* ptr = nullptr;
-  size_t size = 0;
-
-  const int16_t* wrap_ptr = nullptr;
-  size_t wrap_words = 0;
+  size_t offset;
+  size_t size;
 };
 
 struct EventView {
+  std::vector<uint8_t> owned_data;
+  const uint8_t* data;
+  const uint16_t* header;
 
-  const uint8_t* event_rb_head_ptr = nullptr;
-  size_t         event_rb_head_bytes = 0;
-  
-  const uint8_t* event_rb_wrap_ptr = nullptr;
-  size_t         event_rb_wrap_bytes = 0;
-  
-  const uint16_t* header = nullptr;
-  
-  size_t size_bytes = 0;
-  
-  int64_t event_num = 0;
-  uint64_t spill_flag = 0;
+  size_t size_bytes;
+
+  int64_t event_num;
+  uint64_t spill_flag;
 
   DatasetView raw;
   DatasetView zs;
   DatasetView ph;
 
+  // Ring buffer
+  size_t ring_start;
+  size_t ring_end;
 };
 
 struct EventBatch {
   uint64_t container_seq_id;   // = first event_num in batch
   uint64_t container_frag_id;  // fixed per receiver / stream
   std::vector<EventView> events;
+
+  bool is_shutdown = false;
 };
 
 #endif // TCP_UTILS_HH
