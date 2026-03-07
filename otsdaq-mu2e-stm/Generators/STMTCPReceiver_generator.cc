@@ -64,13 +64,10 @@ namespace mu2e {
     , use_spill_condition_(ps.get<bool>("use_spill_condition", false)) // Condition for batching on spill flags
   {
     // Log configuration
-    TLOG_DEBUG(1) << "STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
+    TLOG_DEBUG(1) << "[STM_BR] STMTCPReceiver: Channel = " << chan_ << " | Host = " << host_ << " | Port = " << port_
                   << " rcvbuf=" << rcvbuf_bytes_;
-    TLOG_DEBUG(1) << "STMTCPReceiver: recv_to_parser queue capacity=" << DEFAULT_RECV_QCAP
-                  << ", parser_to_cons queue capacity=" << DEFAULT_BATCH_QCAP;  
 
     // Create lockfree SPSC queues
-    recv_to_parser_queue_     = std::make_unique<RecvToParserQ>();
     batcher_to_builder_queue_ = std::make_unique<BatcherToBuildQ>();
     builder_to_getNext_queue_ = std::make_unique<BuilderToGNQ>();
 
@@ -82,6 +79,7 @@ namespace mu2e {
   STMTCPReceiver::~STMTCPReceiver() {
     // Signal end of datastream
     receiver_done_.store(true);
+    stop_requested_.store(true);
     batcher_cv_.notify_all();
     builder_cv_.notify_all();
 
@@ -105,7 +103,7 @@ namespace mu2e {
     // start() MUST NOT block in ART. We ONLY create the listening socket here.
     // accept() and recv() happen in the receiver thread.
     
-    TLOG(TLVL_INFO) << "Starting STMTCPReceiver, opening listening socket... host="
+    TLOG(TLVL_INFO) << "[STM_BR][START] Starting STMTCPReceiver, opening listening socket... host="
                     << host_ << " port=" << port_;
 
     // Start global timer
@@ -119,18 +117,19 @@ namespace mu2e {
     }
 
     receiver_done_.store(false);
+    stop_requested_.store(false);
 
     // Start receiver thread (handles accept + recv)
     receiver_thread_ = std::thread(&STMTCPReceiver::receiverThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(receiver_thread_, "[RECEIVER]");
+    if (pin_threads_) pin_thread_to_least_busy_core(receiver_thread_, "[STM_BR][RECEIVER]");
 
     // Start parser thread
     parser_thread_ = std::thread(&STMTCPReceiver::parserThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(parser_thread_, "[PARSER]");
+    if (pin_threads_) pin_thread_to_least_busy_core(parser_thread_, "[STM_BR][PARSER]");
 
     // Start batcher thread
     builder_thread_ = std::thread(&STMTCPReceiver::builderThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(builder_thread_, "[BUILDER]");
+    if (pin_threads_) pin_thread_to_least_busy_core(builder_thread_, "[STM_BR][BUILDER]");
   }
 
   // =====================================================================================
@@ -138,7 +137,7 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::receiverThread_()
   {
-    TLOG(TLVL_INFO) << "[RECEIVER] Receiver thread started";
+    TLOG(TLVL_INFO) << "[STM_BR][RECEIVER] Receiver thread started";
 
     std::vector<uint8_t> byte_buffer(recv_buffer_size_);
 
@@ -146,21 +145,20 @@ namespace mu2e {
     listen_pfd.fd = listen_fd_;
     listen_pfd.events = POLLIN;
 
-    while (!receiver_done_.load(std::memory_order_acquire)) {
+    while (!stop_requested_.load(std::memory_order_acquire)){
 
       // ======================================
       // Wait for TCP client connection
       // ======================================
 
       TLOG(tcpDebugLevel())
-        << "[RECEIVER] Waiting for TCP client connection...";
+        << "[STM_BR][RECEIVER] Waiting for TCP client connection...";
 
-      while (!receiver_done_.load(std::memory_order_acquire)) {
+      while (!stop_requested_.load(std::memory_order_acquire)) {
 
-        int ret = poll(&listen_pfd, 1, 100);
+        int ret = poll(&listen_pfd, 1, 10);
 
-        // Check stop
-        if (receiver_done_.load(std::memory_order_acquire))
+        if (stop_requested_.load(std::memory_order_acquire))
           break;
         
         if (ret < 0) {
@@ -191,11 +189,11 @@ namespace mu2e {
         }
       }
 
-      if (receiver_done_.load(std::memory_order_acquire))
+      if (stop_requested_.load(std::memory_order_acquire))
         break;
 
       TLOG(TLVL_INFO)
-        << "[RECEIVER] Client connected (fd=" << client_fd_ << ")";
+        << "[STM_BR][RECEIVER] Client connected (fd=" << client_fd_ << ")";
 
       // ======================================
       // Configure client socket
@@ -227,7 +225,7 @@ namespace mu2e {
                    &len);
 
         TLOG(TLVL_INFO)
-          << "[RECEIVER] SO_RCVBUF set to "
+          << "[STM_BR][RECEIVER] SO_RCVBUF set to "
           << bufsize << " bytes";
       }
 
@@ -243,12 +241,12 @@ namespace mu2e {
       bool connection_alive = true;
 
       while (connection_alive &&
-             !receiver_done_.load(std::memory_order_acquire)) {
+             !stop_requested_.load(std::memory_order_acquire)) {
 
-        int ret = poll(&client_pfd, 1, 100);
+        int ret = poll(&client_pfd, 1, 10);
 
         // Check stop
-        if (receiver_done_.load(std::memory_order_acquire))
+        if (stop_requested_.load(std::memory_order_acquire))
           break;
 
         if (ret < 0) {
@@ -276,11 +274,10 @@ namespace mu2e {
               if (!received_first_packet) {
                 received_first_packet = true;
                 TLOG(tcpDebugLevel())
-                  << "[RECEIVER] First packet received";
+                  << "[STM_BR][RECEIVER] First packet received";
               }
 
-              total_bytes_received_.fetch_add(
-                                              n, std::memory_order_relaxed);
+              total_bytes_received_.fetch_add(n, std::memory_order_relaxed);
 
               // ======================================
               // Write into ring buffer
@@ -291,9 +288,15 @@ namespace mu2e {
 
               while (remaining > 0) {
 
+                if (stop_requested_.load(std::memory_order_acquire)){
+                  connection_alive = false;
+                  break;
+                }
+
                 size_t writable = ring_->writable();
 
-                if (writable == 0) {
+                // prevent overwrite of in-flight events
+                if (writable < remaining) {
                   std::this_thread::yield();
                   continue;
                 }
@@ -321,7 +324,7 @@ namespace mu2e {
 
             if (n == 0) {
               TLOG(TLVL_WARNING)
-                << "[RECEIVER] Sender disconnected";
+                << "[STM_BR][RECEIVER] Sender disconnected";
               connection_alive = false;
               break;
             }
@@ -337,15 +340,14 @@ namespace mu2e {
           receiver_active_ +=
             (clock::now() - work_start);
 
-          receiver_loops_.fetch_add(
-                                    1, std::memory_order_relaxed);
+          receiver_loops_.fetch_add(1, std::memory_order_relaxed);
         }
 
         if (client_pfd.revents &
             (POLLHUP | POLLERR | POLLNVAL)) {
 
           TLOG(TLVL_WARNING)
-            << "[RECEIVER] Socket hangup/error";
+            << "[STM_BR][RECEIVER] Socket hangup/error";
 
           connection_alive = false;
         }
@@ -361,14 +363,15 @@ namespace mu2e {
         client_fd_ = -1;
       }
 
-      if (!receiver_done_.load(std::memory_order_acquire)) {
+      if (!stop_requested_.load(std::memory_order_acquire)) {
         TLOG(TLVL_INFO)
-          << "[RECEIVER] Waiting for new sender connection";
+          << "[STM_BR][RECEIVER] Waiting for new sender connection";
       }
     }
 
+    receiver_done_.store(true, std::memory_order_release);
     TLOG(TLVL_INFO)
-      << "[RECEIVER] Receiver thread exiting";
+      << "[STM_BR][RECEIVER] Receiver thread exiting";
   }
   
   // =====================================================================================
@@ -376,7 +379,7 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::parserThread_()
   {
-    TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher thread started";
+    TLOG(TLVL_INFO) << "[STM_BR][PARSER] Parser+Batcher thread started";
 
     auto make_new_batch = [&] {
       EventBatch b;
@@ -389,238 +392,287 @@ namespace mu2e {
     EventBatch batch = make_new_batch();
     uint16_t batch_spill_flag = 0;
 
-    alignas(64) uint8_t wrap_buffer[65536];
-    uint8_t header_tmp[EVENT_HEADER_BYTES];
+    uint16_t header_words[EVENT_HEADER_WORDS];
 
-    while (true){
+    size_t expected_event_bytes = 0;
 
-      if (should_stop())
-        break;
-      
-      if (receiver_done_.load() && ring_->readable() == 0)
-        break;
-      
-      size_t available = ring_->readable();
+    while (true)
+      {
+        size_t available = ring_->readable();
 
-      // -------------------------
-      // Header check
-      // -------------------------      
-      if (available < EVENT_HEADER_BYTES){
-        if (receiver_done_.load()) break;
-        _mm_pause();
-        continue;
-      }
+        if (receiver_done_.load(std::memory_order_acquire) &&
+            available == 0)
+          break;
 
-      const uint8_t* ptr = ring_->readPtr();
-      size_t contiguous = ring_->contiguousReadable();
+        // =================================================
+        // Waiting for header
+        // =================================================
+        if (expected_event_bytes == 0)
+          {
+            if (available < EVENT_HEADER_BYTES) {
 
-      // -------------------------
-      // Safe header read
-      // -------------------------
-      const uint16_t* hdr;
+              if (receiver_done_.load(std::memory_order_acquire)) {
+                TLOG(TLVL_WARNING)
+                  << "[STM_BR][PARSER] Incomplete event at shutdown ("
+                  << available << "/" << expected_event_bytes
+                  << " bytes)";
+                break;
+              }
+              std::this_thread::yield();
+              continue;
+            }
 
-      if (contiguous >= EVENT_HEADER_BYTES){
-        hdr = reinterpret_cast<const uint16_t*>(ptr);
-      }
-      else{
-        std::memcpy(header_tmp, ptr, contiguous);
+            const uint8_t* ptr = ring_->readPtr();
+            size_t contiguous  = ring_->contiguousReadable();
 
-        std::memcpy(header_tmp + contiguous,
-                    ring_->begin(),
-                    EVENT_HEADER_BYTES - contiguous);
+            const uint16_t* hdr;
 
-        hdr = reinterpret_cast<const uint16_t*>(header_tmp);
-      }
+            if (contiguous >= EVENT_HEADER_BYTES) {
+              hdr = reinterpret_cast<const uint16_t*>(ptr);
+            }
+            else {
 
-      // -------------------------
-      // Anchor validation
-      // -------------------------
-      if (hdr[anchor_start] != event_anchor_word_){
-        // search for next anchor
-        const uint16_t* p = reinterpret_cast<const uint16_t*>(ptr);
-        size_t words = contiguous / 2;
-        
-        size_t i = 1;
-        for (; i < words; ++i) {
-          if (p[i] == event_anchor_word_)
+              for (size_t i = 0; i < EVENT_HEADER_WORDS; ++i) {
+
+                const uint8_t* p;
+
+                size_t byte_off = i * 2;
+
+                if (byte_off < contiguous)
+                  p = ptr + byte_off;
+                else
+                  p = ring_->begin() + (byte_off - contiguous);
+
+                header_words[i] =
+                  uint16_t(p[0]) |
+                  (uint16_t(p[1]) << 8);
+              }
+
+              hdr = header_words;
+            }
+
+            // Anchor validation
+            if (hdr[anchor_start] != event_anchor_word_) {
+
+              const uint16_t* p =
+                reinterpret_cast<const uint16_t*>(ptr);
+
+              size_t words = contiguous / 2;
+
+              size_t i = 1;
+              for (; i < words; ++i) {
+                if (p[i] == event_anchor_word_)
+                  break;
+              }
+
+              if (i == words)
+                ring_->advanceRead(contiguous - 2);
+              else
+                ring_->advanceRead(i * 2);
+
+              continue;
+            }
+
+            if (hdr[anchor_end] != event_anchor_word_) {
+              ring_->advanceRead(2);
+              continue;
+            }
+
+            uint16_t ps = hdr[PRESCALE];
+
+            bool raw_prescaled = (ps >> 15) & 1;
+            bool zs_prescaled  = (ps >> 7)  & 1;
+
+            uint16_t raw_len = hdr[RAW_LEN];
+            uint16_t zs_regs = hdr[ZS_REGIONS];
+            uint16_t zs_len  = hdr[ZS_LEN] + zs_regs * 2;
+            uint16_t ph_num  = hdr[PH_NUM];
+            uint16_t ph_len  = ph_num * 2;
+
+            if (raw_prescaled)
+              raw_len = 0;
+
+            if (zs_prescaled) {
+              zs_regs = 0;
+              zs_len  = 0;
+            }
+
+            expected_event_bytes =
+              EVENT_HEADER_BYTES +
+              size_t(raw_len + zs_len + ph_len) *
+              sizeof(uint16_t);
+
+            continue;
+          }
+
+        // =================================================
+        // Waiting for full event
+        // =================================================
+        if (available < expected_event_bytes) {
+
+          if (receiver_done_.load(std::memory_order_acquire)) {
+            TLOG(TLVL_WARNING)
+              << "[STM_BR][PARSER] Incomplete event at shutdown ("
+              << available << "/" << expected_event_bytes
+              << " bytes)";
             break;
-        }
-        
-        if (i == words) {
-          // no anchor in this chunk
-          ring_->advanceRead(contiguous - 2);
-        } else {
-          ring_->advanceRead(i * 2);
-        }
+          }
 
-        continue;
-      }
-      
-      if(hdr[anchor_end] != event_anchor_word_){
-        ring_->advanceRead(2);
-        continue;
-      }
-
-      // -------------------------
-      // Decode header
-      // -------------------------
-
-      uint16_t ps = hdr[PRESCALE];
-
-      bool raw_prescaled = (ps >> 15) & 1;
-      bool zs_prescaled  = (ps >> 7) & 1;
-
-      uint16_t raw_len = hdr[RAW_LEN];
-      uint16_t zs_regs = hdr[ZS_REGIONS];
-      uint16_t zs_len  = hdr[ZS_LEN] + zs_regs * 2;
-      uint16_t ph_num  = hdr[PH_NUM];
-      uint16_t ph_len  = ph_num * 2;
-
-      if (raw_prescaled) raw_len = 0;
-
-      if (zs_prescaled){
-        zs_regs = 0;
-        zs_len  = 0;
-      }
-
-      size_t evt_total_bytes =
-        EVENT_HEADER_BYTES +
-        size_t(raw_len + zs_len + ph_len) * sizeof(uint16_t);
-
-      if (available < evt_total_bytes){
-        _mm_pause();
-        continue;
-      }
-
-      // -------------------------
-      // Handle ring wrap
-      // -------------------------
-
-      bool wrapped = contiguous < evt_total_bytes;
-
-      const uint8_t* event_ptr;
-
-      if (!wrapped){
-        event_ptr = ptr;
-      }
-      else{
-        size_t first = contiguous;
-        size_t second = evt_total_bytes - first;
-
-        std::memcpy(wrap_buffer, ptr, first);
-
-        std::memcpy(wrap_buffer + first,
-                    ring_->begin(),
-                    second);
-
-        event_ptr = wrap_buffer;
-      }
-
-      const uint16_t* event_hdr =
-        reinterpret_cast<const uint16_t*>(event_ptr);
-
-      // -------------------------
-      // Build EventView
-      // -------------------------
-
-      EventView evt;
-      evt.owned_data.resize(evt_total_bytes);
-      std::memcpy(evt.owned_data.data(), event_ptr, evt_total_bytes);
-      evt.data   = evt.owned_data.data();
-      evt.header = reinterpret_cast<const uint16_t*>(evt.data);
-      evt.size_bytes = evt_total_bytes;
-
-      evt.event_num =
-        int64_t(event_hdr[EWT_0]) |
-        (int64_t(event_hdr[EWT_1]) << 16) |
-        (int64_t(event_hdr[EWT_2]) << 32);
-
-      uint16_t EM2 = event_hdr[EM_2_DRTDC] & 0xFF;
-
-      uint64_t EM =
-        uint64_t(event_hdr[EM_0]) |
-        (uint64_t(event_hdr[EM_1]) << 16) |
-        (uint64_t(EM2) << 32);
-
-      evt.spill_flag = EM;
-
-      if (!computeDatasetView(evt))
-        {
-          TLOG(TLVL_ERROR) << "[PARSER] computeDatasetView failed";
-          ring_->advanceRead(2);
+          std::this_thread::yield();
           continue;
         }
 
-      event_count_.fetch_add(1, std::memory_order_relaxed);
+        // =================================================
+        // Build EventView (ZERO COPY)
+        // =================================================
 
-      // -------------------------
-      // Batching logic
-      // -------------------------
+        const uint8_t* ptr = ring_->readPtr();
+        size_t contiguous  = ring_->contiguousReadable();
 
-      if (batch.events.empty()){
-        batch.container_seq_id = evt.event_num;
-        batch_spill_flag = evt.spill_flag;
+        EventView evt;
+
+        bool wrapped = contiguous < expected_event_bytes;
+
+        if (!wrapped) {
+
+          evt.event_rb_head_ptr   = ptr;
+          evt.event_rb_head_bytes = expected_event_bytes;
+
+          evt.event_rb_wrap_ptr   = nullptr;
+          evt.event_rb_wrap_bytes = 0;
+
+        }
+        else {
+
+          size_t first  = contiguous;
+          size_t second = expected_event_bytes - first;
+
+          evt.event_rb_head_ptr   = ptr;
+          evt.event_rb_head_bytes = first;
+
+          evt.event_rb_wrap_ptr   = ring_->begin();
+          evt.event_rb_wrap_bytes = second;
+        }
+
+        evt.size_bytes = expected_event_bytes;
+
+        // =================================================
+        // Header extraction
+        // =================================================
+
+        for (size_t i = 0; i < EVENT_HEADER_WORDS; ++i) {
+
+          const uint8_t* p =
+            resolveEventPointer(evt, i * 2);
+
+          header_words[i] =
+            uint16_t(p[0]) |
+            (uint16_t(p[1]) << 8);
+        }
+
+        const uint16_t* hdr = header_words;
+
+        evt.header = hdr;
+
+        evt.event_num =
+          int64_t(hdr[EWT_0]) |
+          (int64_t(hdr[EWT_1]) << 16) |
+          (int64_t(hdr[EWT_2]) << 32);
+
+        uint16_t EM2 = hdr[EM_2_DRTDC] & 0xFF;
+
+        uint64_t EM =
+          uint64_t(hdr[EM_0]) |
+          (uint64_t(hdr[EM_1]) << 16) |
+          (uint64_t(EM2) << 32);
+
+        evt.spill_flag = EM;
+
+        // =================================================
+        // Dataset pointer resolution
+        // =================================================
+
+        if (!computeDatasetView(evt)) {
+
+          TLOG(TLVL_ERROR)
+            << "[STM_BR][PARSER] computeDatasetView failed";
+
+          ring_->advanceRead(2);
+          expected_event_bytes = 0;
+          continue;
+        }
+
+        event_count_.fetch_add(1, std::memory_order_relaxed);
+
+        // =================================================
+        // Batching logic
+        // =================================================
+
+        if (batch.events.empty()) {
+
+          batch.container_seq_id = evt.event_num;
+          batch_spill_flag = evt.spill_flag;
+        }
+        else if (use_spill_condition_ &&
+                 evt.spill_flag != batch_spill_flag) {
+
+          EventBatch flushed = std::move(batch);
+          batch = make_new_batch();
+
+          while (!batcher_to_builder_queue_->push(std::move(flushed)))
+            std::this_thread::yield();
+
+          batcher_cv_.notify_one();
+
+          batch.container_seq_id = evt.event_num;
+          batch_spill_flag = evt.spill_flag;
+        }
+
+        batch.events.emplace_back(evt);
+
+        const size_t target_batch_size =
+          (batch_spill_flag == 0)
+          ? offspill_events_per_container_
+          : events_per_container_;
+
+        if (batch.events.size() >= target_batch_size) {
+
+          EventBatch full_batch = std::move(batch);
+          batch = make_new_batch();
+
+          while (!batcher_to_builder_queue_->push(std::move(full_batch)))
+            std::this_thread::yield();
+
+          batcher_cv_.notify_one();
+        }
+
+        ring_->advanceRead(expected_event_bytes);
+        expected_event_bytes = 0;
       }
-      else if (use_spill_condition_ &&
-               evt.spill_flag != batch_spill_flag){
-        EventBatch flushed = std::move(batch);
-        batch = make_new_batch();
 
-        while (!batcher_to_builder_queue_->push(std::move(flushed)))
-          std::this_thread::yield();
-
-        batcher_cv_.notify_one();
-
-        batch.container_seq_id = evt.event_num;
-        batch_spill_flag = evt.spill_flag;
-      }
-
-      batch.events.emplace_back(evt);
-
-      const size_t target_batch_size =
-        (batch_spill_flag == 0)
-        ? offspill_events_per_container_
-        : events_per_container_;
-
-      if (batch.events.size() >= target_batch_size){
-        EventBatch full_batch = std::move(batch);
-        batch = make_new_batch();
-
-        while (!batcher_to_builder_queue_->push(std::move(full_batch)))
-          std::this_thread::yield();
-
-        batcher_cv_.notify_one();
-      }
-
-      // Advance parser position in ring
-      ring_->advanceRead(evt_total_bytes);
-      
-    }
-
-    // -------------------------
+    // =================================================
     // Final flush
-    // -------------------------
+    // =================================================
 
-    if (!batch.events.empty()){
+    if (!batch.events.empty()) {
+
       EventBatch final_batch = std::move(batch);
+
+      TLOG(TLVL_INFO) << "[STM_BR][PARSER] Flushing last batch";
 
       while (!batcher_to_builder_queue_->push(std::move(final_batch)))
         std::this_thread::yield();
-
-      batcher_cv_.notify_one();
     }
+
+    batch.events.clear();
+
+    TLOG(TLVL_INFO) << "[STM_BR][PARSER] Setting batcher done";
 
     batcher_done_.store(true, std::memory_order_release);
     batcher_cv_.notify_all();
-    builder_cv_.notify_all();
 
-    EventBatch shutdown_batch;
-    shutdown_batch.is_shutdown = true;
-    
-    while (!batcher_to_builder_queue_->push(std::move(shutdown_batch)))
-      _mm_pause();
-    
-    TLOG(TLVL_INFO) << "[PARSER] Parser+Batcher exiting";
+    TLOG(TLVL_INFO)
+      << "[STM_BR][PARSER] Parser+Batcher exiting";
   }
   
   // =====================================================================================
@@ -628,27 +680,25 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::builderThread_()
   {
-    TLOG(TLVL_INFO) << "[BUILDER] Builder thread started";
+    TLOG(TLVL_INFO) << "[STM_BR][BUILDER] Builder thread started";
 
     EventBatch batch;
+    size_t debug_evt_counter = 0;
+    const size_t debug_print_every = events_per_container_*5;
 
     while (true){
 
-      if (should_stop())
-        break;
-      
       if (!batcher_to_builder_queue_->pop(batch)) {
 
-        if (should_stop())
+        if (batcher_done_.load(std::memory_order_acquire) &&
+            batcher_to_builder_queue_->empty()) {
+
+          TLOG(TLVL_INFO) << "[STM_BR][BUILDER] Parser finished and queue drained";
           break;
-        
-        _mm_pause();
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
         continue;
-      }
-      
-      if (batch.is_shutdown) {
-        TLOG(TLVL_INFO) << "[BUILDER] Shutdown batch received";
-        break;
       }
 
       auto work_start = clock::now();
@@ -674,6 +724,16 @@ namespace mu2e {
 
       for (const auto& e : batch.events)
         {
+          ++debug_evt_counter;
+          if ((debug_evt_counter % debug_print_every) == 0) {
+            TLOG(TLVL_INFO)
+              << "[STM_BR][BUILDER DEBUG] seq=" << batch.container_seq_id
+              << " events= " << batch.events.size()
+              << " raw=" << e.raw.size
+              << " zs="  << e.zs.size
+              << " ph="  << e.ph.size;
+          }
+
           const uint64_t seq = e.event_num;
 
           auto process =
@@ -690,9 +750,13 @@ namespace mu2e {
                 frag = makeFragment_(frag_id, seq, nullptr, 0);
               }
               else{
-                const int16_t* ptr = reinterpret_cast<const int16_t*>(e.data + ds.offset);
-
-                frag = makeFragment_(frag_id,seq,ptr,ds.size);
+                const int16_t* ptr = ds.ptr;
+                if (!ds.wrap_ptr){
+                  frag = makeFragment_(frag_id, seq, ptr, ds.size);
+                }
+                else{
+                  frag = makeFragmentWrapped_(frag_id, seq, ds);
+                }
               }
 
               if (frag){
@@ -710,40 +774,22 @@ namespace mu2e {
       // ------------------------------------------------
       // Add fragments to container
       // ------------------------------------------------
-
       loader.addFragments(batch_frags);
 
       // ------------------------------------------------
       // Send container to getNext
       // ------------------------------------------------
-
-      uint64_t push_spins = 0;
-
       while (!builder_to_getNext_queue_->push(container_frag)) {
-
-        if (should_stop())
-          break;
-        
-        if (batcher_done_.load(std::memory_order_acquire)) {
-
-          if ((++push_spins & ((1<<20)-1)) == 0) {
-            TLOG(TLVL_INFO) << "[BUILDER] waiting for getNext queue during shutdown";
-          }
-        }
-
-        _mm_pause();
+        std::this_thread::yield();
       }
-
       builder_active_ += (clock::now() - work_start);
       builder_loops_.fetch_add(1, std::memory_order_relaxed);
     }
 
     builder_done_.store(true, std::memory_order_release);
+    builder_cv_.notify_all();
 
-    while (!builder_to_getNext_queue_->push(nullptr))
-      std::this_thread::yield();
-    
-    TLOG(TLVL_INFO) << "[BUILDER] Builder exiting";
+    TLOG(TLVL_INFO) << "[STM_BR][BUILDER] Builder exiting";
   }
 
   // =====================================================================================
@@ -751,26 +797,29 @@ namespace mu2e {
   // =====================================================================================
   bool mu2e::STMTCPReceiver::getNext_(artdaq::FragmentPtrs& frags)
   {
-
     artdaq::Fragment* raw_ptr = nullptr;
 
     while (true) {
 
       if (builder_to_getNext_queue_->pop(raw_ptr)) {
-
-        if (raw_ptr == nullptr)
-          return false;
-
-        break;
+        frags.emplace_back(std::unique_ptr<artdaq::Fragment>(raw_ptr));
+        return true;
       }
-
-      if (should_stop())
+      
+      // ARTDAQ requested stop
+      if (should_stop()) {
+        if (!stop_requested_.load(std::memory_order_acquire)) {
+          TLOG(TLVL_INFO) << "[STM_BR][GETNEXT] Stop requested by ARTDAQ";
+          stop_requested_.store(true, std::memory_order_release);
+        }
+      }
+      
+      if (builder_done_.load(std::memory_order_acquire)){
+        TLOG(TLVL_INFO) << "[STM_BR][GETNEXT] Builder done, exiting";
         return false;
-
+      }
       std::this_thread::yield();
     }
-
-    frags.emplace_back(std::unique_ptr<artdaq::Fragment>(raw_ptr));
     return true;
   }
   
@@ -779,13 +828,11 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::stop()
   {
-    TLOG(TLVL_INFO) << "[STOP] STMTCPReceiver stop() called";
+    TLOG(TLVL_INFO) << "[STM_BR][STOP] STMTCPReceiver stop() called";
 
-    // Signal stop requested
-    stop_requested_.store(true, std::memory_order_release);
-    
     // Signal threads to exit
     receiver_done_.store(true);
+    stop_requested_.store(true);
 
     // Wake up getNext_() if it is waiting
     batcher_cv_.notify_all();
@@ -806,12 +853,15 @@ namespace mu2e {
 
     // Join threads safely
     if (receiver_thread_.joinable()) receiver_thread_.join();
+    TLOG(TLVL_INFO) << "[STM_BR][STOP] Receiver thread joined";
     if (parser_thread_.joinable()) parser_thread_.join();
+    TLOG(TLVL_INFO) << "[STM_BR][STOP] Parser thread joined";
     if (builder_thread_.joinable()) builder_thread_.join();
+    TLOG(TLVL_INFO) << "[STM_BR][STOP] Builder thread joined";
 
     // Print summary
     TLOG(TLVL_INFO)
-      << "[STOP] Summary: events=" << event_count_.load()
+      << "[STM_BR][STOP] Summary: events=" << event_count_.load()
       << " bytes_received=" << total_bytes_received_.load()
       << " | produced RAW/ZS/PH frags= " << raw_frag_count_.load() << " / "
       << zs_frag_count_.load() << " / " << ph_frag_count_.load();
@@ -832,7 +882,7 @@ namespace mu2e {
       std::chrono::duration<double>(builder_active_).count();
 
     TLOG(TLVL_INFO)
-      << "\n===== [STOP] PERFORMANCE REPORT =====\n"
+      << "\n===== [STM_BR][STOP] PERFORMANCE REPORT =====\n"
       << "Total runtime: " << runtime_sec << " s\n"
       << "Events: " << event_count_.load() << "\n"
       << "Throughput: "
@@ -849,7 +899,8 @@ namespace mu2e {
       << "Avg build time per event: "
       << (builder_sec / event_count_.load()) * 1e6
       << " us\n"
-      << "=====================================\n";
+      << "=====================================";
+
   }
   
 } // namespace mu2e

@@ -83,7 +83,6 @@ namespace mu2e {
     uint64_t container_stream_id_;           // Container fragment id
     int      debug_level_;                   // Debug verbosity
     bool     pin_threads_;                   // Pin thread to specific cores
-    int      idle_timeout_ms_;               // Idle timeout after first packet (ms)
     size_t   events_per_container_;          // Number of events per container
     size_t   offspill_events_per_container_; // Number of off-spill events per container
     bool     use_spill_condition_;           // Condition for batching on spill flags
@@ -126,21 +125,20 @@ namespace mu2e {
     int tcpDebugLevel() const { return debug_level_ + 5; }
     
     // Queue capacity
-    static constexpr size_t DEFAULT_RECV_QCAP  = 10000;
     static constexpr size_t DEFAULT_BATCH_QCAP = 10000;
     static constexpr size_t DEFAULT_FRAG_QCAP = 10000;
 
-    // Receiver -> Parser (raw bulk byte buffers)
-    using RecvToParserQ = boost::lockfree::spsc_queue<std::shared_ptr<std::vector<uint8_t>>, boost::lockfree::capacity<DEFAULT_RECV_QCAP>>;
     // Batcher -> Builder (batch events per container)
     using BatcherToBuildQ = boost::lockfree::spsc_queue<EventBatch, boost::lockfree::capacity<DEFAULT_BATCH_QCAP>>;
     // Builder -> getNext (sent fragment container)
     using BuilderToGNQ = boost::lockfree::spsc_queue<artdaq::Fragment*, boost::lockfree::capacity<DEFAULT_FRAG_QCAP>>;
 
-    std::unique_ptr<RecvToParserQ> recv_to_parser_queue_;
     std::unique_ptr<BatcherToBuildQ> batcher_to_builder_queue_; 
     std::unique_ptr<BuilderToGNQ> builder_to_getNext_queue_;
 
+    // Ring Buffer
+    std::unique_ptr<EventRingBuffer> ring_;
+    
     // ----------------- Threads -----------------
     std::thread receiver_thread_;
     std::thread parser_thread_;
@@ -172,7 +170,8 @@ namespace mu2e {
     bool getEventHeaderPtr(const uint8_t*& header_ptr,
                            uint8_t* header_tmp,
                            std::deque<std::shared_ptr<std::vector<uint8_t>>>& chunks,
-                           size_t& offset_in_first_chunk) const
+                           size_t& offset_in_first_chunk,
+                           size_t& anchor_scan_offset) const
     {
       if (chunks.empty()) return false;
 
@@ -192,7 +191,7 @@ namespace mu2e {
 
       // Anchor scan across chunks
       size_t chunk_idx   = 0;
-      size_t scan_offset = offset_in_first_chunk;
+      size_t scan_offset = anchor_scan_offset;
 
       while (chunk_idx < chunks.size()) {
         auto& chunk = chunks[chunk_idx];
@@ -205,6 +204,7 @@ namespace mu2e {
               hdr_words[anchor_end]   == event_anchor_word_) 
             {
               offset_in_first_chunk = scan_offset + i;
+              anchor_scan_offset = offset_in_first_chunk;
               header_ptr = chunk->data() + offset_in_first_chunk;
               return true;
             }
@@ -231,40 +231,7 @@ namespace mu2e {
       return true;
     }
 
-    // Get single pointer in mem from multiple chunks
-    std::pair<const int16_t*, bool> try_get_single_chunk_ptr(const EventView& evt, const DatasetView& ds) 
-    {
-      // Convert dataset word offset/size to byte offset/size and account for event header  
-      const bool is_raw = (&ds == &evt.raw);
-
-      size_t byte_offset =
-        is_raw
-        ? ds.offset * sizeof(int16_t)
-        : ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
-
-      size_t byte_size   = ds.size   * sizeof(int16_t);
-
-      // Iterate over the chunks to locate the dataset
-      for (auto const& chunk_ref : evt.buffer_chunks) {
-        if (byte_offset < chunk_ref.size) {
-          // Dataset starts in this chunk
-          if (byte_offset + byte_size <= chunk_ref.size) {
-            // Entire dataset fits in this single chunk -> safe for zero-copy
-            const uint8_t* base = chunk_ref.chunk->data() + chunk_ref.offset + byte_offset;
-            return {reinterpret_cast<const int16_t*>(base), true};
-          }
-          // Dataset spans multiple chunks. Cannot provide single pointer
-          return {nullptr, false};
-        }
-        // Dataset does not start in this chunk. Skip now
-        byte_offset -= chunk_ref.size;
-      }
-
-      // Dataset offset exceeds total bytes. Cannot provide single pointer
-      return {nullptr, false};
-    }
-
-    // Compute the DatasetView offsets and sizes from a fully read event
+     // Compute the DatasetView offsets and sizes from a fully read event
     bool computeDatasetView(EventView& evt)
     {
       const uint16_t* hdr_words = evt.header;
@@ -332,88 +299,7 @@ namespace mu2e {
 
       return true;
     }
-
-
-    // Make temporary buffer to store dataset (fallback if we cant get single pointer)
-    std::vector<int16_t> copy_dataset_to_temp(const EventView& evt, const DatasetView& ds)
-    {
-
-      const bool is_raw = (&ds == &evt.raw);
-
-      size_t byte_offset =
-        is_raw
-        ? ds.offset * sizeof(int16_t)
-        : ds.offset * sizeof(int16_t) + EVENT_HEADER_BYTES;
-
-      size_t byte_size = ds.size * sizeof(int16_t);
-
-      std::vector<int16_t> tmp(ds.size);
-      uint8_t* dst = reinterpret_cast<uint8_t*>(tmp.data());
-      size_t copied = 0;
-
-      for (size_t idx = 0; idx < evt.buffer_chunks.size() && copied < byte_size; ++idx)
-        {
-          const auto& chunk_ref = evt.buffer_chunks[idx];
-
-          if (!chunk_ref.chunk) {
-            TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] ERROR: null chunk pointer, idx=" << idx;
-            return {};
-          }
-
-          if (chunk_ref.offset > chunk_ref.chunk->size()) {
-            TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] ERROR: offset=" << chunk_ref.offset
-                             << " > chunk size=" << chunk_ref.chunk->size()
-                             << " (idx=" << idx << ")";
-            return {};
-          }
-
-          if (chunk_ref.offset + chunk_ref.size > chunk_ref.chunk->size()) {
-            TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] ERROR: offset+size="
-                             << (chunk_ref.offset + chunk_ref.size)
-                             << " > chunk size=" << chunk_ref.chunk->size()
-                             << " (idx=" << idx << ")";
-            return {};
-          }
-
-          if (byte_offset >= chunk_ref.size) {
-            byte_offset -= chunk_ref.size;
-            continue;
-          }
-
-          size_t avail = chunk_ref.size - byte_offset;
-          size_t take  = std::min(avail, byte_size - copied);
-
-          if (chunk_ref.offset + byte_offset + take > chunk_ref.chunk->size()) {
-            TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] ERROR: read past end of chunk, idx=" << idx
-                             << " off=" << chunk_ref.offset
-                             << " byte_off=" << byte_offset
-                             << " take=" << take
-                             << " chunk_size=" << chunk_ref.chunk->size();
-            return {};
-          }
-
-          if (copied + take > byte_size) {
-            TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] ERROR: write past tmp, copied=" << copied
-                             << " take=" << take << " total=" << byte_size;
-            return {};
-          }
-
-          std::memcpy(dst + copied,
-                      chunk_ref.chunk->data() + chunk_ref.offset + byte_offset,
-                      take);
-
-          copied += take;
-          byte_offset = 0; // only first chunk has offset
-        }
-
-      if (copied != byte_size) {
-        TLOG(TLVL_ERROR) << "[copy_dataset_to_temp] WARNING: copied=" << copied
-                         << " expected=" << byte_size;
-      }
-
-      return tmp;
-    }
-
+    
     // Fragment creation helper
     std::unique_ptr<artdaq::Fragment> makeFragment_(uint64_t fragment_id,
                                                     uint64_t sequence_id,
