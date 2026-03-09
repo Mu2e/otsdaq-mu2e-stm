@@ -882,7 +882,7 @@ namespace mu2e {
       std::chrono::duration<double>(builder_active_).count();
 
     TLOG(TLVL_INFO)
-      << "\n===== [STM_BR][STOP] PERFORMANCE REPORT =====\n"
+      << "\n========= [STM_BR][STOP] PERFORMANCE REPORT =========\n"
       << "Total runtime: " << runtime_sec << " s\n"
       << "Events: " << event_count_.load() << "\n"
       << "Throughput: "
@@ -899,7 +899,7 @@ namespace mu2e {
       << "Avg build time per event: "
       << (builder_sec / event_count_.load()) * 1e6
       << " us\n"
-      << "=====================================";
+      << "====================================================";
 
   }
   
