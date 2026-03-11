@@ -41,7 +41,7 @@ export STM_INC=$(STMDAQ)
 export BOOST_LIBS=-L$(CACTUS_ROOT)/lib -L$(BOOST_ROOT)/lib -lpq -lboost_chrono -lboost_program_options -lboost_random -lrt
 #export BOOST_LIBS=-L$(CACTUS_ROOT)/lib -L$(BOOST_ROOT)/lib -lpq ...ation -lboost_chrono -lboost_program_options -lboost_random -lrt
 export IPBUS_LIBS=$(BOOST_LIBS) -lcactus_uhal_log -lcactus_uhal_grammars -lcactus_uhal_uhal
-export STM_LIBS=-L$(STMDAQ_ROOT)/build/lib -lUtils -lConfig -lHardware -lBuffers -lpugixml -lDebug -lProcessing -lDQM -lSim
+export STM_LIBS=-L$(STMDAQ_ROOT)/build/lib -lUtils -lConfig -lHardware -lBuffers -lpugixml -lDebug -lProcessing -lSim -lFE
 #export PY_LDFLAGS := $(shell $(PYTHON)-config --embed --ldflags 2>/dev/null || $(PYTHON)-config --ldflags)
 export PY_LDFLAGS := $(shell python3-config --embed --ldflags 2>/dev/null || python3-config --ldflags)
 

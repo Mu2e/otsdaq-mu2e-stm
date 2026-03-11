@@ -20,6 +20,20 @@ app = dash.Dash(__name__,
 core_id = int(get_xml_node_value("starting_core_id"))
 dqm_core_id = core_id+15
 
+# Get channel for port number setting
+expanded_path = os.path.expandvars("${HOSTNAME}")
+if expanded_path == get_xml_node_value("ch0_host"):
+    channel = 0
+    name = "HPGe"
+    port_num = 8050
+elif expanded_path == get_xml_node_value("ch1_host"):
+    channel = 1
+    name = "LaBr3"
+    port_num = 8060
+else:
+    raise Exception("Not an STM data channel server")
+
+
 # Attempt to pin this process to the specified CPU core
 p = psutil.Process()  # Get current process
 try:
@@ -42,7 +56,7 @@ topbar = html.Div([
     html.Div([
         html.Img(src="/assets/mu2e.png", className="logo-left"),
         html.Div([
-            html.Div("Mu2e STM DQM", className="title"),
+            html.Div(rf"Mu2e STM DQM {name}", className="title"),
             #html.Div("Run XXXX Event XXX", className="subtitle")
         ])
     ], className="topbar-left"),
@@ -146,6 +160,6 @@ app.layout = dmc.MantineProvider(
 
 # Start the Dash server
 if __name__ == '__main__':
-    app.run(debug=True)
-    #app.run(debug=True, use_reloader=False)
+    app.run(debug=True, port=port_num)
+    #app.run(debug=True, port=port_num, use_reloader=False)
 

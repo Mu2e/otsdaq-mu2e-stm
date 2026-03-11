@@ -24,7 +24,7 @@ DEPFILES = $(patsubst %.cc, $(BUILD_DIR)/dep/%.d, $(LIB_CC))
 all: $(LIB)
 
 clean:
-	rm $(LIB_OBJ) $(DEPENDS)
+	rm $(LIB_OBJ) $(DEPFILES)
 
 $(LIB) : $(LIB_OBJ)
 	echo "<***Building Library**>" $(notdir $(LIB))

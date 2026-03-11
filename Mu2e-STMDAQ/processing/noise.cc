@@ -15,16 +15,8 @@ Noise::Noise(Config& cfg_,
 
 {
 
-  // Initialise function map for ProcessManager
-  functionMap["get_noise_data"] = [this](std::shared_ptr<DataStruct>& buffer) {
-    get_noise_data(buffer);
-  };
-  functionMap["check_noise"] = [this](std::shared_ptr<DataStruct>& buffer) {
-    check_noise(buffer);
-  };
-  functionMap["noise_fft"] = [this](std::shared_ptr<DataStruct>& buffer) {
-    noise_fft(buffer);
-  };
+  // Initialise function map for operation manager
+  register_operation("get_noise_data", [this](auto& b){ get_noise_data(b); });
   
 }
 
@@ -133,6 +125,9 @@ void Noise::get_noise_data(std::shared_ptr<DataStruct>& buffer){
     noise_len += data_len;
 
   } // End loop over peaks
+
+  //check_noise(buffer);
+  //noise_fft(buffer);
 
 }
 

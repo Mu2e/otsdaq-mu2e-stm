@@ -1,16 +1,16 @@
-// Include simfw
-#include "Mu2e-STMDAQ/simfw/simfw.hh"
+#include <cstdlib>
 
-// Constructor
-SimFW::SimFW(size_t event_num, size_t event_len, std::string filename){
-
-
-}
+// Include config
+#include "Mu2e-STMDAQ/config/config.hh"
+// Include gen data code
+#include "Mu2e-STMDAQ/simfw/gen_data.hh"
+// Include UDP code                                            
+#include "Mu2e-STMDAQ/processing/udp.hh"
 
 // Consumer thread
-void SimFW::consume(const std::shared_ptr<UDP>& udp,
-                    const std::shared_ptr<BufferQueue<std::vector<int16_t>>>& queue,
-                    const std::atomic<bool>& finished){
+void consume(const std::shared_ptr<UDP>& udp,
+             const std::shared_ptr<BufferQueue<std::vector<int16_t>>>& queue,
+             const std::atomic<bool>& finished){
   
   // The packet number
   size_t packet_num = 0;
@@ -27,16 +27,18 @@ void SimFW::consume(const std::shared_ptr<UDP>& udp,
   // Start timing
   auto start_time = std::chrono::high_resolution_clock::now();
  
-  size_t counter = 0;
- 
+  //std::cout<<"HELLOOOO"<<std::endl;
 
-//  while (counter < 10){
+  //size_t counter = 0;
+  //size_t maxcounter = 60;
+
+  //while (counter < maxcounter){
 
   // while packet generation has not finished
   while (true) {
     // Dummy packet
     std::shared_ptr<std::vector<int16_t>> packet = nullptr;
-    std::cout<<"in true loop"<<std::endl; 
+    
     // Pop packet from queue
     packet = queue->try_pop();
     
@@ -76,9 +78,9 @@ void SimFW::consume(const std::shared_ptr<UDP>& udp,
     } else {
       // No packet: if packet generation has finished, exit loop
       if (finished.load(std::memory_order_acquire)) {
-	counter += 1; 
-        std::cout<<counter<<std::endl;
-        std::this_thread::sleep_for(std::chrono::duration<double>1.0);
+//	std::cout<<"Cont send counter: "<<counter<<" / "<<maxcounter<<std::endl;
+//	counter += 1;
+//	std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
         break;
       }
       
@@ -86,7 +88,8 @@ void SimFW::consume(const std::shared_ptr<UDP>& udp,
       std::this_thread::sleep_for(std::chrono::microseconds(50));
     }
   }
-// }  
+
+// }
   
   // // while packet generation has not finished
   // while (true){
@@ -135,8 +138,8 @@ void SimFW::consume(const std::shared_ptr<UDP>& udp,
   
 }
 
-// Run firmware simulation
-void SimFW::run_sim(){
+// Main function
+int main(int argc, char* argv[]){
 
   // Load the configuration                                               
   std::string xml_path = EnvVars::expand("${STM_XML}");
@@ -152,10 +155,6 @@ void SimFW::run_sim(){
   size_t event_num = 0;
   size_t event_len = 0;
   std::string filename = "";
-
-
-
-
 
   // Print to user
   std::cout << "Executing packet generation programme with the following " << argc<< " inputs: " << std::endl;
@@ -176,12 +175,10 @@ void SimFW::run_sim(){
   else{
     std::cout << "Incorrrect argument input. Please re-run with the following list:" << std::endl;
     std::cout << "./run.exe [number of events] [event length (ns)] [input binary file (OPTIONAL)]" << std::endl;
-//    return 0;
+    return 0;
   }
 
-
-
-
+  
   // Infinite loop for user inut
   while (true) {
     char input;
@@ -193,7 +190,7 @@ void SimFW::run_sim(){
     }
     else if (input == 'n' or input == 'N') {
       std::cout << "You chose not to continue. Exiting..." << std::endl;
-//      return 0;
+      return 0;
     }
     else {
       std::cout << "Invalid input. Please enter Y or N." << std::endl;
@@ -205,8 +202,11 @@ void SimFW::run_sim(){
   
   std::cout << "Acquiring data and storing in memory..." << std::endl;
   
+  // Get channel from config
+  int CHAN = stm->master_config.ch_num;
+
   // Generate data
-  std::shared_ptr<GenData> gen = std::make_shared<GenData>(event_num,event_len,filename);
+  std::shared_ptr<GenData> gen = std::make_shared<GenData>(CHAN,event_num,event_len,filename);
 
   // Create ring buffer queue for packets
   std::shared_ptr<BufferQueue<std::vector<int16_t>>> queue
@@ -220,6 +220,7 @@ void SimFW::run_sim(){
 
   // Consumer thread
   std::thread consumer_thread(consume, std::ref(udp), std::ref(queue), std::ref(finished));
+ 
   
   // Wait for user to continue
   std::cout << "Press any key to send data...";

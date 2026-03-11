@@ -16,7 +16,9 @@ cet_make_library(LIBRARY_NAME STMDAQSupervisor
   otsdaq_mu2e_stm::Debug
   otsdaq_mu2e_stm::Processing
   otsdaq_mu2e_stm::Sim
+  otsdaq_mu2e_stm::FE
   stmdaq_all_deps
+  stmdaq_python_deps
 )
 
 install_headers()

@@ -3,8 +3,9 @@
   <!---->
   <!-- Master Switches -->
   <!---->
-  <!-- The data channel -->
-  <channel>0</channel> <!-- 0=HPGe,1=LaBr -->
+  <!-- The data channel host servers -->
+  <ch0_host>mu2e-stm-01.fnal.gov</ch0_host> <!-- 0=HPGe -->
+  <ch1_host>mu2e-stm-02.fnal.gov</ch1_host> <!-- 1=LaBr -->
   <!-- Use software sim sata source? -->
   <use_sw_sim>0</use_sw_sim> <!-- 0=Firmware,1=Software -->
   <!-- Starting CPU core ID (for CPU utils) -->

@@ -5,7 +5,7 @@ endif
 #Import common Makefile definitions
 include $(STMDAQ_ROOT)/Makefile.inc
 
-all : dirs utils_dir config_dir  hw_dir buffers_dir debug_dir processing_dir sim_dir frontend_dir # dqm_dir 
+all : dirs utils_dir config_dir  hw_dir buffers_dir debug_dir processing_dir sim_dir frontend_dir  exes_dir# dqm_dir 
 
 dirs :
 	if [ ! -e $(BUILD_DIR)/lib ] ; then \
@@ -64,6 +64,10 @@ sim_dir :
 frontend_dir:
 	echo "<**Building frontend**>"
 	make -C frontend all
+
+exes_dir:
+	echo "<**Building executables**>"
+	make -C exes all
 
 # Clean-up
 .PHONY: clean

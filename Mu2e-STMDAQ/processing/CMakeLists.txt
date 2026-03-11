@@ -34,7 +34,6 @@ if(USE_CET)
       Hardware
       Buffers
       Config
-      #DQM
       Debug
     LIBRARIES PRIVATE
       stmdaq_all_deps      
@@ -49,22 +48,7 @@ if(USE_CET)
 # ============================================================               
 else()                                                                       
   add_library(Processing SHARED
-    template_module.cc
-    buffer_pool.cc
-    udp.cc
-    check_data.cc
-    form_events.cc
-    baseline.cc
-    zero_suppress.cc
-    noise.cc
-    mwd.cc
-    prescale.cc
-    event_builder.cc
-    write_manager.cc
-    tcp.cc
-    operation_manager.cc
-    thread_manager.cc
-    dqm_manager.cc
+     ${PROCESSING_SOURCES}
   )
 
   set_target_properties(Processing PROPERTIES OUTPUT_NAME "Processing")
@@ -76,7 +60,6 @@ else()
     Hardware
     Buffers
     Config
-    #DQM
     Debug
   )
 

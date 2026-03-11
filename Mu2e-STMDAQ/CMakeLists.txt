@@ -281,6 +281,7 @@ add_subdirectory(processing)
 #add_subdirectory(dqm)
 add_subdirectory(sim)
 add_subdirectory(frontend)
+add_subdirectory(exes)
 
 # -----------------------------------------------------------------------------
 # Optional convenience clean target (CMake already has 'clean' via build tool)

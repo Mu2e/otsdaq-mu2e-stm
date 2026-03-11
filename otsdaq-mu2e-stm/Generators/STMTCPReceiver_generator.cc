@@ -58,7 +58,10 @@ namespace mu2e {
     , ph_stream_id_(ps.get<uint64_t>("ph_stream_id", 2)) // PH fragment id
     , container_stream_id_(ps.get<uint64_t>("container_stream_id", 3)) // Container fragment id
     , debug_level_(ps.get<int>("debug_level", 0)) // Set debug levels
-    , pin_threads_(ps.get<bool>("pin_threads", true)) // Pin thread to specific cores
+    , pin_threads_(ps.get<bool>("pin_threads", true)) // Pin thread to least busy cores
+    , recv_core_(ps.get<int>("recv_core", 40)) // Pin receive thread to own core
+    , parser_core_(ps.get<int>("parser_core", 41)) // Pin parser thread to own core
+    , builder_core_(ps.get<int>("builder_core", 42)) // Pin builder thread to own core
     , events_per_container_(ps.get<size_t>("events_per_container", 500)) // Default number of events per container in getNext()
     , offspill_events_per_container_(ps.get<size_t>("offspill_events_per_container", 100)) // Number of off-spill events per container in getNext()
     , use_spill_condition_(ps.get<bool>("use_spill_condition", false)) // Condition for batching on spill flags
@@ -122,14 +125,16 @@ namespace mu2e {
     // Start receiver thread (handles accept + recv)
     receiver_thread_ = std::thread(&STMTCPReceiver::receiverThread_, this);
     if (pin_threads_) pin_thread_to_least_busy_core(receiver_thread_, "[STM_BR][RECEIVER]");
-
+    else pin_thread_to_core(receiver_thread_, recv_core_, "[STM_BR][RECEIVER]");
     // Start parser thread
     parser_thread_ = std::thread(&STMTCPReceiver::parserThread_, this);
     if (pin_threads_) pin_thread_to_least_busy_core(parser_thread_, "[STM_BR][PARSER]");
+    else pin_thread_to_core(parser_thread_, parser_core_, "[STM_BR][PARSER]");
 
     // Start batcher thread
     builder_thread_ = std::thread(&STMTCPReceiver::builderThread_, this);
     if (pin_threads_) pin_thread_to_least_busy_core(builder_thread_, "[STM_BR][BUILDER]");
+    else pin_thread_to_core(builder_thread_, builder_core_, "[STM_BR][BUILDER]");
   }
 
   // =====================================================================================

@@ -42,6 +42,9 @@ public:
 
   // Run script to load FPGA firmware 
   bool load_firmware();
+
+  // Reset reaout
+  void reset_readout();
   
   // Check whether ADC is initialised and return boolean 
   bool check_adc_init();

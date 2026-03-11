@@ -165,7 +165,8 @@ int main(int argc, char* argv[]){
     std::cout << "./run.exe [number of events] [event length (ns)] [input binary file (OPTIONAL)]" << std::endl;
     return 0;
   }
-  
+
+/*  
   // Infinite loop for user inut
   while (true) {
     char input;
@@ -186,7 +187,7 @@ int main(int argc, char* argv[]){
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
   }
-  
+*/  
   std::cout << "Acquiring data and storing in memory..." << std::endl;
   
   // Get channel from config
@@ -207,14 +208,15 @@ int main(int argc, char* argv[]){
 
   // Consumer thread
   std::thread consumer_thread(consume, std::ref(udp), std::ref(queue), std::ref(finished));
-  
+
+/*  
   // Wait for user to continue
   std::cout << "Press any key to send data...";
   std::cin.get();
   // Ignore the newline character left in the input buffer
   std::cin.ignore();
   std::cout << "Sending data..." << std::endl;
-
+*/
   // Generate packet data
   gen->gen_packets(queue,signal,finished);
 

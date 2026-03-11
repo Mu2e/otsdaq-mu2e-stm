@@ -14,17 +14,39 @@ CCOPTS = -O3 -march=native # optimise
 DEPOPTS = -MT $@ -MMD -MP -MF $(BUILD_DIR)/dep/$*.d
 
 INCLUDE_CC = -I$(BOOST_INC) -I$(STM_INC)
-LIB_CC = stm_frontend.cc
-LIB_OBJ = $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(LIB_CC))
-LIB = $(BUILD_DIR)/lib/libFE.so 
-DEPFILES = $(patsubst %.cc, $(BUILD_DIR)/dep/%.d, $(LIB_CC))
+MAIN_CC = main.cc	
+FW_SIM_CC = run_sim.cc
+EVENT_SIM_CC = run_eventSim.cc
+REC_CC = recieveTCP.cc
+SOURCE_CC = $(MAIN_CC) $(FW_SIM_CC) $(REC_CC) $(EVENT_SIM_CC)
+EXE = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(MAIN_CC))	
+EXE2 = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(FW_SIM_CC))
+EXE3 = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(EVENT_SIM_CC))
+EXE4 = $(patsubst %.cc, $(BUILD_DIR)/bin/%.exe, $(REC_CC))
+DEPFILES = $(patsubst %.cc, $(BUILD_DIR)/dep/%.d, $(SOURCE_CC))
 
 .PHONY: all clean
 
-all: $(LIB)
+all: $(EXE) $(EXE2) $(EXE3) $(EXE4)	
 
 clean:
 	rm $(LIB_OBJ) $(DEPFILES)
+
+$(EXE) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC))
+		echo "<**Linking**>"
+		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(MAIN_CC)) $(STM_LIBS) $(PY_LDFLAGS) -o $(EXE)
+
+$(EXE2) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(FW_SIM_CC))
+		echo "<**Linking**>"
+		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(FW_SIM_CC)) $(STM_LIBS) $(PY_LDFLAGS) -o $(EXE2)
+
+$(EXE3) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(EVENT_SIM_CC))
+		echo "<**Linking**>"
+		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(EVENT_SIM_CC)) $(STM_LIBS) $(PY_LDFLAGS) -o $(EXE3)
+
+$(EXE4) : $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(REC_CC)) 
+		echo "<**Building TCP reciever**>"
+		g++ $(patsubst %.cc, $(BUILD_DIR)/obj/%.o, $(REC_CC)) -o $(EXE4)
 
 $(LIB) : $(LIB_OBJ)
 	echo "<***Building Library**>" $(notdir $(LIB))

@@ -1,7 +1,15 @@
 import numpy as np
 import os
 import sys
+from matplotlib import pyplot as plt
 
+
+
+def twos_comp(val, bits):
+    """compute the 2's complement of int value val"""
+    if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
+        val = val - (1 << bits)        # compute negative value
+    return val                         # return positive value as is
 
 # Check arguments
 if len(sys.argv) != 5:
@@ -70,6 +78,8 @@ totalphlen = 0
 headerlen = 42
 checkedlen = 0
 event = 0;
+zsdata = []
+
 
 #check the events file has at least one cafe header
 if (data[0] == 254 and data[1] == 202):
@@ -86,7 +96,12 @@ while (checkedlen < len(data)):
     zslen = (data[checkedlen+37]<<8) | data[checkedlen+36]
     zsregions = (data[checkedlen+35]<<8) | data[checkedlen+34]
     rawlen = (data[checkedlen+33]<<8) | data[checkedlen+32]
+    zsdata = []
+    rawdata = []
+    phdata = []
+
     print("Checking event: ", event)
+ #   print(data[checkedlen+1])
 
     #totallen = headerlen + rawlen + zslen + phlen
 
@@ -95,6 +110,9 @@ while (checkedlen < len(data)):
     #check raw data matches in event and in raw stream
     for i in range(rawlen*2):
         if (data[i+headerlen+checkedlen] == dataraw[i]):
+            rawdata.append(data[i+headerlen+checkedlen])
+            if i < 100:
+                print(dataraw[i])
             continue
         else:
             for j in range(n_print_on_fail):
@@ -108,6 +126,7 @@ while (checkedlen < len(data)):
     for i in range(zslen*2+(4*zsregions)):
         #print(i+headerlen+rawlen
         if (data[i+checkedlen] == datazs[i]):
+            zsdata.append(datazs[i])
             continue
         else:
             for j in range(n_print_on_fail):
@@ -118,9 +137,116 @@ while (checkedlen < len(data)):
     checkedlen += zslen*2+(4*zsregions)
 
 
+    for i in range(phlen):        
+        phdata.append(data[i+checkedlen])
+            
+
+
+
     checkedlen += phlen
     event += 1
     totalphlen += phlen
+
+#    print(rawlen*2)
+#    print(zslen*2+(4*zsregions))
+#    print(phlen)
+#    print(checkedlen)
+#    print(len(data))
+
+    #plot all the ZS regions with raw/PH overlaid
+    #print(zsdata)
+    zsparsed = []
+    rawparsed = []
+    phparsed = []
+    time = []
+    time2 = []
+    zstotallen = 0
+    bonuslen = 20
+
+    for i in range(zsregions):
+        starttime = (zsdata[1+zstotallen]<<8) | zsdata[0+zstotallen]
+        length = (zsdata[3+zstotallen]<<8) | zsdata[2+zstotallen]
+        #print(starttime)
+        #print(length)
+        plotname = str(starttime)+".png"
+
+        for j in range(length):
+            val = twos_comp((zsdata[2*j+5+zstotallen]<<8) | zsdata[2*j+4+zstotallen],16)
+           # val_raw = twos_comp((rawdata[starttime*2+1+2*j-headerlen]<<8) | rawdata[starttime*2+2*j-headerlen],16)
+
+            zsparsed.append(val)
+            #print(val_raw)
+           # rawparsed.append(val_raw)
+            time.append(starttime+j)
+
+    
+
+        for j in range(length+bonuslen*2):
+            #val = twos_comp((zsdata[2*j+5+zstotallen]<<8) | zsdata[2*j+4+zstotallen],16)
+            val_raw = twos_comp((rawdata[(starttime-bonuslen)*2+1+2*j-headerlen]<<8) | rawdata[(starttime-bonuslen)*2+2*j-headerlen],16)
+
+           # zsparsed.append(val)
+            #print(val_raw)
+            rawparsed.append(val_raw)
+            time2.append(starttime-bonuslen+j)
+
+        for j in range(int(phlen/2)):
+            val_ph = twos_comp((phdata[2*j+1]<<8) | phdata[2*j],16)
+            phparsed.append(val_ph)
+
+
+
+
+
+        #print(zsparsed)
+        #print(phparsed)
+        #print(len(rawdata))
+        #print(len(dataraw))
+
+        plt.plot(time2,rawparsed)
+        plt.plot(time,zsparsed)
+    
+        for j in range(int(phlen/4)):
+            pos = phparsed[2*j]
+            peakh = -1*phparsed[2*j+1]
+            if (pos >= time2[0] or pos < time2[-1]):
+                plt.plot([pos],[peakh],marker = "X", markersize = 3, color="k")
+
+
+
+
+        plt.xlim(time2[0],time2[-1])
+        plt.savefig(plotname)
+        plt.close()
+
+        zsparsed = []
+        time = []
+        time2 = []
+        rawparsed = []
+        phparsed = []
+        zstotallen += length*2+4
+
+
+
+
+'''
+    for i in range(int(len(zsdata)/2)):
+        val = twos_comp((zsdata[2*i+1]<<8) | zsdata[2*i],16)
+        
+        #read the zs header
+        if i < lastlen:
+            laststart = val
+        else:
+      
+            print(val)
+#        if i = lastlen:
+#            lastlen = val
+#            print(val)
+   
+'''
+        
+
+        
 
 
 #check PH in streams is the right length (as exact values will be different)
@@ -128,6 +254,13 @@ if (totalphlen == len(dataph)):
      print("PH lengths for total data match")
 else:
     print('Warning: PH lengths do not match, likely missing peaks!')
+
+
+
+
+
+
+
 
 
 
