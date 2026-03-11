@@ -4,6 +4,7 @@ import psutil
 import queue
 import os
 import time
+import dash
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from utils.shared_memory import SharedMemoryReader
@@ -114,7 +115,7 @@ def draw_peaks():
     peak_all.update_layout(
             title=f"Histogram of peaks since start of run",
             yaxis=dict(
-                range=[0,math.ceil(np.log10(max(hist_all, default=1e5)*1.2))]
+                autorange = "max"
     ))
     
     peak_window = go.Figure(empty_window)
@@ -125,7 +126,7 @@ def draw_peaks():
     peak_window.update_layout(
             title=f"Histogram of {window_s} s of peaks",
             yaxis=dict(
-                range=[0,math.ceil(np.log10(max(hist_window, default=1e5)*1.2))]
+                autorange= "max"
     ))
 
 

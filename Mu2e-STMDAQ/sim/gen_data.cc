@@ -63,6 +63,9 @@ GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
     std::cout << "Choose from the following two options:" << std::endl;
     std::cout << "A) Send the user input number of events: " << event_num << " events = " << nfiles_in_data << " * the input file." << std::endl;
     std::cout << "B) Send the input file a multiple number of times." << std::endl;
+    char input = 'a';
+
+
     while (true) {
       char input;
       std::cout << "Input A or B to continue: ";
@@ -104,6 +107,7 @@ GenData::GenData(size_t channel_, size_t event_num_, size_t event_period_,
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       }
     }
+    
   }
   
   // Print size of vector to user

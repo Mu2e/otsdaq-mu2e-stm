@@ -12,7 +12,7 @@
   </EM>
   <window_delay>0</window_delay> <!-- Bool: delay data taking to calculate baseline -->
   <last_value>
-    <mean>-7.02</mean>
-    <sigma>21.77</sigma>
+    <mean>-2.44</mean>
+    <sigma>30</sigma>
   </last_value>
 </baseline>

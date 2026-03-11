@@ -62,7 +62,7 @@ def layout():
         dcc.Store(id="status", data={}),
 
         # Timer to trigger polling shared memory
-        dcc.Interval(id="overview-interval-component", interval=10000, n_intervals=0),
+        dcc.Interval(id="overview-interval-component", interval=1000, n_intervals=0),
 
     ])
 

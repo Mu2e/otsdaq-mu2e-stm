@@ -4,6 +4,7 @@ import psutil
 import queue
 import os
 import time
+import dash
 import plotly.graph_objects as go
 from scipy.stats import norm
 from datetime import datetime, timedelta
@@ -116,7 +117,7 @@ def initialise_plots():
                 text="ADC Counts",
                 font=dict(size=18)
             ),
-            range = [-1500, 300]
+            range = [-300, 300]
         ),
         margin={"l": 40, "r": 10, "t": 100, "b": 40},
     ))
@@ -185,9 +186,13 @@ def initialise_plots():
     return empty_time_series, empty_hist, empty_noise, empty_fft
 
 def normal(x, mu, sigma):
-    norm = 1 / (np.sqrt(2 * np.pi) * sigma)
+    if sigma == 0:
+        norm = 0
+    else:
+        norm = 1 / (np.sqrt(2 * np.pi) * sigma)
     exp = np.exp( -(x-mu)**2 / (2 * sigma**2) )
     return norm*exp
+
 
 def draw_baseline(history):
 
@@ -296,6 +301,9 @@ def draw_baseline(history):
         ),
         xaxis=dict(
             range=[min(x_times), max(x_times)]
+        ),
+        yaxis=dict(
+            autorange = "min"
         )
     )
 
@@ -308,7 +316,7 @@ def draw_baseline(history):
     fft_figure = go.Figure(empty_fft)
     fft_figure.update_layout(
             yaxis=dict(
-                range=[0, max(abs(noise_fft))*1.1]
+                autorange=True
             )
     )
     fft_figure.add_trace(go.Scatter(
@@ -343,7 +351,7 @@ def draw_baseline(history):
     ))
     baseline_figure.update_layout(
             yaxis=dict(
-                    range=[0,math.ceil(np.log10(max(baseline_hist)*1.2))]
+                autorange=True
             )
     )
     

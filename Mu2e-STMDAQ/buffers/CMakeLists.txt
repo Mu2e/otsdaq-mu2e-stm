@@ -30,8 +30,7 @@ if(USE_CET)
 # ============================================================               
 else()                                                                       
   add_library(Buffers SHARED
-    buffer_queue.cc
-    #buffer_pool.cc
+      ${BUFFERS_SOURCES}
   )
 
   set_target_properties(Buffers PROPERTIES OUTPUT_NAME "Buffers")

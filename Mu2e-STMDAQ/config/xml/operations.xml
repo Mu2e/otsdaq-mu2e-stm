@@ -9,10 +9,10 @@
   <FormEvents>1 <!-- FormEvents class -->
    <get_events>1</get_events>
   </FormEvents>
-  <Baseline>1 <!-- Baseline class -->
+  <Baseline>0 <!-- Baseline class -->
    <calc_baseline>1</calc_baseline>
   </Baseline>
-  <ZeroSuppress>0 <!-- ZeroSuppress class -->
+  <ZeroSuppress>1 <!-- ZeroSuppress class -->
    <find_peaks>1</find_peaks>
    <suppress_data>1</suppress_data>
   </ZeroSuppress>
@@ -39,7 +39,7 @@
   <TCP>0 <!-- TCP class -->
    <send_data>1</send_data> 
   </TCP>        
-  <DQM>0 <!-- DQM class -->
+  <DQM>1 <!-- DQM class -->
    <update_dqm>1</update_dqm>
   </DQM>
   <TestFuncs>0 <!-- Test Functions -->

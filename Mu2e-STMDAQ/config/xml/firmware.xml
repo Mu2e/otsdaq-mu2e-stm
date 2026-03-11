@@ -25,6 +25,7 @@
     <adc_temp>check_adc_temp <!-- Script -->
      <retvar>result</retvar> <!-- Return variable -->            
     </adc_temp>
+    <reset_readout>reset_readout</reset_readout>
     <dtc_sim>dtc_sim_test_new</dtc_sim>
   </python>
   <use_dtc_sim>1 <!-- Use dtc simulation? -->

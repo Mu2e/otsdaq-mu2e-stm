@@ -2,6 +2,7 @@ import psutil
 import queue
 import os
 import time
+import dash
 import plotly.graph_objects as go
 from dash import dcc
 from datetime import datetime, timedelta
@@ -141,7 +142,7 @@ def draw_speeds(history):
     data, status = reader.read_updated()
     if not data:
         return status, empty_arr, empty_temp, empty_drop, []
-    elif len(data) != 2 and data == "no_update":
+    elif len(data) != 2 and data == "no update":
         return status, *([dash.no_update] * 3), []
 
     ((timestamp_ns,

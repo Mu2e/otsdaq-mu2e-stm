@@ -214,4 +214,24 @@ void pin_thread_to_least_busy_core(std::thread& t, std::string thrd_str) {
     }
 }
 
+void pin_thread_to_core(std::thread& t, int core, const std::string& thrd_str) {
+    if (core < 0) {
+        std::cerr << thrd_str << " | [WARNING] Invalid core index\n";
+        return;
+    }
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core, &cpuset);
+
+    int rc = pthread_setaffinity_np(t.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << thrd_str << " | [ERROR] Failed to set thread affinity: " << rc << "\n";
+    } else {
+        if (verbose) {
+            std::cout << thrd_str << " | [INFO] Thread pinned to core " << core << "\n";
+        }
+    }
+}
+
 #endif // SYS_UTILS_HH

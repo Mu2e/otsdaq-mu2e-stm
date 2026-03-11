@@ -196,7 +196,7 @@ class SharedMemoryReader:
         
         # Case 3: Read same data again
         if timestamp_ns == self._last_timestamp_ns:
-            return None, "waiting for new data"
+            return "no update", "waiting for new data"
         
         # Case 4: New data successfully read
         self._last_timestamp_ns = timestamp_ns

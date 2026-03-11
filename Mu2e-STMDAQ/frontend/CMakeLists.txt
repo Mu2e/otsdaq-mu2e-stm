@@ -1,65 +1,44 @@
 # frontend/CMakeLists.txt
 
-# ---- Sources (shared) ----                                                 
-set(FRONTEND_SOURCES
-  main.cc
+# ---- Sources (shared) ----
+set(FE_SOURCES
+  stm_frontend.cc
 )
 
 # ============================================================               
 #                         CET BUILD                                          
 # ============================================================               
-if(USE_CET)                                                                  
-                                                                             
-  cet_make_exec(  
-    NAME main.exe
-    SOURCE                                                                   
-      ${FRONTEND_SOURCES}
-    LIBRARIES PRIVATE
+if(USE_CET)
+
+  cet_make_library(
+    LIBRARY_NAME FE
+    SOURCE
+      ${FE_SOURCES}
+    LIBRARIES PUBLIC
       Utils          
       Buffers
       Config
       Hardware
       Debug
       Processing
-      stmdaq_all_deps      
+    LIBRARIES PRIVATE
+      stmdaq_all_deps
       stmdaq_python_deps
       fftw_deps
-    )                                                                          
+    )    
 
-  # Put the binary in the top-level build/bin like the rest
-  set_target_properties(main.exe PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-
-                                                                             
-  install_headers()                                                          
-  install_source()  
+    install_headers()
+    install_source()  
 
 # ============================================================               
 #                    STANDARD CMAKE BUILD                                    
 # ============================================================               
 else()                                                                       
-
-  add_executable(main.exe
-    main.cc
+  add_library(FE SHARED
+    ${FE_SOURCES}
   )
-
-  # Put the binary in the top-level build/bin like the rest
-  set_target_properties(main.exe PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  )
-
-  target_link_libraries(main.exe PRIVATE
-    stmdaq_all_deps
-    stmdaq_python_deps
-    fftw_deps
-    # ---- STM_LIBS ----
-    Utils
-    Buffers
-    Config
-    Hardware
-    Debug
-    Processing
-  )
+  set_target_properties(FE PROPERTIES OUTPUT_NAME "FE")
+  target_link_libraries(FE PRIVATE stmdaq_all_deps)
+  
 
 endif()

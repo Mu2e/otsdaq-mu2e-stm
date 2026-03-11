@@ -121,7 +121,8 @@ void ZeroSuppress::find_peaks(std::shared_ptr<DataStruct>& buffer,
       peak_loc -= prev_num;
 
       // Get the peak start location
-      int64_t peak_start = peak_loc - before_peak;
+      int64_t peak_start = (int64_t)peak_loc - before_peak;
+      if (first_buffer && peak_start < 0) peak_start = 0;
 
       // Set the data length as total peak length
       size_t data_len = total_peak;

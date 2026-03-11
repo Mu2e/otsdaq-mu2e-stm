@@ -290,25 +290,31 @@ void ThreadManager::data_source_thread(const size_t thrd_idx){
       logger->log("ThreadManager::data_source_thread: Initialising DTC simulation...",1);
     }
   }
-
+    
   // If using software simulation for data source
-  if (stm->master_config.use_sw_sim or stm->fw_config.use_dtc_sim){
+  if (stm->master_config.use_sw_sim){
     // Sleep for 3 seconds
     for (int i = 0; i < 3; i++){
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      std::cout << "Starting data sending in " << 3-i << std::endl;
+      std::cout << "Starting softwate data sending in " << 3-i << std::endl;
     }
     // Log to user
     logger->log("ThreadManager::data_source_thread: Starting data sending...",1);
-    // If using software simulation
-    if (stm->master_config.use_sw_sim){
-
-    }
-    // If you dtc simulation
-    else if (stm->fw_config.use_dtc_sim){
+  }
+  // If you dtc_sim_test_new.py
+  else if (stm->fw_config.use_dtc_sim){
+    // If we are using version of the hardware manager z
+    if (hw){
+      // Sleep for 3 seconds
+      for (int i = 0; i < 3; i++){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "Starting firmware data sending in " << 3-i << std::endl;
+      }
+      // Log to user
+      logger->log("ThreadManager::data_source_thread: Starting data sending...",1);
       // Run dtc simulation
       hw->run_dtc_sim();
-    }    
+    }
   }
   // If using firmware for data source
   else{

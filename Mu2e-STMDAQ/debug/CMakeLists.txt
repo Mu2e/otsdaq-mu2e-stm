@@ -30,7 +30,7 @@ if(USE_CET)
 else()                                                                       
 
   add_library(Debug SHARED
-    test_funcs.cc
+    ${DEBUG_SOURCES}
   )
 
   set_target_properties(Debug PROPERTIES OUTPUT_NAME "Debug")

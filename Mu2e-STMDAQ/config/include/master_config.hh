@@ -1,12 +1,20 @@
 #ifndef MASTER_CONFIG_HH_
 #define MASTER_CONFIG_HH_
 
+// Environment variable code
+#include "Mu2e-STMDAQ/utils/EnvVars.hh"
 // Include config file
 #include "Mu2e-STMDAQ/config/config.hh"
 
 // Master configurable variables
 struct master_info{
 
+  // Server host
+  const std::string host;
+  // Ch0 (HPGe) server host name
+  const std::string ch0_host;
+  // Ch1 (LaBr) server host name
+  const std::string ch1_host;
   // The channel number
   const int ch_num;
   // The channel name
@@ -14,16 +22,39 @@ struct master_info{
 
   // Use software simulation as data source
   const bool use_sw_sim;
+
+  static int compute_ch_num(const std::string& host,
+                            const std::string& ch0_host,
+                            const std::string& ch1_host)
+  {
+    if (host == ch0_host) return 0;
+    if (host == ch1_host) return 1;
+    throw std::runtime_error(
+      "master_info: HOSTNAME '" + host +
+      "' does not match stm.ch0_host ('" + ch0_host +
+      "') or stm.ch1_host ('" + ch1_host + "')"
+    );
+  }
+
+  static std::string compute_ch_name(int ch_num)
+  {
+    return (ch_num == 0) ? "HPGe" : "Labr";
+  }
   
   // Constructor
   master_info(Config& cfg, const std::shared_ptr<AsyncLogger> logger) :
-    ch_num(cfg.getValue<int>("stm.channel")), // Channel number
-    ch_name((ch_num) ? "Labr" : "HPGe"), // Channel name
+    host(EnvVars::expand("${HOSTNAME}")), // Server host name
+    ch0_host(cfg.getValue<std::string>("stm.ch0_host")), // Channel 0 host name
+    ch1_host(cfg.getValue<std::string>("stm.ch1_host")), // Channel 1 host name 
+    ch_num(compute_ch_num(host, ch0_host, ch1_host)), // Channel number
+    ch_name(compute_ch_name(ch_num)), // Channel name
     use_sw_sim(cfg.getValue<int>("stm.use_sw_sim")) // Use software simulation
   {
     
     // Notify user
     if (logger){
+      logger->log("Config:master_info: HOST = " +
+                  host,1);      
       logger->log("Config:master_info: Channel = " +
                   std::to_string(ch_num) +
                   " (" + ch_name + ")",1);

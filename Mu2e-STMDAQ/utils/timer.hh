@@ -10,11 +10,10 @@
 
 class Timer {
 public:
-  Timer(const std::string& name = "Timer")
+  Timer()
     : start_steady(std::chrono::steady_clock::now()),
-      start_sys(std::chrono::system_clock::now()),
-      label(name)
-  {
+      start_sys(std::chrono::system_clock::now()){
+
     // Force initialization so it prints/exists when Timer is constructed
     (void)run_start_utc_string();
     (void)run_start_timestamp();
@@ -56,42 +55,8 @@ private:
 
   const std::chrono::steady_clock::time_point start_steady;
   const std::chrono::system_clock::time_point start_sys;
-  std::string label;
 };
 
 
-// class Timer {
-// public:
-//   Timer(const std::string& name = "Timer")
-//     : start_steady(std::chrono::steady_clock::now()),
-//       start_sys(std::chrono::system_clock::now()),
-//       label(name) {
-//     std::time_t t = std::chrono::system_clock::to_time_t(start_sys);
-//     start_UTC = std::ctime(&t);
-//     std::cout << "DAQ start time: " << start_UTC;
-//     std::tm tm = *std::localtime(&t);
-//     std::ostringstream oss;
-//     oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
-//     start_timestamp =  oss.str();      
-//   }
-  
-//   ~Timer() {
-//     auto end = std::chrono::steady_clock::now();
-//     auto duration = end - start_steady;
-//     double ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();        
-//     std::cout << "DAQ run time: " << ms*1e-3 << " seconds." << std::endl;
-//   }
-
-//   std::string get_run_start_timestamp(){
-//     return start_timestamp;
-//   }
-  
-// private:
-//   const std::chrono::steady_clock::time_point start_steady;
-//   const std::chrono::system_clock::time_point start_sys;
-//   std::string start_UTC;
-//   std::string start_timestamp;
-//   std::string label;
-// };
 
 #endif

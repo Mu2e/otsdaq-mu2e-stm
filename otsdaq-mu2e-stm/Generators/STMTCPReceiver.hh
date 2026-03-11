@@ -82,7 +82,10 @@ namespace mu2e {
     uint64_t ph_stream_id_;                  // PH fragment id
     uint64_t container_stream_id_;           // Container fragment id
     int      debug_level_;                   // Debug verbosity
-    bool     pin_threads_;                   // Pin thread to specific cores
+    bool     pin_threads_;                   // Pin thread to least busy cores
+    int      recv_core_;                     // Pin receiver thread to specific core
+    int      parser_core_;                   // Pin receiver thread to specific core
+    int      builder_core_;                  // Pin receiver thread to specific core
     size_t   events_per_container_;          // Number of events per container
     size_t   offspill_events_per_container_; // Number of off-spill events per container
     bool     use_spill_condition_;           // Condition for batching on spill flags

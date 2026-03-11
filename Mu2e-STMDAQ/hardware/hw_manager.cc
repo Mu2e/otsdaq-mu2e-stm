@@ -135,8 +135,16 @@ HardwareManager::HardwareManager(const std::shared_ptr<AsyncLogger>& logger_,
     // If ADC is not initalised, initialise ADC
     if (!init){
       // Initalise ADC
-      init_adc();        
+      init_adc();
+      // Check again that the adc has been initialised
+      init = check_adc_init();
     }
+    if (!init){      
+      logger->log("HardwareManager::init_adc: ADC initialisation failed!. Exiting...",0);
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      return;
+    }
+    
     // If no stop signal has been issused
     if (!stop::should_stop()){
       // Check ADC temperature
@@ -150,6 +158,7 @@ HardwareManager::HardwareManager(const std::shared_ptr<AsyncLogger>& logger_,
 // Check whether FPGA firmware is loaded and return boolean
 bool HardwareManager::check_fpga_init() {
 
+  reset_readout();
   // Get python script name
   std::string script = stm->fw_config.python.check_fpga.first+".py";
   // Get python script return variable name
@@ -225,9 +234,49 @@ bool HardwareManager::load_firmware() {
   return false;
 }
 
+// Reset readout
+void HardwareManager::reset_readout(){
+
+  py::gil_scoped_acquire gil;
+  
+  // Get python script name
+  std::string script = stm->fw_config.python.reset_readout.first+".py";
+  // Get python script return variable name
+  std::string retvar = "finished";
+  
+  // Log to user
+  logger->log("Running reset readout script: " + script + "...",1);
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // Declare the python object and run python script  
+  py::object out;
+  try {
+    py::gil_scoped_acquire acquire;
+    out = impl->call_script_get(script, impl->device, retvar);
+  } catch (const py::error_already_set& e) {
+    py::gil_scoped_acquire acquire;
+    logger->log("PYTHON ERROR in " + script + ": " + std::string(e.what()), 3);
+    throw;
+  } catch (const std::exception& e) {
+    logger->log("C++ Exception: " + std::string(e.what()), 3);
+    throw;
+  }
+
+  //py::object out = impl->call_script_get(script,// Script
+  //                                       impl->device, // Device  
+  //                                       retvar // Variable to return
+  //                                       );
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  return;
+
+}
+
+
 // Check whether ADC is initialised and return boolean
 bool HardwareManager::check_adc_init() {
 
+  // Reset readout
+  reset_readout();
+  
   // Get python script name
   std::string script = stm->fw_config.python.check_adc.first+".py";
   // Get python script return variable name
@@ -256,6 +305,9 @@ bool HardwareManager::check_adc_init() {
 // Run script to load initialise ADC
 void HardwareManager::init_adc() {
 
+  // Reset readout
+  reset_readout();
+  
   // Get python script name
   std::string script = stm->fw_config.python.init_adc.first+".py";
   // Get python script return variable name
@@ -269,15 +321,14 @@ void HardwareManager::init_adc() {
                                          retvar // Variable to return
                                          );
   
-  // Check again that the adc has been initialised
-  if (!check_adc_init()){
-    logger->log("HardwareManager::init_adc: ADC initialisation failed!. Exiting...",0);
-  }
 }
 
 // Run dtc simulation
 void HardwareManager::run_dtc_sim(){
 
+  // Reset readout
+  reset_readout();
+  
   py::gil_scoped_acquire gil;
   
   // Get python script name

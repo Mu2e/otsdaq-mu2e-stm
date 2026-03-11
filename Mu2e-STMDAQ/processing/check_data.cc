@@ -237,7 +237,6 @@ uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr
   
   // Get the channel number
   uint16_t channel = data_ptr[hdr_index+fw_eHdr.Ch_DTCclk_0] & 0xFF;  
-
   // Check that the channel number is correct
   if (channel != stm->master_config.ch_num){
     // Check to see if it is the last packet filled only with 0xDEADBEEFs

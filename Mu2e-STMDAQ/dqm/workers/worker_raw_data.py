@@ -2,6 +2,7 @@ import psutil
 import queue
 import os
 import time
+import dash
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from utils.shared_memory import SharedMemoryReader
@@ -81,7 +82,7 @@ def draw_raw():
     data, status = reader.read_updated()
     if not data:
         return status, empty_raw
-    elif len(data) != 3 and data == "no_update":
+    elif len(data) != 3 and data == "no update":
         return status, dash.no_update
 
     (timestamp_ns,raw_len,raw_samples) = data
