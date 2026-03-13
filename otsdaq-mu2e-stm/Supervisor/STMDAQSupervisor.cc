@@ -58,7 +58,6 @@ void STMDAQSupervisor::transitionStarting(toolbox::Event::Reference e)
 
   // Start STMDAQ
   stmFE_->start_stmdaq();
-  stmFE_->wait();
 
 }
 
