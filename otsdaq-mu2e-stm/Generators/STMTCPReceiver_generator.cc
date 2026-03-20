@@ -816,42 +816,6 @@ namespace mu2e {
             TLOG(TLVL_INFO) << "[GETNEXT] --> Container with "
                             << cont.block_count()
                             << " inner fragments";
-            bool printedRAW = false;
-            bool printedZS  = false;
-            bool printedMWD = false;
-
-            for (size_t i = 0; i < cont.block_count(); ++i) {
-
-              auto inner = cont.at(i);
-              mu2e::STMFragment stm_frag(*inner);
-
-              bool shouldPrint = false;
-
-              if (stm_frag.isRaw() && !printedRAW) {
-                printedRAW = true;
-                shouldPrint = true;
-              }
-              else if (stm_frag.isZS() && !printedZS) {
-                printedZS = true;
-                shouldPrint = true;
-              }
-              else if (stm_frag.isMWD() && !printedMWD) {
-                printedMWD = true;
-                shouldPrint = true;
-              }
-
-              if (!shouldPrint) continue;
-
-              TLOG(TLVL_INFO) << "  [First "
-                              << (stm_frag.isRaw() ? "RAW" :
-                                  stm_frag.isZS()  ? "ZS"  :
-                                  stm_frag.isMWD() ? "MWD" : "UNKNOWN")
-                              << "]"
-                              << " FragID=" << inner->fragmentID()
-                              << " SeqID="  << inner->sequenceID()
-                              << " Size(bytes)=" << inner->dataSizeBytes();
-
-            } // end container loop
           } // end container check
         } // end Debug
         
