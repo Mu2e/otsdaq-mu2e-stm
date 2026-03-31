@@ -41,7 +41,7 @@ link_directories($ENV{XDAQ_ROOT}/lib)
 include(BuildPlugins)
 
 # Main STM DAQ
-add_subdirectory(Mu2e-STMDAQ)
+#add_subdirectory(Mu2e-STMDAQ)
 
 # Code
 add_subdirectory(otsdaq-mu2e-stm)
