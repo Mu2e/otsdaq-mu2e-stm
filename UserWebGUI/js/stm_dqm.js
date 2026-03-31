@@ -31,7 +31,7 @@ function stateBinary(val) {
     return val > 0 ? "bad" : "ok";
 }
 
-// ===== RUN TRACKING =====
+// ===== Run Tracking =====
 function getRun() {
     return localStorage.getItem("currentRun");
 }
@@ -57,19 +57,14 @@ function checkRunChange(newRun) {
     return false;
 }
 
-// ===============================
-// GLOBAL ALARM AUDIO
-// ===============================
-
+// ===== Alarm audio =====
 const alarmAudio = new Audio("../audio/alarm.mp3");
 alarmAudio.loop = true;
 
 let alarmActive = false;
 let muted = localStorage.getItem("alarmMuted") === "true";
 
-// ===============================
-// CONTROL FUNCTIONS
-// ===============================
+// ===== Alarm control =====
 
 function playAlarm() {
     if (muted) return;
@@ -89,12 +84,7 @@ function stopAlarm() {
     }
 }
 
-// ===============================
-// ALARM LOGGING
-// ===============================
-// ===============================
-// GLOBAL ALARM LOGGING (WITH EWT)
-// ===============================
+// ===== Alarm logs =====
 
 function logAlarms(data) {
 
@@ -108,7 +98,6 @@ function logAlarms(data) {
 
     for (const [key, val] of Object.entries(alarms)) {
 
-        // Rising edge only
         if (val === true && prev[key] !== true) {
 
             history.push({
@@ -129,19 +118,13 @@ function logAlarms(data) {
     localStorage.setItem("lastAlarms", JSON.stringify(alarms));
 }
 
-// ===============================
-// HELPERS
-// ===============================
+// ===== Alarm helpers =====
 
 function formatAlarm(name) {
     return name
         .replace(/_/g, " ")
         .replace(/\b\w/g, c => c.toUpperCase());
 }
-
-// ===============================
-// SOUND TOGGLE (LUCIDE)
-// ===============================
 
 function toggleMute() {
     muted = !muted;
@@ -173,10 +156,6 @@ function updateSoundUI() {
 
     lucide.createIcons();
 }
-
-// ===============================
-// THEME TOGGLE (LUCIDE)
-// ===============================
 
 function updateThemeUI() {
     const icon = document.getElementById("themeIcon");
@@ -217,10 +196,6 @@ function toggleTheme() {
 
     updateThemeUI();
 }
-
-// ===============================
-// ALARMS
-// ===============================
 
 function renderAlarms(containerId, alarms, keys) {
     const el = document.getElementById(containerId);
@@ -315,9 +290,7 @@ function updateTimestamp() {
     el.textContent = "Last update: " + now.toLocaleTimeString();
 }
 
-// ===============================
-// INIT
-// ===============================
+// ===== Intialise =====
 
 (function () {
     const saved = localStorage.getItem("theme") || "dark";
