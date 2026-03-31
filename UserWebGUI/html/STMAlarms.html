@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>STM DQM - Alarm Log</title>
+
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+    <link href="../css/stm_layout.css" rel="stylesheet">
+    <link href="../css/stm_dqm.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>
+  </head>
+
+  <body>
+
+    <!-- ===== Banner ===== -->
+    <div id="banner" class="banner ok">System OK</div>
+
+    <!-- ===== Sidebar ===== -->
+    <div class="sidebar">
+
+      <h2>STM DQM</h2>
+
+      <div class="nav">
+
+        <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
+
+        <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
+
+        <a class="home-link" href="STMMain.html">
+          <i data-lucide="home"></i> Home
+        </a>
+
+        <a href="STMOverview.html">Overview</a>
+        <a href="STMTrends.html">Trends</a>
+        <a href="STMTiming.html">Timing</a>
+        <a href="STMCorrelation.html">Correlation</a>
+        <a href="STMIntegrity.html">Integrity</a>
+        <a class="active" href="STMAlarms.html">Alarms</a>
+
+      </div>
+
+    </div>
+
+    <!-- ===== Main ===== -->
+    <div class="main">
+
+      <h1 id="title">Alarm Log</h1>
+
+      <div class="card">
+        <button onclick="clearLog()">Clear Log</button>
+      </div>
+
+      <div class="card">
+        <table id="alarmTable">
+          <thead>
+            <tr>
+              <th style="width:25%;">Time</th>
+              <th style="width:20%;">EWT</th>
+              <th style="width:15%;">Run</th>
+              <th style="width:40%;">Alarm</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <script>
+
+      // ===== Apply theme immediately =====
+      applyTheme(localStorage.getItem("theme") || "dark");
+
+      // ===== Load alarm table =====
+      function loadLog() {
+          const table = document.querySelector("#alarmTable tbody");
+          table.innerHTML = "";
+
+          const history = JSON.parse(localStorage.getItem("alarmHistory") || "[]");
+
+          history.slice().reverse().forEach(entry => {
+
+              const row = document.createElement("tr");
+
+              const time = entry.time
+                    ? new Date(entry.time).toLocaleTimeString()
+                    : "--";
+
+              const ewt = entry.ewt ?? "--";
+              const run = entry.run ?? "--";
+
+              row.innerHTML = `
+                <td>${time}</td>
+                <td>${ewt}</td>
+                <td>${run}</td>
+                <td>${formatAlarm(entry.alarm)}</td>
+            `;
+
+              table.appendChild(row);
+          });
+      }
+
+      function clearLog() {
+          localStorage.removeItem("alarmHistory");
+          loadLog();
+      }
+
+      // ===== Dump alarms to file (per run) =====
+      function dumpAlarmHistory() {
+          const history = JSON.parse(localStorage.getItem("alarmHistory") || "[]");
+          if (history.length === 0) return;
+
+          const run = localStorage.getItem("previousRun") || "unknown";
+
+          const blob = new Blob(
+              [JSON.stringify(history, null, 2)],
+              { type: "application/json" }
+          );
+
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `stm_alarms_run_${run}.json`;
+          a.click();
+
+          URL.revokeObjectURL(url);
+      }
+
+      function resetAlarmHistory() {
+          localStorage.setItem("alarmHistory", JSON.stringify([]));
+      }
+
+      // ===== Update loop =====
+      async function update() {
+          try {
+              const data = await fetchSTM();
+
+              // ===== Banner =====
+              updateBanner(data);
+
+              // ===== Title =====
+              const run = data.run ?? localStorage.getItem("currentRun") ?? "N/A";
+              document.getElementById("title").textContent = `Alarm Log (Run ${run})`;
+
+              // ===== Run change handling =====
+              const changed = checkRunChange(data.run);
+
+              if (changed) {
+                  dumpAlarmHistory();
+                  resetAlarmHistory();
+              }
+
+              loadLog();
+
+          } catch (err) {
+              console.error(err);
+
+              const banner = document.getElementById("banner");
+              banner.classList.remove("ok");
+              banner.classList.add("bad");
+              banner.textContent = "DATA ERROR";
+          }
+      }
+      // ===== Init =====
+      window.addEventListener("load", () => {
+          lucide.createIcons();
+          loadLog();
+          update();
+          setInterval(update, 1000);
+      });
+
+    </script>
+
+  </body>
+</html>

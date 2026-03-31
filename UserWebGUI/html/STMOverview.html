@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>STM DQM - Overview</title>
+
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+    <link href="../css/stm_layout.css" rel="stylesheet">
+    <link href="../css/stm_dqm.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>
+    
+  </head>
+
+  <body>
+
+    <div id="banner" class="banner ok">System OK</div>
+
+    <div class="sidebar">
+      <h2>STM DQM</h2>
+
+      <div class="nav">
+
+        <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
+        
+        <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
+
+        <a class="home-link" href="STMMain.html">
+          <i data-lucide="home"></i> Home
+        </a>
+
+        <a class="active" href="STMOverview.html">Overview</a>
+        <a href="STMTrends.html">Trends</a>
+        <a href="STMTiming.html">Timing</a>
+        <a href="STMCorrelation.html">Correlation</a>
+        <a href="STMIntegrity.html">Integrity</a>
+        <a href="STMAlarms.html">Alarms</a>
+
+      </div>
+    </div>
+
+    <div class="main">
+
+      <h1>Overview</h1>
+
+      <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+        Updating...
+      </div>
+
+      <!-- ===== Rates ===== -->
+      <div class="section">
+        <h3 class="section-title">Rates</h3>
+        <div class="grid">
+
+          <div class="card">
+            <h3>Event Rate</h3>
+            <div class="value" id="eventRate">--</div>
+          </div>
+
+          <div class="card">
+            <h3>Fragment Rate</h3>
+            <div class="value" id="fragRate">--</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== Counts ===== -->
+      <div class="section">
+        <h3 class="section-title">Counts</h3>
+        <div class="grid">
+
+          <div class="card">
+            <h3>RAW Count</h3>
+            <div class="value" id="rawCount">--</div>
+          </div>
+
+          <div class="card">
+            <h3>ZS Count</h3>
+            <div class="value" id="zsCount">--</div>
+          </div>
+
+          <div class="card">
+            <h3>PH Count</h3>
+            <div class="value" id="phCount">--</div>
+          </div>
+
+          <div class="card">
+            <h3>Total Fragments</h3>
+            <div class="value" id="totalCount">--</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== Fractions ===== -->
+      <div class="section">
+        <h3 class="section-title">Fractions</h3>
+        <div class="grid">
+
+          <div class="card">
+            <h3>ZS Fraction</h3>
+            <div class="value" id="zsFrac">--</div>
+          </div>
+
+          <div class="card">
+            <h3>PH Fraction</h3>
+            <div class="value" id="phFrac">--</div>
+          </div>
+
+          <div class="card">
+            <h3>RAW Fraction</h3>
+            <div class="value" id="rawFrac">--</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===== Alarms ===== -->
+      <div class="alarm-box">
+        <h3>Alarms</h3>
+        <div id="alarms">Loading...</div>
+      </div>
+
+    </div>
+
+    <script>
+
+      localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+
+      async function update() {
+          try {
+              const data = await fetchSTM();
+
+              // ===== Rates =====
+              const eventRate = data.rate.event_hz;
+              const fragRate  = data.rate.fragment_hz;
+
+              const rateState = eventRate < 1.0 ? "bad" : "ok";
+
+              setCard("eventRate", eventRate.toFixed(2), rateState);
+              setCard("fragRate", fragRate.toFixed(2), rateState);
+
+              // ===== Counts =====
+              const raw = data.counts.raw;
+              const zs  = data.counts.zs;
+              const ph  = data.counts.ph;
+
+              setCard("rawCount", raw, "ok");
+              setCard("zsCount", zs, "ok");
+              setCard("phCount", ph, "ok");
+
+              // ===== Derived =====
+              const total = raw + zs + ph;
+              setCard("totalCount", total, total === 0 ? "bad" : "ok");
+
+              if (total > 0) {
+                  const zsFrac  = zs / total;
+                  const phFrac  = ph / total;
+                  const rawFrac = raw / total;
+
+                  setCard("zsFrac", zsFrac.toFixed(3), "ok");
+                  setCard("phFrac", phFrac.toFixed(3), "ok");
+                  setCard("rawFrac", rawFrac.toFixed(3), "ok");
+              }
+
+              // ===== Alarms =====
+              renderAlarms("alarms", data.alarms, Object.keys(data.alarms));
+
+              // ===== Banner =====
+              updateBanner(data);
+
+              // ===== Timestamp =====
+              updateTimestamp();
+
+          } catch (err) {
+              console.error(err);
+
+              const banner = document.getElementById("banner");
+              banner.classList.remove("ok");
+              banner.classList.add("bad");
+              banner.textContent = "DATA ERROR";
+          }
+      }
+
+      setInterval(update, 1000);
+      update();
+    </script>
+
+  </body>
+</html>

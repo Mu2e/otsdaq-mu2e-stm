@@ -1,84 +1,143 @@
 <!DOCTYPE HTML>
 <html lang="en">
-<head>
+  <head>
     <title>STM DQM</title>
 
     <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
     <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="../css/stm_main.css" rel="stylesheet">
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: #111;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Comfortaa;
-        }
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>    
+  </head>
 
-        .container {
-            text-align: center;
-        }
+  <body>
 
-        h1 {
-            margin-bottom: 40px;
-            font-size: 32px;
-        }
+    <div class="container">
 
-        .btn {
-            display: block;
-            width: 260px;
-            margin: 15px auto;
-            padding: 14px;
-            font-size: 16px;
-            font-family: Inconsolata;
-            background: #222;
-            color: white;
-            border: 2px solid #444;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+      <!-- ===== Logos ===== -->
+      <div class="banner">
+        <img src="../images/uom.png" alt="UoM">
+        <img src="../images/uol.png" alt="UoL">
+        <img src="../images/ucl.png" alt="UCL">
+      </div>
 
-        .btn:hover {
-            background: #333;
-            border-color: #777;
-        }
+      <h1>STM DQM</h1>
 
-        .hint {
-            margin-top: 30px;
-            font-size: 12px;
-            opacity: 0.6;
-        }
-    </style>
-</head>
+      <!-- ===== STATUS ===== -->
+      <div id="statusBox" class="status-box ok">
+        <i data-lucide="check-circle"></i>
+        <span>System OK</span>
+      </div>
 
-<body>
+      <!-- ===== UI ===== -->
+      <div class="section-label">UI</div>
+      <div class="ui-controls">
 
-<div class="container">
-    <h1>STM DQM</h1>
+        <div id="themeToggle" class="ui-btn" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
 
-    <button class="btn" onclick="openPage('STMStatus.html')">
-        Status & Alarms
-    </button>
+        <div id="soundToggle" class="ui-btn" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
 
-    <button class="btn" onclick="openPage('STMFFT.html')">
-        FFT Diagnostics
-    </button>
+      </div>
 
-    <div class="hint">
-        Monitoring & diagnostics
+      <!-- ===== Monitoring ===== -->
+      <div class="section-label">MONITORING</div>
+      <div class="menu">
+        <a class="btn" href="STMOverview.html">Overview</a>
+        <a class="btn" href="STMTrends.html">Trends</a>
+        <a class="btn" href="STMTiming.html">Timing</a>
+        <a class="btn" href="STMCorrelation.html">Correlation</a>
+        <a class="btn" href="STMIntegrity.html">Integrity</a>
+        <a class="btn" href="STMAlarms.html">Alarms</a>
+      </div>
+
+      <div class="hint">
+        Real-time stream monitoring
+      </div>
+
     </div>
-</div>
 
-<script>
-function openPage(page) {
-    // Forward query parameters (addr, monitoring, etc.)
-    const params = window.location.search;
-    window.open(page + params, '_blank');
-}
-</script>
+    <script>
 
-</body>
+      applyTheme(localStorage.getItem("theme") || "dark");
+
+      // ===== Restore last page =====
+      const last = localStorage.getItem("lastPage");
+      if (last && !window.location.pathname.includes("STMMain.html")) {
+          window.location.href = last;
+      }
+
+      // ===== Status updater =====
+      async function updateStatus() {
+          try {
+              const res = await fetch("../json/stm.json" + window.location.search);
+              const data = await res.json();
+
+              const statusBox = document.getElementById("statusBox");
+
+              const badKeys = Object.entries(data.alarms)
+                    .filter(([k, v]) => v === true)
+                    .map(([k]) => k);
+
+              const hasAlarm = badKeys.length > 0;
+
+              const time = new Date().toLocaleTimeString();
+              const run = data.run ?? getRun() ?? "N/A";
+              const spill = data.timing?.on_spill ? "ON SPILL" : "OFF SPILL";
+              
+              statusBox.classList.remove("ok", "bad");
+
+              if (hasAlarm) {
+                  statusBox.classList.add("bad");
+                  
+                  statusBox.innerHTML =
+                      `<i data-lucide="alert-triangle"></i>
+         <span class="status-text">Run ${run} | ${badKeys.join(", ")}</span>
+         <span class="time">(${time})</span>`;
+              } else {
+                  statusBox.classList.add("ok");
+                  
+                  statusBox.innerHTML =
+                      `<i data-lucide="check-circle"></i>
+         <span class="status-text">Run ${run} | System OK</span>
+         <span class="time">(${time})</span>`;
+              }              
+
+              lucide.createIcons();
+              
+          } catch (err) {
+              console.error(err);
+
+              const statusBox = document.getElementById("statusBox");
+
+              const time = new Date().toLocaleTimeString();
+              
+              statusBox.classList.remove("ok");
+              statusBox.classList.add("bad");
+
+              statusBox.innerHTML = `
+            <i data-lucide="alert-circle"></i>
+         <span class="status-text">Run ${run} | Data Error</span>
+         <span class="time">(${time})</span>`;
+
+              lucide.createIcons();
+          }
+      }
+
+      // ===== Init =====
+      window.addEventListener("load", () => {
+          lucide.createIcons();
+          updateStatus();
+          setInterval(updateStatus, 1000);
+      });
+
+      </script>
+
+  </body>
 </html>

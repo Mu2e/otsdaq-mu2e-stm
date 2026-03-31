@@ -457,32 +457,12 @@ namespace mu2e {
             }
 
             // Anchor validation
-            if (hdr[anchor_start] != event_anchor_word_) {
-
-              const uint16_t* p =
-                reinterpret_cast<const uint16_t*>(ptr);
-
-              size_t words = contiguous / 2;
-
-              size_t i = 1;
-              for (; i < words; ++i) {
-                if (p[i] == event_anchor_word_)
-                  break;
-              }
-
-              if (i == words)
-                ring_->advanceRead(contiguous - 2);
-              else
-                ring_->advanceRead(i * 2);
-
-              continue;
-            }
-
-            if (hdr[anchor_end] != event_anchor_word_) {
+            if (hdr[anchor_start] != event_anchor_word_ ||
+                hdr[anchor_end]   != event_anchor_word_) {
               ring_->advanceRead(2);
               continue;
             }
-
+            
             uint16_t ps = hdr[PRESCALE];
 
             bool raw_prescaled = (ps >> 15) & 1;

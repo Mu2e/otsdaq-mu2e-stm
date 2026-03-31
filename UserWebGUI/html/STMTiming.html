@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>STM DQM - Timing</title>
+
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+    <link href="../css/stm_layout.css" rel="stylesheet">
+    <link href="../css/stm_dqm.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>
+    
+  </head>
+
+  <body>
+
+    <!-- ===== Banner ===== -->
+    <div id="banner" class="banner ok">System OK</div>
+
+    <!-- ===== Sidebar ===== -->
+    <div class="sidebar">
+
+      <h2>STM DQM</h2>
+
+      <div class="nav">
+
+        <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
+
+        <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
+
+        <a class="home-link" href="STMMain.html">
+          <i data-lucide="home"></i> Home
+        </a>
+
+        <a href="STMOverview.html">Overview</a>
+        <a href="STMTrends.html">Trends</a>
+        <a class="active" href="STMTiming.html">Timing</a>
+        <a href="STMCorrelation.html">Correlation</a>
+        <a href="STMIntegrity.html">Integrity</a>
+        <a href="STMAlarms.html">Alarms</a>
+        
+      </div>
+
+    </div>
+
+    <!-- ===== Main ===== -->
+    <div class="main">
+
+      <h1>Timing</h1>
+
+      <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+        Updating...
+      </div>
+
+      <div class="grid">
+
+        <div class="card">
+          <h3>EWT Small Jumps</h3>
+          <div class="value" id="ewtSmall">--</div>
+        </div>
+
+        <div class="card">
+          <h3>Transition Issues</h3>
+          <div class="value" id="ewtTrans">--</div>
+        </div>
+
+        <div class="card">
+          <h3>Spill Transitions</h3>
+          <div class="value" id="spillTrans">--</div>
+        </div>
+
+        <div class="card">
+          <h3>DTC Jumps</h3>
+          <div class="value" id="dtcJumps">--</div>
+        </div>
+
+        <div class="card">
+          <h3>ADC Jumps</h3>
+          <div class="value" id="adcJumps">--</div>
+        </div>
+
+      </div>
+
+      <div class="alarm-box">
+        <h3>Timing Alarms</h3>
+        <div id="alarms">Loading...</div>
+      </div>
+
+    </div>
+
+    <script>
+
+      // ===== Timing accumulation =====
+
+      function getTimingState() {
+          return JSON.parse(localStorage.getItem("timingState") || "{}");
+      }
+
+      function setTimingState(state) {
+          localStorage.setItem("timingState", JSON.stringify(state));
+      }
+
+      function resetTimingState() {
+          localStorage.removeItem("timingState");
+      }
+
+      // Reset on run change
+      function handleRunForTiming(run) {
+          const changed = checkRunChange(run);
+          if (changed) {
+              resetTimingState();
+          }
+      }
+      
+      localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+      
+      async function update() {
+          try {
+              const data = await fetchSTM();
+              console.log("DATA:", data);
+              // ===== Timing metrics =====
+              // ===== Handle run reset =====
+              handleRunForTiming(data.run);
+
+              // ===== Load state =====
+              let state = getTimingState();
+
+              // init if empty
+              if (!state.initialized) {
+                  state = {
+                      initialized: true,
+                      ewtSmall: 0,
+                      ewtTrans: 0,
+                      spillTrans: 0,
+                      dtcJumps: 0,
+                      adcJumps: 0
+                  };
+              }
+
+              // ===== Accumulate =====
+              state.ewtSmall  += data.timing.ewt_small_jumps;
+              state.ewtTrans  += data.timing.ewt_transition_issues;
+              state.spillTrans += data.timing.spill_transitions;
+              state.dtcJumps  += data.timing.dtc_jumps;
+              state.adcJumps  += data.timing.adc_jumps;
+
+              // Save
+              setTimingState(state);
+
+              // ===== Use accumulated values =====
+              const ewtSmall  = state.ewtSmall;
+              const ewtTrans  = state.ewtTrans;
+              const spillTrans = state.spillTrans;
+              const dtcJumps  = state.dtcJumps;
+              const adcJumps  = state.adcJumps;
+
+              // ===== Card coloring =====
+              setCard("ewtSmall", ewtSmall, stateBinary(ewtSmall));
+              setCard("ewtTrans", ewtTrans, stateBinary(ewtTrans));
+
+              // informational (not an error)
+              setCard("spillTrans", spillTrans, "ok");
+
+              setCard("dtcJumps", dtcJumps, stateBinary(dtcJumps));
+              setCard("adcJumps", adcJumps, stateBinary(adcJumps));
+
+              // ===== Timing-specific alarms =====
+              renderAlarms("alarms", data.alarms, [
+                  "ewt_error",
+                  "transition_error",
+                  "clock_error"
+              ]);
+
+              // ===== Banner =====
+              updateBanner(data);
+
+              // ===== Timestamp =====
+              updateTimestamp();
+
+          } catch (err) {
+              console.error(err);
+
+              const banner = document.getElementById("banner");
+              banner.classList.remove("ok");
+              banner.classList.add("bad");
+              banner.textContent = "DATA ERROR";
+          }
+      }
+
+      setInterval(update, 1000);
+      update();
+    </script>
+
+  </body>
+</html>

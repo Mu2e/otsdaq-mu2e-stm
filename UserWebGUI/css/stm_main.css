@@ -1,0 +1,169 @@
+/* ===== Base ===== */
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: Comfortaa, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #111;
+    color: white;
+}
+
+/* ===== Light mode ===== */
+body.light {
+    background: #f5f5f5;
+    color: #111;
+}
+
+/* ===== Container ===== */
+.container {
+    text-align: center;
+    width: 380px;
+}
+
+/* ===== Logos ===== */
+.banner {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.banner img {
+    width: 100px;
+    height: 70px;
+    object-fit: contain;
+    background: white;
+    border-radius: 6px;
+    padding: 5px;
+    border: 1px solid #333;
+}
+
+/* ===== Title ===== */
+h1 {
+    margin: 20px 0 15px 0;
+}
+
+/* ===== Status ===== */
+.status-box {
+    margin-bottom: 15px;
+    padding: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+
+    font-family: Inconsolata, monospace;
+}
+
+.status-box.ok { color: #4caf50; }
+.status-box.bad { color: #f44336; }
+
+.status-box .time {
+    opacity: 1.0;
+    font-size: 14px;
+    margin-left: 6px;
+}
+
+/* Light override */
+body.light .status-box {
+    background: #fff;
+    border-color: #ccc;
+}
+
+/* ===== UI Controls ===== */
+.ui-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ui-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+
+    background: #1e1e1e;
+    border: 1px solid #444;
+}
+
+.ui-btn:hover {
+    background: #2a2a2a;
+}
+
+/* ACTIVE (neon like your other pages) */
+.ui-btn.active {
+    border-color: #00ffaa;
+    color: #00ffaa;
+}
+
+/* MUTED */
+.ui-btn.muted {
+    border-color: #666;
+    color: #888;
+}
+
+/* Light */
+body.light .ui-btn {
+    background: #fff;
+    color: #111;
+    border-color: #ccc;
+}
+
+/* ===== Menu ===== */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+}
+
+.btn:hover {
+    background: #333;
+}
+
+/* Light */
+body.light .btn {
+    background: #fff;
+    color: #111;
+    border-color: #ccc;
+}
+
+.section-label {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.hint {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Icons */
+i[data-lucide] {
+    width: 18px;
+    height: 18px;
+}
