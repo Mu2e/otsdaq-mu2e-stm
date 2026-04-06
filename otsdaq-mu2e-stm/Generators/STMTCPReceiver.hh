@@ -256,8 +256,7 @@ namespace mu2e {
       // RAW includes header
       size_t raw_offset_bytes = offset_words * 2;
       size_t raw_words_total  = raw_len + EVENT_HEADER_WORDS;
-
-      offset_words += raw_len;
+      offset_words += raw_words_total;
 
       size_t zs_offset_bytes = offset_words * 2;
 

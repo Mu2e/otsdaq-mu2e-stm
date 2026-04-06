@@ -63,7 +63,7 @@ struct EventView {
   size_t size_bytes = 0;
   
   int64_t event_num = 0;
-  uint64_t spill_flag = 0;
+  uint8_t spill_flag = 0;
 
   DatasetView raw;
   DatasetView zs;

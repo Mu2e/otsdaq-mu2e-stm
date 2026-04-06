@@ -585,16 +585,8 @@ namespace mu2e {
           (int64_t(hdr[EWT_2]) << 32);
 
 	//metricMan->sendMetric("Last event window tag", evt.event_num, "status", 3, artdaq::MetricMode::LastPoint);
-
-
-        uint16_t EM2 = hdr[EM_2_DRTDC] & 0xFF;
-
-        uint64_t EM =
-          uint64_t(hdr[EM_0]) |
-          (uint64_t(hdr[EM_1]) << 16) |
-          (uint64_t(EM2) << 32);
-
-        evt.spill_flag = EM;
+	
+        evt.spill_flag = hdr[EM_2_DRTDC] & 0x1;
 
         // =================================================
         // Dataset pointer resolution
@@ -736,7 +728,7 @@ namespace mu2e {
       for (const auto& e : batch.events)
         {
           ++debug_evt_counter;
-          if ((debug_evt_counter % debug_print_every) == 0) {
+          if ( (debug_level_ > 0) && ((debug_evt_counter % debug_print_every) == 0) ) {
             TLOG(TLVL_INFO)
               << "[STM_BR][BUILDER DEBUG] seq=" << batch.container_seq_id
               << " events= " << batch.events.size()
@@ -813,6 +805,25 @@ namespace mu2e {
     while (true) {
 
       if (builder_to_getNext_queue_->pop(raw_ptr)) {
+
+        // DEBUG PRINT
+        if(debug_level_ > 0){
+          TLOG(TLVL_INFO) << "\n[GETNEXT] Fragment received "
+                          << "FragID=" << raw_ptr->fragmentID()
+                          << " SeqID=" << raw_ptr->sequenceID()
+                          << " Type="  << raw_ptr->type()
+                          << " Size(bytes)=" << raw_ptr->dataSizeBytes();
+
+          if (raw_ptr->type() == artdaq::Fragment::ContainerFragmentType) {
+
+            artdaq::ContainerFragment cont(*raw_ptr);
+
+            TLOG(TLVL_INFO) << "[GETNEXT] --> Container with "
+                            << cont.block_count()
+                            << " inner fragments";
+          } // end container check
+        } // end Debug
+        
         frags.emplace_back(std::unique_ptr<artdaq::Fragment>(raw_ptr));
         return true;
       }
