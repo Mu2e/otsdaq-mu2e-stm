@@ -85,7 +85,7 @@ struct fw_info{
   // The ADC sampling period
   const double tADC;
   // Use DTC simulation?
-  const bool use_dtc_sim;
+  const int use_dtc_sim;
   
   // Constructor
   fw_info(Config& cfg, const std::shared_ptr<AsyncLogger> logger) :
@@ -112,7 +112,7 @@ struct fw_info{
            ),
     fADC(cfg.getValue<double>("stm.fw.fADC")), // fADC in MHz
     tADC(1.0/fADC), // tADC in µs per value
-    use_dtc_sim("stm.fw.use_dtc_sim") // Use DTC simulation
+    use_dtc_sim(cfg.getValue<int>("stm.fw.use_dtc_sim")) // Use DTC simulation
   {
     
     // Notify user
