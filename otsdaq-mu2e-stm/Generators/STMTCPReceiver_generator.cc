@@ -584,6 +584,9 @@ namespace mu2e {
           (int64_t(hdr[EWT_1]) << 16) |
           (int64_t(hdr[EWT_2]) << 32);
 
+	//metricMan->sendMetric("Last event window tag", evt.event_num, "status", 3, artdaq::MetricMode::LastPoint);
+
+
         uint16_t EM2 = hdr[EM_2_DRTDC] & 0xFF;
 
         uint64_t EM =
@@ -652,6 +655,9 @@ namespace mu2e {
         }
 
         ring_->advanceRead(expected_event_bytes);
+
+	metricMan->sendMetric("Expected event bytes",expected_event_bytes,"status",3,artdaq::MetricMode::LastPoint);
+
         expected_event_bytes = 0;
       }
 
