@@ -155,7 +155,18 @@ find_package(Boost REQUIRED COMPONENTS program_options chrono random system)
 
 # ---- PugiXML ----
 find_package(PugiXML QUIET)
-if(PugiXML_FOUND)
+
+if(USE_CET)
+ find_package(pugixml REQUIRED EXPORT)
+ if(TARGET pugixml)
+  target_link_libraries(stmdaq_common_deps INTERFACE pugixml)
+ elseif(DEFINED PUGIXML_LIBRARIES)
+  target_link_libraries(stmdaq_common_deps INTERFACE ${PUGIXML_LIBRARIES})
+  if(DEFINED PUGIXML_INCLUDE_DIRS)
+   target_include_directories(stmdaq_common_deps INTERFACE ${PUGIXML_INCLUDE_DIRS})
+  endif()
+ endif()
+elseif(PugiXML_FOUND)
   # Depending on the package, the imported target name can vary.
   # Prefer the target if it exists; otherwise fall back to variables.
   if(TARGET PugiXML::pugixml)
@@ -183,6 +194,7 @@ else()
     message(WARNING "pugixml not found; install pugixml-devel")
   endif()
 endif()
+
 
 
 # ---- PostgreSQL libpq (-lpq) ----

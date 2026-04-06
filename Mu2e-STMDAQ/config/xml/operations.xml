@@ -16,7 +16,7 @@
    <find_peaks>1</find_peaks>
    <suppress_data>1</suppress_data>
   </ZeroSuppress>
-  <MWD>0 <!-- MWD class -->
+  <MWD>1 <!-- MWD class -->
    <subtract_baseline>1</subtract_baseline>
    <deconv>1</deconv>
    <diff>1</diff>
@@ -36,7 +36,7 @@
    <write_zs>0</write_zs>
    <write_ph>0</write_ph>
   </WriteManager>
-  <TCP>0 <!-- TCP class -->
+  <TCP>1 <!-- TCP class -->
    <send_data>1</send_data> 
   </TCP>        
   <DQM>1 <!-- DQM class -->

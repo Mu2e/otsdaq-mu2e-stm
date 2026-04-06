@@ -28,7 +28,7 @@
     <reset_readout>reset_readout</reset_readout>
     <dtc_sim>dtc_sim_test_new</dtc_sim>
   </python>
-  <use_dtc_sim>1 <!-- Use dtc simulation? -->
+  <use_dtc_sim>0 <!-- Use dtc simulation? -->
     <!-- Buffers.Readout_regs -->
     <teng_interpacket_pause>0x40</teng_interpacket_pause>
     <ext_trig_timeout>0x129F0</ext_trig_timeout> <!-- (0x249F0) -->
