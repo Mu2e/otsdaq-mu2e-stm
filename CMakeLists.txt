@@ -46,9 +46,6 @@ add_subdirectory(Mu2e-STMDAQ)
 # Code
 add_subdirectory(otsdaq-mu2e-stm)
 
-# Main STM DAQ
-#add_subdirectory(Mu2e-STMDAQ)
-
 # Useful scripts
 #add_subdirectory(tools)
 
