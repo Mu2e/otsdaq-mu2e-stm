@@ -1,143 +1,192 @@
 <!DOCTYPE HTML>
 <html lang="en">
-  <head>
-    <title>STM DQM</title>
+<head>
+  <title>STM DQM</title>
 
-    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
-    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
-    <link href="../css/stm_main.css" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+  <link href="../css/stm_main.css" rel="stylesheet">
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="../js/stm_dqm.js"></script>    
-  </head>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../js/stm_dqm.js"></script>    
+</head>
 
-  <body>
+<body>
 
-    <div class="container">
+<div class="container">
 
-      <!-- ===== Logos ===== -->
-      <div class="banner">
-        <img src="../images/uom.png" alt="UoM">
-        <img src="../images/uol.png" alt="UoL">
-        <img src="../images/ucl.png" alt="UCL">
-      </div>
+  <!-- ===== Logos ===== -->
+  <div class="banner">
+    <img src="../images/uom.png" alt="UoM">
+    <img src="../images/uol.png" alt="UoL">
+    <img src="../images/ucl.png" alt="UCL">
+  </div>
 
-      <h1>STM DQM</h1>
+  <h1>STM DQM</h1>
 
-      <!-- ===== STATUS ===== -->
-      <div id="statusBox" class="status-box ok">
-        <i data-lucide="check-circle"></i>
-        <span>System OK</span>
-      </div>
+  <!-- ===== UI ===== -->
+  <div class="section-label">UI</div>
+  <div class="ui-controls">
 
-      <!-- ===== UI ===== -->
-      <div class="section-label">UI</div>
-      <div class="ui-controls">
-
-        <div id="themeToggle" class="ui-btn" onclick="toggleTheme()">
-          <i id="themeIcon" data-lucide="moon"></i>
-          <span id="themeText">Dark Mode</span>
-        </div>
-
-        <div id="soundToggle" class="ui-btn" onclick="toggleMute()">
-          <i id="soundIcon" data-lucide="volume-2"></i>
-          <span id="soundText">Sound ON</span>
-        </div>
-
-      </div>
-
-      <!-- ===== Monitoring ===== -->
-      <div class="section-label">MONITORING</div>
-      <div class="menu">
-        <a class="btn" href="STMOverview.html">Overview</a>
-        <a class="btn" href="STMTrends.html">Trends</a>
-        <a class="btn" href="STMTiming.html">Timing</a>
-        <a class="btn" href="STMCorrelation.html">Correlation</a>
-        <a class="btn" href="STMIntegrity.html">Integrity</a>
-        <a class="btn" href="STMAlarms.html">Alarms</a>
-      </div>
-
-      <div class="hint">
-        Real-time stream monitoring
-      </div>
-
+    <div id="themeToggle" class="ui-btn" onclick="toggleTheme()">
+      <i id="themeIcon" data-lucide="moon"></i>
+      <span id="themeText">Dark Mode</span>
     </div>
 
-    <script>
+    <div id="soundToggle" class="ui-btn" onclick="toggleMute()">
+      <i id="soundIcon" data-lucide="volume-2"></i>
+      <span id="soundText">Sound ON</span>
+    </div>
 
-      applyTheme(localStorage.getItem("theme") || "dark");
+  </div>
 
-      // ===== Restore last page =====
-      const last = localStorage.getItem("lastPage");
-      if (last && !window.location.pathname.includes("STMMain.html")) {
-          window.location.href = last;
-      }
+  <!-- ===== DETECTORS ===== -->
+  <div class="section-label">DETECTORS</div>
 
-      // ===== Status updater =====
-      async function updateStatus() {
-          try {
-              const res = await fetch("../json/stm.json" + window.location.search);
-              const data = await res.json();
+  <div class="status-container">
 
-              const statusBox = document.getElementById("statusBox");
+    <!-- ===== HPGe ===== -->
+    <div id="status_hpge" class="status-box hpge" onclick="location.href='STMHPGE.html'">
+      <div class="status-header">
+        <img src="../images/hpge.png" class="detector-icon">
+        <span class="detector-title">HPGe</span>
+      </div>
 
-              const badKeys = Object.entries(data.alarms)
-                    .filter(([k, v]) => v === true)
-                    .map(([k]) => k);
+      <div class="status-content">
+        <span class="status-text">Loading...</span>
+        <span class="sub-text"></span>
+      </div>
+    </div>
 
-              const hasAlarm = badKeys.length > 0;
+    <!-- ===== LaBr ===== -->
+    <div id="status_labr" class="status-box labr" onclick="location.href='STMLABR.html'">
+      <div class="status-header">
+        <img src="../images/labr.png" class="detector-icon">
+        <span class="detector-title">LaBr</span>
+      </div>
 
-              const time = new Date().toLocaleTimeString();
-              const run = data.run ?? getRun() ?? "N/A";
-              const spill = data.timing?.on_spill ? "ON SPILL" : "OFF SPILL";
-              
-              statusBox.classList.remove("ok", "bad");
+      <div class="status-content">
+        <span class="status-text">Loading...</span>
+        <span class="sub-text"></span>
+      </div>
+    </div>
 
-              if (hasAlarm) {
-                  statusBox.classList.add("bad");
-                  
-                  statusBox.innerHTML =
-                      `<i data-lucide="alert-triangle"></i>
-         <span class="status-text">Run ${run} | ${badKeys.join(", ")}</span>
-         <span class="time">(${time})</span>`;
-              } else {
-                  statusBox.classList.add("ok");
-                  
-                  statusBox.innerHTML =
-                      `<i data-lucide="check-circle"></i>
-         <span class="status-text">Run ${run} | System OK</span>
-         <span class="time">(${time})</span>`;
-              }              
+  </div>
 
-              lucide.createIcons();
-              
-          } catch (err) {
-              console.error(err);
+  <div class="hint">
+    Click a detector for detailed monitoring
+  </div>
 
-              const statusBox = document.getElementById("statusBox");
+</div>
 
-              const time = new Date().toLocaleTimeString();
-              
-              statusBox.classList.remove("ok");
-              statusBox.classList.add("bad");
+<script>
 
-              statusBox.innerHTML = `
+applyTheme(localStorage.getItem("theme") || "dark");
+
+// ===== Restore last page =====
+const last = localStorage.getItem("lastPage");
+if (last && !window.location.pathname.includes("STMMain.html")) {
+    window.location.href = last;
+}
+
+// ===== Core updater =====
+async function updateDetector(jsonPath, elementId, label) {
+    try {
+        const res = await fetch(jsonPath + "?_=" + Date.now());
+        const data = await res.json();
+
+        const box = document.getElementById(elementId);
+        const statusText = box.querySelector(".status-text");
+        const subText = box.querySelector(".sub-text");
+
+        const alarms = data.alarms || {};
+        const badKeys = Object.entries(alarms)
+            .filter(([_, v]) => v === true)
+            .map(([k]) => k);
+
+        const hasAlarm = badKeys.length > 0;
+
+        const run = data.run ?? "N/A";
+        const subrun = data.subrun ?? "N/A";
+
+        // ===== STALE CHECK =====
+        const now = Date.now() / 1000;
+        const age = now - (data.timestamp ?? 0);
+        const isStale = age > 3;
+
+        const time = new Date().toLocaleTimeString();
+
+        const spillEnd = data.spill?.end;
+        const spillText = spillEnd ? "ON SPILL" : "OFF SPILL";
+
+        box.classList.remove("ok", "bad");
+
+        if (isStale) {
+            box.classList.add("bad");
+
+            statusText.innerHTML = `
+                <i data-lucide="pause-circle"></i>
+                Run ${run}.${subrun} | STOPPED
+            `;
+
+        } else if (hasAlarm) {
+            box.classList.add("bad");
+
+            statusText.innerHTML = `
+                <i data-lucide="alert-triangle"></i>
+                Run ${run}.${subrun} | ${badKeys.join(", ")}
+            `;
+
+        } else {
+            box.classList.add("ok");
+
+            statusText.innerHTML = `
+                <i data-lucide="check-circle"></i>
+                Run ${run}.${subrun} | OK
+            `;
+        }
+
+        subText.innerHTML = `
+            ${spillText} &nbsp; | &nbsp; ${time} ${isStale ? "(stale)" : ""}
+        `;
+
+        lucide.createIcons();
+
+    } catch (err) {
+        console.error(err);
+
+        const box = document.getElementById(elementId);
+        const statusText = box.querySelector(".status-text");
+        const subText = box.querySelector(".sub-text");
+
+        box.classList.remove("ok");
+        box.classList.add("bad");
+
+        statusText.innerHTML = `
             <i data-lucide="alert-circle"></i>
-         <span class="status-text">Run ${run} | Data Error</span>
-         <span class="time">(${time})</span>`;
+            ${label} | Data Error
+        `;
 
-              lucide.createIcons();
-          }
-      }
+        subText.innerHTML = new Date().toLocaleTimeString();
 
-      // ===== Init =====
-      window.addEventListener("load", () => {
-          lucide.createIcons();
-          updateStatus();
-          setInterval(updateStatus, 1000);
-      });
+        lucide.createIcons();
+    }
+}
 
-      </script>
+// ===== Update both =====
+function updateAll() {
+    updateDetector("../json/stm_hpge.json", "status_hpge", "HPGe");
+    updateDetector("../json/stm_labr.json", "status_labr", "LaBr");
+}
 
-  </body>
+// ===== Init =====
+window.addEventListener("load", () => {
+    lucide.createIcons();
+    updateAll();
+    setInterval(updateAll, 1000);
+});
+
+</script>
+
+</body>
 </html>
