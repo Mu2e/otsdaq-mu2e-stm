@@ -1,16 +1,154 @@
 // ===== Query param forwarding =====
-const params = window.location.search;
+document.addEventListener("DQMContentLoaded", () => {
+    const params = window.location.search;
 
-if (params) {
-    document.querySelectorAll("a").forEach(link => {
-        link.href += params;
-    });
+    if (params) {
+        document.querySelectorAll("a").forEach(link => {
+            link.href += params;
+        });
+    }
+});
+
+// ===== GLOBAL THRESHOLDS =====
+const DQM_THRESHOLDS = {
+
+    timing: {
+        ewt_small_warn: 1,
+        ewt_small_bad: 10,
+
+        ewt_trans_warn: 1,
+        ewt_trans_bad: 10,
+
+        dtc_warn: 1,
+        dtc_bad: 2000,
+
+        adc_warn: 1,
+        adc_bad: 500
+    },
+
+    rate: {
+        min: 1
+    },
+
+    correlation: {
+        slope_min: 4000,
+        slope_max: 7000,
+        stability_warn: 500
+    },
+
+    integrity: {
+        no_events_warn: true,
+        stalled_bad: true
+    },
+
+    detector: {
+        chi2_warn: 5,
+        chi2_bad: 10,
+
+        peak_shift_warn: 5,
+        peak_shift_bad: 15
+    }
+
+};
+
+// ===== Data freshness (GLOBAL) =====
+function getDataAgeSeconds(data) {
+    if (!data || !data.timestamp) return Infinity;
+    return Date.now() / 1000 - data.timestamp;
 }
 
-// ===== Fetch JSON =====
-async function fetchSTM() {
-    const res = await fetch("../json/stm.json" + params);
+function isSystemStopped(data, timeoutSec = 3) {
+    return getDataAgeSeconds(data) > timeoutSec;
+}
+
+function getSystemState(data) {
+    if (!data) return "unknown";
+    if (isSystemStopped(data)) return "stopped";
+    if (getActiveAlarms(data).length > 0) return "alarm";
+    return "ok";
+}
+
+// ===== Detector =====
+function getDetectorHealth(data) {
+    const spec = data.spectrum ?? {};
+    const peaks = spec.peaks ?? [];
+    const cal = spec.calibration ?? {};
+    const chi2 = spec.chi2_ndf ?? 0;
+
+    const cs = peaks.find(p => p.name === "Cs137");
+
+    return {
+        calibration: cal.a ?? null,
+        resolution: spec.resolution?.A ?? null,
+        peakShift: cs ? Math.abs(cs.mean - 600) : null,
+        chi2: chi2,
+
+        states: {
+            calibration: (cal.a && Math.abs(cal.a - 1.1) > 0.1) ? "warn" : "ok",
+            peakShift: (cs && Math.abs(cs.mean - 600) > 5) ? "warn" : "ok",
+            chi2: chi2 > 2 ? "warn" : "ok"
+        }
+    };
+}
+
+// ===== Threshold helper =====
+function getState(val, warn, bad) {
+    if (val >= bad) return "bad";
+    if (val >= warn) return "warn";
+    return "ok";
+}
+
+// ===== Alarm severity =====
+function getAlarmSeverity(alarm) {
+
+    switch (alarm) {
+        case "clock_error":
+        case "correlation_error":
+            return "bad";
+
+        case "ewt_error":
+        case "transition_error":
+            return "warn";
+
+        case "cleared":
+            return "ok";
+    }
+
+    if (alarm.includes("clock") || alarm.includes("correlation")) return "bad";
+    if (alarm.includes("ewt") || alarm.includes("transition")) return "warn";
+
+    return "ok";
+}
+
+// ===== Detector detection =====
+function getDetector() {
+    if (window.location.pathname.toLowerCase().includes("labr")) return "labr";
+    return "hpge";
+}
+
+// ===== JSON path (auto depth-safe) =====
+function getJSONPath(detector) {
+    const path = window.location.pathname.toLowerCase();
+
+    if (path.includes("/hpge/") || path.includes("/labr/")) {
+        return `../../json/stm_${detector}.json`;
+    }
+
+    return `../json/stm_${detector}.json`;
+}
+
+// ===== Fetch JSON (cache-safe) =====
+async function fetchSTM(detector = getDetector()) {
+    const path = getJSONPath(detector);
+    const res = await fetch(path + "?_=" + Date.now());
     return await res.json();
+}
+
+// ===== Alarm helper =====
+function getActiveAlarms(data) {
+    return Object.entries(data.alarms || {})
+        .filter(([_, v]) => v === true)
+        .map(([k]) => k);
 }
 
 // ===== Card helper =====
@@ -21,6 +159,8 @@ function setCard(id, value, state="ok") {
     const card = el.closest(".card");
 
     el.textContent = value;
+
+    if (!card) return;
 
     card.classList.remove("ok", "warn", "bad");
     card.classList.add(state);
@@ -57,15 +197,24 @@ function checkRunChange(newRun) {
     return false;
 }
 
+function getBasePath() {
+    const path = window.location.pathname.toLowerCase();
+
+    if (path.includes("/hpge/") || path.includes("/labr/")) {
+        return "../../";
+    }
+
+    return "../";
+}
+
 // ===== Alarm audio =====
-const alarmAudio = new Audio("../audio/alarm.mp3");
+const alarmAudio = new Audio(getBasePath() + "audio/alarm.mp3");
 alarmAudio.loop = true;
 
 let alarmActive = false;
 let muted = localStorage.getItem("alarmMuted") === "true";
 
 // ===== Alarm control =====
-
 function playAlarm() {
     if (muted) return;
 
@@ -85,11 +234,10 @@ function stopAlarm() {
 }
 
 // ===== Alarm logs =====
-
 function logAlarms(data) {
 
-    const alarms = data.alarms;
-    const ewt    = data.timing?.ewt ?? null;
+    const alarms = data.alarms || {};
+    const ewt    = data.window?.last_ewt ?? null;
 
     let history = JSON.parse(localStorage.getItem("alarmHistory") || "[]");
     let prev    = JSON.parse(localStorage.getItem("lastAlarms") || "{}");
@@ -104,12 +252,12 @@ function logAlarms(data) {
                 alarm: key,
                 time: now,
                 ewt: ewt,
-                run: data.run ?? null
+                run: data.run ?? null,
+                detector: getDetector()
             });
         }
     }
 
-    // Limit size
     if (history.length > 500) {
         history = history.slice(history.length - 500);
     }
@@ -119,13 +267,24 @@ function logAlarms(data) {
 }
 
 // ===== Alarm helpers =====
-
 function formatAlarm(name) {
-    return name
+
+    const map = {
+        ewt_error: "EWT Error",
+        transition_error: "Spill Transition Error",
+        clock_error: "Clock Drift",
+        correlation_error: "Timing Correlation",
+        cleared: "Cleared"
+    };
+
+    let label = map[name] || name
         .replace(/_/g, " ")
         .replace(/\b\w/g, c => c.toUpperCase());
+
+    return label;
 }
 
+// ===== Sound UI =====
 function toggleMute() {
     muted = !muted;
     localStorage.setItem("alarmMuted", muted);
@@ -157,13 +316,14 @@ function updateSoundUI() {
     lucide.createIcons();
 }
 
+// ===== Theme =====
 function updateThemeUI() {
     const icon = document.getElementById("themeIcon");
     const text = document.getElementById("themeText");
 
     if (!icon || !text) return;
 
-    const isLight = document.body.classList.contains("light");
+    const isLight = document.documentElement.classList.contains("light");
 
     if (isLight) {
         icon.setAttribute("data-lucide", "sun");
@@ -177,17 +337,21 @@ function updateThemeUI() {
 }
 
 function applyTheme(theme) {
+    const root = document.documentElement;
+
     if (theme === "light") {
-        document.body.classList.add("light");
+        root.classList.add("light");
     } else {
-        document.body.classList.remove("light");
+        root.classList.remove("light");
     }
 }
 
 function toggleTheme() {
-    document.body.classList.toggle("light");
+    const root = document.documentElement;
 
-    const isLight = document.body.classList.contains("light");
+    root.classList.toggle("light");
+
+    const isLight = root.classList.contains("light");
     localStorage.setItem("theme", isLight ? "light" : "dark");
 
     if (window.charts) {
@@ -197,6 +361,7 @@ function toggleTheme() {
     updateThemeUI();
 }
 
+// ===== Alarm rendering =====
 function renderAlarms(containerId, alarms, keys) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -205,8 +370,7 @@ function renderAlarms(containerId, alarms, keys) {
 
     for (const key of keys) {
         const val = alarms[key];
-        const cls = val ? "bad" : "ok";
-
+        const cls = val ? getAlarmSeverity(key) : "ok";
         const icon = val ? "alert-triangle" : "check-circle";
 
         html += `
@@ -222,32 +386,40 @@ function renderAlarms(containerId, alarms, keys) {
     lucide.createIcons();
 }
 
-// ===== Banner updater =====
+// ===== Banner updater (UPDATED) =====
 function updateBanner(data) {
     const banner = document.getElementById("banner");
     if (!banner) return;
 
-    const alarms = data.alarms;
+    const stopped = isSystemStopped(data);
 
-    const badKeys = Object.entries(alarms)
-        .filter(([k, v]) => v === true)
-        .map(([k]) => formatAlarm(k));
+    if (stopped) {
+        banner.classList.remove("ok", "bad");
+        banner.classList.add("warn");
 
+        banner.innerHTML = `
+            <i data-lucide="pause-circle"></i>
+            DATA STOPPED | Last update ${Math.floor(getDataAgeSeconds(data))}s ago
+        `;
+
+        stopAlarm();
+        lucide.createIcons();
+        return;
+    }
+
+    const badKeys = getActiveAlarms(data);
     const hasAlarm = badKeys.length > 0;
 
-    // ===== Run =====
     if (data.run !== undefined) {
         setRun(data.run);
     }
     const run = data.run ?? getRun() ?? "N/A";
+    const subrun = data.subrun ?? "N/A";
 
-    // ===== Spill =====
-    const isOnSpill = data.timing?.on_spill;
-
+    const isOnSpill = data.spill?.end ?? false;
     const spillText = isOnSpill ? "ON SPILL" : "OFF SPILL";
     const spillClass = isOnSpill ? "spill-on" : "spill-off";
 
-    // ===== Time =====
     const time = new Date().toLocaleTimeString();
 
     banner.classList.remove("ok", "bad");
@@ -257,18 +429,17 @@ function updateBanner(data) {
 
         banner.innerHTML = `
             <i data-lucide="alert-triangle"></i>
-            Run ${run} | <span class="${spillClass}">${spillText}</span> | ${badKeys.join(" | ")} 
+            Run ${run}.${subrun} | <span class="${spillClass}">${spillText}</span> | ${badKeys.map(formatAlarm).join(" | ")}
             <span class="time">(${time})</span>
         `;
 
         playAlarm();
-
     } else {
         banner.classList.add("ok");
 
         banner.innerHTML = `
             <i data-lucide="check-circle"></i>
-            Run ${run} | <span class="${spillClass}">${spillText}</span> | System OK 
+            Run ${run}.${subrun} | <span class="${spillClass}">${spillText}</span> | System OK
             <span class="time">(${time})</span>
         `;
 
@@ -281,21 +452,13 @@ function updateBanner(data) {
     lucide.createIcons();
 }
 
-// ===== Timestamp updater =====
+// ===== Timestamp =====
 function updateTimestamp() {
     const el = document.getElementById("lastUpdate");
     if (!el) return;
 
-    const now = new Date();
-    el.textContent = "Last update: " + now.toLocaleTimeString();
+    el.textContent = "Last update: " + new Date().toLocaleTimeString();
 }
-
-// ===== Intialise =====
-
-(function () {
-    const saved = localStorage.getItem("theme") || "dark";
-    applyTheme(saved);
-})();
 
 window.addEventListener("load", () => {
 
@@ -310,4 +473,3 @@ window.addEventListener("load", () => {
 
     lucide.createIcons();
 });
-

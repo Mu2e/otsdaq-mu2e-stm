@@ -1,0 +1,319 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <title>STM DQM - LaBr Trends</title>
+
+  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+  <link href="../../css/stm_layout.css" rel="stylesheet">
+  <link href="../../css/stm_dqm.css" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../js/stm_dqm.js"></script>
+
+  <script>
+  (function() {
+    const theme = localStorage.getItem("theme") || "dark";
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    }
+  })();
+</script>
+
+</head>
+
+<body>
+
+<div id="banner" class="banner ok">System OK</div>
+
+<div class="sidebar">
+  <h2>LaBr DQM</h2>
+
+  <div class="nav">
+
+    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+      <i id="themeIcon" data-lucide="moon"></i>
+      <span id="themeText">Dark Mode</span>
+    </div>
+
+    <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+      <i id="soundIcon" data-lucide="volume-2"></i>
+      <span id="soundText">Sound ON</span>
+    </div>
+
+    <a class="home-link" href="../STMMain.html">
+      <i data-lucide="home"></i> Home
+    </a>
+
+    <a href="../STMHPGE.html">
+      <i data-lucide="repeat"></i> Switch to HPGe
+    </a>
+
+    <a href="STMOverview.html">Overview</a>
+    <a class="active" href="STMTrends.html">Trends</a>
+    <a href="STMTiming.html">Timing</a>
+    <a href="STMCorrelation.html">Correlation</a>
+    <a href="STMIntegrity.html">Integrity</a>
+    <a href="STMAlarms.html">Alarms</a>
+
+    <div class="sec-label">SPECTRA</div>
+
+    <a href="STMSpectra.html">
+      <i data-lucide="activity"></i> Spectrum
+    </a>
+
+  </div>
+</div>
+
+<div class="main">
+
+  <h1>Trends</h1>
+
+  <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+    Updating...
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3 id="eventTitle">Event Rate</h3>
+      <canvas id="eventChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3 id="ewtTitle">EWT Small Jumps</h3>
+      <canvas id="ewtChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3 id="dtcTitle">DTC Jumps</h3>
+      <canvas id="dtcChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3 id="adcTitle">ADC Jumps</h3>
+      <canvas id="adcChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Calibration (a)</h3>
+      <canvas id="calChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Cs137 Peak Position</h3>
+      <canvas id="peakChart"></canvas>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+
+// ===== Config =====
+const MAX_POINTS = 100;
+const UPDATE_INTERVAL_MS = 1000;
+
+// ===== Buffers =====
+let labels = [];
+let eventData = [];
+let ewtData = [];
+let dtcData = [];
+let adcData = [];
+let calData = [];
+let peakData = [];
+
+// ===== Reset on run change =====
+function handleRunReset(run) {
+    if (checkRunChange(run)) {
+        labels = [];
+        eventData = [];
+        ewtData = [];
+        dtcData = [];
+        adcData = [];
+        calData = [];
+        peakData = [];
+    }
+}
+
+// ===== Theme =====
+function isLightMode() {
+    return document.documentElement.classList.contains("light");
+}
+
+function getThemeColors() {
+    const isLight = isLightMode();
+
+    return {
+        grid: isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.25)",
+        text: isLight ? "#222" : "#ddd",
+        ok:  isLight ? "#065f46" : "#00ffaa",
+        warn: "#ffcc00",
+        bad: isLight ? "#b91c1c" : "#ff5252"
+    };
+}
+
+// ===== State → Color =====
+function stateToColor(state, theme) {
+    if (state === "bad") return theme.bad;
+    if (state === "warn") return theme.warn;
+    return theme.ok;
+}
+
+// ===== Titles =====
+function updatePlotTitles() {
+    const seconds = Math.round((MAX_POINTS * UPDATE_INTERVAL_MS) / 1000);
+    const label = seconds >= 60
+        ? `(last ${(seconds / 60).toFixed(1)} min)`
+        : `(last ${seconds}s)`;
+
+    document.getElementById("eventTitle").textContent = `Event Rate ${label}`;
+    document.getElementById("ewtTitle").textContent   = `EWT Small Jumps ${label}`;
+    document.getElementById("dtcTitle").textContent   = `DTC Jumps ${label}`;
+    document.getElementById("adcTitle").textContent   = `ADC Jumps ${label}`;
+}
+
+// ===== Chart builder =====
+function makeChart(ctx) {
+    const theme = getThemeColors();
+
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                borderWidth: 2.5,
+                tension: 0.2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            scales: {
+                x: { display: false, grid: { color: theme.grid } },
+                y: {
+                    beginAtZero: false,
+                    grid: { color: theme.grid },
+                    ticks: { color: theme.text }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// ===== Charts =====
+const eventChart = makeChart(document.getElementById('eventChart'));
+const ewtChart   = makeChart(document.getElementById('ewtChart'));
+const dtcChart   = makeChart(document.getElementById('dtcChart'));
+const adcChart   = makeChart(document.getElementById('adcChart'));
+const calChart   = makeChart(document.getElementById('calChart'));
+const peakChart  = makeChart(document.getElementById('peakChart'));
+
+window.charts = [eventChart, ewtChart, dtcChart, adcChart, calChart, peakChart];
+
+function updateChart(chart, values, color) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = values;
+    chart.data.datasets[0].borderColor = color;
+    chart.update();
+}
+
+// ===== Update =====
+async function update() {
+    try {
+        const data = await fetchSTM();
+
+        handleRunReset(data.run);
+
+        const T = DQM_THRESHOLDS.timing;
+        const R = DQM_THRESHOLDS.rate;
+
+        const t = new Date().toLocaleTimeString();
+
+        const events = data.window?.events ?? 0;
+        const rate = events / 0.5;
+
+        const ewt = data.timing?.ewt_small_jumps ?? 0;
+        const dtc = data.timing?.dtc_jumps ?? 0;
+        const adc = data.timing?.adc_jumps ?? 0;
+
+        const cal = data.spectrum?.calibration?.a ?? null;
+        const cs = data.spectrum?.peaks?.find(p => p.name === "Cs137");
+
+        labels.push(t);
+        eventData.push(rate);
+        ewtData.push(ewt);
+        dtcData.push(dtc);
+        adcData.push(adc);
+        calData.push(cal);
+        peakData.push(cs ? cs.mean : null);
+
+        if (labels.length > MAX_POINTS) {
+            labels.shift();
+            eventData.shift();
+            ewtData.shift();
+            dtcData.shift();
+            adcData.shift();
+            calData.shift();
+            peakData.shift();
+        }
+
+        const theme = getThemeColors();
+
+        // ===== Unified states =====
+        let rateState = "ok";
+        if (rate === 0) rateState = "bad";
+        else if (rate < R.min) rateState = "warn";
+
+        const ewtState = getState(ewt, T.ewt_small_warn, T.ewt_small_bad);
+        const dtcState = getState(dtc, T.dtc_warn, T.dtc_bad);
+        const adcState = getState(adc, T.adc_warn, T.adc_bad);
+
+        // ===== Charts =====
+        updateChart(eventChart, eventData, stateToColor(rateState, theme));
+        updateChart(ewtChart, ewtData, stateToColor(ewtState, theme));
+        updateChart(dtcChart, dtcData, stateToColor(dtcState, theme));
+        updateChart(adcChart, adcData, stateToColor(adcState, theme));
+
+        // Detector stability (no thresholds yet)
+        updateChart(calChart, calData, theme.ok);
+        updateChart(peakChart, peakData, theme.ok);
+
+        updateBanner(data);
+
+        document.getElementById("lastUpdate").textContent =
+          `Run ${data.run} | Subrun ${data.subrun} | ` +
+          new Date(data.timestamp * 1000).toLocaleTimeString();
+
+    } catch (err) {
+        console.error(err);
+
+        const banner = document.getElementById("banner");
+        banner.classList.remove("ok");
+        banner.classList.add("bad");
+        banner.textContent = "DATA ERROR";
+    }
+}
+
+window.addEventListener("load", () => {
+    lucide.createIcons();
+    updatePlotTitles();
+});
+
+setInterval(update, UPDATE_INTERVAL_MS);
+update();
+
+</script>
+
+</body>
+</html>

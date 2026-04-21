@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>STM DQM - HPGe</title>
+
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="../css/stm_main.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>  
+
+    <script>
+      (function() {
+          const theme = localStorage.getItem("theme") || "dark";
+          if (theme === "light") {
+              document.documentElement.classList.add("light");
+          }
+      })();
+    </script>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <!-- ===== Top Nav ===== -->
+      <div class="menu">
+
+        <div class="ui-btn" onclick="location.href='STMMain.html'">
+          <i data-lucide="home"></i>
+          <span>Home</span>
+        </div>
+
+        <div class="ui-btn" onclick="location.href='STMLABR.html'">
+          <i data-lucide="repeat"></i>
+          <span>Switch to LaBr</span>
+        </div>
+
+      </div>
+
+      <!-- ===== Title ===== -->
+      <h1>HPGe Detector</h1>
+
+      <!-- ===== Status ===== -->
+      <div id="statusBox" class="status-box ok">
+        <i data-lucide="check-circle"></i>
+        <span>Loading...</span>
+      </div>
+
+      <!-- ===== UI ===== -->
+      <div class="section-label">UI</div>
+      <div class="ui-controls">
+
+        <div id="themeToggle" class="ui-btn" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
+
+        <div id="soundToggle" class="ui-btn" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
+
+      </div>
+
+      <!-- ===== Monitoring ===== -->
+      <div class="section-label">MONITORING</div>
+      <div class="menu">
+        <a class="btn" href="HPGE/STMOverview.html">Overview</a>
+        <a class="btn" href="HPGE/STMTrends.html">Trends</a>
+        <a class="btn" href="HPGE/STMTiming.html">Timing</a>
+        <a class="btn" href="HPGE/STMCorrelation.html">Correlation</a>
+        <a class="btn" href="HPGE/STMIntegrity.html">Integrity</a>
+        <a class="btn" href="HPGE/STMAlarms.html">Alarms</a>
+      </div>
+
+      <!-- ===== Spectra ===== -->
+      <div class="section-label">SPECTRA</div>
+      <div class="menu">
+        <a class="btn" href="HPGE/STMSpectra.html">
+          <i data-lucide="activity"></i> Spectrum
+        </a>
+      </div>
+
+      <div class="hint">
+        HPGe real-time monitoring
+      </div>
+
+    </div>
+
+    <script>
+
+      const DETECTOR = "hpge";
+      const BASE_PATH = window.location.pathname.includes("/HPGE/") ? "../../" : "../";
+      const JSON_PATH = `${BASE_PATH}json/stm_${DETECTOR}.json`;
+
+      // ===== Status updater =====
+      async function updateStatus() {
+          try {
+              const res = await fetch(JSON_PATH + "?_=" + Date.now());
+              const data = await res.json();
+
+              const statusBox = document.getElementById("statusBox");
+
+              const badKeys = Object.entries(data.alarms || {})
+                    .filter(([_, v]) => v === true)
+                    .map(([k]) => k);
+
+              const hasAlarm = badKeys.length > 0;
+
+              // ===== NEW: stale detection =====
+              const now = Date.now() / 1000;
+              const stale = !data.timestamp || (now - data.timestamp > 3);
+
+              const time = new Date().toLocaleTimeString();
+              const run = data.run ?? "N/A";
+              const subrun = data.subrun ?? "N/A";
+              const spill = data.spill?.end ? "ON SPILL" : "OFF SPILL";
+
+              statusBox.classList.remove("ok", "bad", "warn");
+
+              if (stale) {
+                  statusBox.classList.add("warn");
+
+                  statusBox.innerHTML = `
+                    <i data-lucide="pause-circle"></i>
+                    <span>Run ${run}.${subrun} | DATA STOPPED</span>
+                    <span class="time">(${spill} | ${time})</span>`;
+
+              } else if (hasAlarm) {
+                  statusBox.classList.add("bad");
+
+                  statusBox.innerHTML = `
+                    <i data-lucide="alert-triangle"></i>
+                    <span>Run ${run}.${subrun} | ${badKeys.join(", ")}</span>
+                    <span class="time">(${spill} | ${time})</span>`;
+
+              } else {
+                  statusBox.classList.add("ok");
+
+                  statusBox.innerHTML = `
+                    <i data-lucide="check-circle"></i>
+                    <span>Run ${run}.${subrun} | OK</span>
+                    <span class="time">(${spill} | ${time})</span>`;
+              }
+
+              lucide.createIcons();
+
+          } catch (err) {
+              console.error(err);
+
+              const statusBox = document.getElementById("statusBox");
+
+              statusBox.classList.remove("ok");
+              statusBox.classList.add("bad");
+
+              statusBox.innerHTML = `
+                <i data-lucide="alert-circle"></i>
+                <span>Data Error</span>`;
+
+              lucide.createIcons();
+          }
+      }
+
+      // ===== Init =====
+      window.addEventListener("load", () => {
+          lucide.createIcons();
+          updateStatus();
+          setInterval(updateStatus, 1000);
+      });
+
+    </script>
+
+  </body>
+</html>

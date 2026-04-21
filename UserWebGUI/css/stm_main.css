@@ -1,3 +1,5 @@
+/* === stm_main.css === */
+
 /* ===== Base ===== */
 body {
     margin: 0;
@@ -12,7 +14,8 @@ body {
 }
 
 /* ===== Light mode ===== */
-body.light {
+.light,
+.light body {
     background: #f5f5f5;
     color: #111;
 }
@@ -20,7 +23,7 @@ body.light {
 /* ===== Container ===== */
 .container {
     text-align: center;
-    width: 380px;
+    width: 420px; /* slightly wider for 2 panels */
 }
 
 /* ===== Logos ===== */
@@ -46,34 +49,83 @@ h1 {
     margin: 20px 0 15px 0;
 }
 
-/* ===== Status ===== */
-.status-box {
-    margin-bottom: 15px;
-    padding: 10px;
-
+/* ===== STATUS CONTAINER (NEW) ===== */
+.status-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
+}
 
-    border-radius: 6px;
+/* ===== Status Box ===== */
+.status-box {
+    padding: 12px;
+    border-radius: 8px;
+
     border: 1px solid #333;
     background: #1a1a1a;
 
     font-family: Inconsolata, monospace;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
+.status-box:hover {
+    transform: scale(1.02);
+}
+
+/* ===== Detector Colour Accents ===== */
+.status-box.hpge {
+    border-left: 5px solid #4da3ff;
+}
+
+.status-box.labr {
+    border-left: 5px solid #ff9f4d;
+}
+
+/* ===== Alarm States ===== */
 .status-box.ok { color: #4caf50; }
 .status-box.bad { color: #f44336; }
 
-.status-box .time {
-    opacity: 1.0;
-    font-size: 14px;
-    margin-left: 6px;
+/* ===== Header (icon + name) ===== */
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
-/* Light override */
-body.light .status-box {
+.detector-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.detector-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ===== Content ===== */
+.status-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.sub-text {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* ===== Light override ===== */
+.light .status-box {
     background: #fff;
     border-color: #ccc;
 }
@@ -103,7 +155,7 @@ body.light .status-box {
     background: #2a2a2a;
 }
 
-/* ACTIVE (neon like your other pages) */
+/* ACTIVE */
 .ui-btn.active {
     border-color: #00ffaa;
     color: #00ffaa;
@@ -116,7 +168,7 @@ body.light .status-box {
 }
 
 /* Light */
-body.light .ui-btn {
+.light .ui-btn {
     background: #fff;
     color: #111;
     border-color: #ccc;
@@ -144,12 +196,13 @@ body.light .ui-btn {
 }
 
 /* Light */
-body.light .btn {
+.light .btn {
     background: #fff;
     color: #111;
     border-color: #ccc;
 }
 
+/* ===== Labels ===== */
 .section-label {
     margin-top: 15px;
     font-size: 12px;
@@ -162,7 +215,7 @@ body.light .btn {
     opacity: 0.5;
 }
 
-/* Icons */
+/* ===== Icons ===== */
 i[data-lucide] {
     width: 18px;
     height: 18px;
