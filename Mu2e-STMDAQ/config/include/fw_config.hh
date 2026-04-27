@@ -32,6 +32,7 @@ struct python_scripts{
   const std::pair<std::string,std::string> adc_temp; // Check adc temperature script & return variable
   const std::pair<std::string,std::string> reset_readout; // Reset readout script
   const std::pair<std::string,std::string> dtc_sim; // DTC simulation script
+  const std::pair<std::string,std::string> dtc_set_real; // DTC set real script
   // Constructor 
   python_scripts(std::string pybind_,
                  std::string pybind_func_,
@@ -44,14 +45,16 @@ struct python_scripts{
                  std::string adc_temp_,
                  std::string adc_temp_var_,
                  std::string reset_readout_,
-                 std::string dtc_sim_)
+                 std::string dtc_sim_,
+		 std::string dtc_set_real_)
     : pybind(pybind_,pybind_func_)
     , check_fpga(check_fpga_,check_fpga_var_)
     , check_adc(check_adc_,check_adc_var_)
     , init_adc(init_adc_,init_adc_var_)
     , adc_temp(adc_temp_,adc_temp_var_)
     , reset_readout(reset_readout_,"")
-    , dtc_sim(dtc_sim_,"") {}
+    , dtc_sim(dtc_sim_,"")
+    , dtc_set_real(dtc_set_real_,"") {}
   // Get all python scripts as tuple
   auto as_tuple() const {
     return std::tie(
@@ -61,7 +64,8 @@ struct python_scripts{
                     init_adc,
                     adc_temp,
                     reset_readout,
-                    dtc_sim
+                    dtc_sim,
+		    dtc_set_real
                     );
   }
 };
@@ -103,7 +107,8 @@ struct fw_info{
            cfg.getValue<std::string>("stm.fw.python.adc_temp"),
            cfg.getValue<std::string>("stm.fw.python.adc_temp.retvar"),
            cfg.getValue<std::string>("stm.fw.python.reset_readout"),
-           cfg.getValue<std::string>("stm.fw.python.dtc_sim")           
+           cfg.getValue<std::string>("stm.fw.python.dtc_sim"),
+           cfg.getValue<std::string>("stm.fw.python.dtc_set_real")           
            ),
     load_fw(cfg.getValue<std::string>("stm.fw.load_fw.script"),
            cfg.getValue<std::string>("stm.fw.load_fw.petalinux_user"),
@@ -142,7 +147,7 @@ struct fw_info{
                   load_fw.bitfile + ".",1);
       std::string ON = "ON";
       std::string OFF = "OFF";
-      logger->log("Config:fw_info: Data source: DTC Simulation = " + (use_dtc_sim ? ON : OFF) + ".",1);                 
+      logger->log("Config:fw_info: Data source: DTC Simulation = " + (use_dtc_sim ? ON : OFF) + ".",1);
 
     }
   }
