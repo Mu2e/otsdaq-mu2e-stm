@@ -72,7 +72,7 @@ public:
   void LogToFile(string fileName_);
   void CloseLogFile();
 
-  void initSHM(unsigned int max_shm_alarms);
+  void initSHM(bool make_shm, unsigned int max_shm_alarms);
   void logToSHM(unsigned int level_, const std::string & message_);
 
   void enableCriticalErrorThrow() { _throwCriticalErrors = true; }
