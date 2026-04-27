@@ -143,13 +143,19 @@ baseline_fit Baseline::EM_algorithm(const std::vector<uint64_t>& hist_counts,
   // ADC value at mode (baseline mean guess)
   const double mu0_init = hist_bin_centres[mode_bin];
   // Baseline mean + 1*sigma (clean side)
-  const double p84= hist_percentile(hist_counts,total_hist_counts,0.84);
+  //const double p84= hist_percentile(hist_counts,total_hist_counts,0.84);
   // Baseline sigma guess
-  double sigma0_init = std::max(1e-3, p84 - mu0_init);
+  //double sigma0_init = std::max(1e-3, p84 - mu0_init);
   // Ensure sigma is > 0
-  if (!(sigma0_init > 0.0)){
-      sigma0_init = std::max(1.0, (max_adc - min_adc) / (2.0 * nbins));
-  }
+  //if (!(sigma0_init > 0.0)){
+  //    sigma0_init = std::max(1.0, (max_adc - min_adc) / (2.0 * nbins));
+  //}
+
+  // Find ADC value when the gaussian side has dropped to 
+  // 60.7% of the mode height (e^-1/2)
+  const double frac_of_mode = mode_fraction(hist_counts, mode_bin, 0.607);
+  // Baseline sigma guess
+  double sigma0_init = frac_of_mode - mu0_init;
     
   // Guess mixture weights 
   double w0 = 0.6; // baseline weight
@@ -347,4 +353,36 @@ double Baseline::hist_percentile(const std::vector<uint64_t>& hist_counts,
 
 }
 
+double Baseline::mode_fraction(const std::vector<uint64_t>& hist_counts,
+                                 const uint64_t mode_bin, const double frac) {
 
+  // Get the target value for fraction of the mode
+  const double target = hist_counts[mode_bin] * frac;
+
+  // Hist counts
+  double c_curr;
+  double c_prev = 0;
+
+  // Loop through bins from low to high ADC values
+  for (int i = mode_bin+1; i < nbins; ++i) {
+
+    // Get bin count 
+    c_curr = static_cast<double>(hist_counts[i]);
+
+    // If below target
+    if (c_curr <= target) {
+
+      // Linear interpolation
+      double interp = (c_prev - target) / (c_prev - c_curr);
+
+      return hist_bin_centres[i-1] + interp * width;
+    } 
+    
+    // Store as prev
+    c_prev = c_curr;
+  }
+
+  // Return the center of the last bin as a fallback.
+  return hist_bin_centres.back();
+
+}

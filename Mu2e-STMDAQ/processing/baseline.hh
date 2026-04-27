@@ -121,6 +121,10 @@ public:
                          const uint64_t total_hist_counts,
                          const double p01);
 
+  // Estimate fraction of mode position from histogram 
+  double mode_fraction(const std::vector<uint64_t>& hist_counts,
+                         const uint64_t mode_bin,
+                         const double frac);
 };
 
 #endif
