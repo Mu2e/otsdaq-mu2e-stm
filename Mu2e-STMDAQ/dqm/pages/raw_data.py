@@ -40,7 +40,7 @@ def layout():
 
         # Timer to trigger polling shared memory
         # Poll slower to avoid callback overlap (650 ms read latency => 2000 ms interval)
-        dcc.Interval(id="raw-interval-component", interval=10000, n_intervals=0),
+        dcc.Interval(id="raw-interval-component", interval=1000, n_intervals=0),
     ])
 
 

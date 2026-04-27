@@ -89,13 +89,14 @@ def read_alarms(time_dict):
         if level == 0: 
             level_colour = "red"
         elif level == 2:
-            level_colour = "orange"
+            continue
+            #level_colour = "orange"
 
         # Create the notif dict
         new_alert = {"message" : f"{alarm_str}",
                     "color" : f"{level_colour}",
-                    "action" : "show",
-                    "autoClose" : 5000
+                    "action" : "show"
+                    #"autoClose" : 5000
                     }
 
         # Add to notif array
