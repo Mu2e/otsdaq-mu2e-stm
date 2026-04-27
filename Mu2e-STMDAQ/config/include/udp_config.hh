@@ -25,6 +25,9 @@ struct udp_info{
 
   // The poll timout
   const int poll_timeout_ms; // milliseconds
+
+
+  const int idle_timeout_ms;
   
   // Constructor
   udp_info(Config& cfg,
@@ -37,7 +40,8 @@ struct udp_info{
     snd_port(cfg.getValue<int>(channel+"sw.port")), // Receiving port
     recv_timeout_s(cfg.getValue<int>("stm.udp.recv_timeout_secs")), // recvmmsg timeout (s)
     recv_timeout_us(cfg.getValue<int>("stm.udp.recv_timeout_usecs")), // recvmmsg timeout (us)
-    poll_timeout_ms(cfg.getValue<int>("stm.udp.poll_timeout_ms")) // poll timeout (ms)
+    poll_timeout_ms(cfg.getValue<int>("stm.udp.poll_timeout_ms")), // poll timeout (ms)
+    idle_timeout_ms(cfg.getValue<int>("stm.udp.idle_timeout_ms")) // idle timeout (ms)
   {
     
     // Notify user

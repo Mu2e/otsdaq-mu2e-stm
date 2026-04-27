@@ -103,8 +103,13 @@ private:
   // Timing
   std::chrono::duration<double> wait_time;
   std::chrono::time_point<std::chrono::high_resolution_clock> start_wait =
-    std::chrono::high_resolution_clock::now();
+  std::chrono::high_resolution_clock::now();
   std::chrono::time_point<std::chrono::high_resolution_clock> end_wait = start_wait;
+
+  const size_t idle_timeout_ms;
+  std::chrono::steady_clock::time_point last_recv_time;
+  bool idle_timeout_logged = false;
+
 
   std::atomic<double> wait_secs{0.0};
   void add_wait(std::chrono::duration<double> delta){
