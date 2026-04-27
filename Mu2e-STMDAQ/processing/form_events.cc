@@ -201,7 +201,7 @@ int FormEvents::store_event(std::shared_ptr<DataStruct>& buffer, size_t& adc_cou
   if (current_event_count != current_event_len){
     logger->log("FormEvents: Error: Event " +
                 std::to_string(current_EWT) +
-                " has accumulated legnth of " +
+                " has accumulated length of " +
                 std::to_string(current_event_count) +
                 " ADC values but expected " +
                 std::to_string(current_event_len) +
