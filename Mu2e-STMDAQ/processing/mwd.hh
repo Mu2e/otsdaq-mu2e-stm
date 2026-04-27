@@ -51,6 +51,7 @@ private:
   // Peak finding
   const double peak_init; // The initial minimum value for the peak
   EWT_info* peak_EWT = nullptr; // EWT of peak candidate minimum
+  size_t peak_EWT_idx = 0; // EWT of peak candidate minimum
   double peak_height; // The current minimum value for the peak
   double peak_time; // Time of peak candidate minimum
   int peak_zs_start; // The start of the peak zs window
@@ -60,6 +61,8 @@ private:
   const double nsigma_cut; // Dynamic cut: number of sigma below baseline     
   double prev_avg = 0.0; // Prev averaged value
   uint64_t pf_index = 0; // Peak finding index   
+  bool peak_in_prev_buffer = false; // Signal if peak region starts in prev buffer
+  uint64_t prev_buffer_EWT_idx = 0; // To store EWT ID from prev buffer 
   
   // Incrementing peak counter (all run)
   size_t peak_count_all = 0;
@@ -95,7 +98,10 @@ public:
   void averaging(std::shared_ptr<DataStruct>& buffer);
 
   // Find peaks in data
-  void find_peaks(std::shared_ptr<DataStruct>& buffer);
+  //  void find_peaks(std::shared_ptr<DataStruct>& buffer);
+  void find_peaks(std::shared_ptr<DataStruct>& buffer,
+                  std::shared_ptr<DataStruct>& prev_buffer);
+
   
 };
 

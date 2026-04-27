@@ -29,8 +29,9 @@ MWD::MWD(const std::shared_ptr<AsyncLogger>& logger_,
   register_operation("deconv", [this](auto& b){ deconvolution(b); });
   register_operation("diff", [this](auto& b){ differentiation(b); });
   register_operation("averaging", [this](auto& b){ averaging(b); });
-  register_operation("find_peaks", [this](auto& b){ find_peaks(b); });
-
+  //  register_operation("find_peaks", [this](auto& b){ find_peaks(b); });
+  register_operation("find_peaks", [this](auto& b, auto& prev){ find_peaks(b, prev); });
+  
 }
 
 
@@ -88,9 +89,6 @@ void MWD::deconvolution(std::shared_ptr<DataStruct>& buffer) {
   // The adc length
   size_t n = buffer->raw_len;
 
-  // Define a pointer to the raw data buffer
-  int16_t* data_ptr = buffer->raw.data();
- 
   // Define a pointer to the pulse height data buffer
   double* ph_ptr = buffer->ph.data();
 
@@ -98,7 +96,7 @@ void MWD::deconvolution(std::shared_ptr<DataStruct>& buffer) {
   for (size_t i = 0; i < n; ++i) {
     
     // Cast the value as a double
-    const double data_i = static_cast<double>(data_ptr[i]);
+    const double data_i = static_cast<double>(ph_ptr[i]);
     
     // Deconvolution: ai = data[i] - (1 - (T0/tau)) * data[i-1] + a[i-1]
     const double ai = data_i - tau_norm * prev_sample + prev_a;
@@ -191,11 +189,12 @@ void MWD::averaging(std::shared_ptr<DataStruct>& buffer) {
       val = s * inv_L;
     }
 
+    // Save current D[i] into ring buffer for moving sum
+    D_ptr[l_index] = Di;
+    
     // Store averaged value back into ph
     *p = val;
 
-    // Save current D[i] into ring buffer for moving sum
-    D_ptr[l_index] = Di;
   }
 
   // Write back updated state
@@ -204,7 +203,11 @@ void MWD::averaging(std::shared_ptr<DataStruct>& buffer) {
 }
 
 // Find peaks in data
-void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
+void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer,
+                     std::shared_ptr<DataStruct>& prev_buffer){
+  
+    // If prev buffer is null, we can't use it
+    if(!prev_buffer) peak_in_prev_buffer = false;
 
     // Define a pointer to the pulse height data buffer
     double* data_ptr = buffer->ph.data();    
@@ -212,11 +215,10 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
     // The data length
     size_t n = buffer->ph_len;    
 
-    // Define a pointer to the pulse heights vector
-    //    PulseHeights& peaks = buffer->pulse_heights;
-
     // The peak finding threshold cut
     double threshold_cut = -1.0*nsigma_cut;
+
+    bool below_threshold = false;
     
     // If using fixed threshold cut
     if (use_fixed_cut) {
@@ -279,9 +281,15 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
         // Detect peak region below threshold
         if (avg < threshold_cut) {
 
+          // Signal below threshold
+          below_threshold = true;
+          
           // Need to find peak mininum...
           // If signal is still falling and reaches a new minimum, update candidate
           if ((avg < prev_avg) && (avg < peak_height)) {
+
+            // If peak region started in prev buffer, signal peak is now in this buffer
+            peak_in_prev_buffer = false;
             
             // Record new minimum
             peak_height = avg;
@@ -292,29 +300,70 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
             // Record EWT of minimum
             peak_EWT = this_EWT;
 
+            // Record the index EWT containing the peak
+            peak_EWT_idx = EWT_count;
+            
           }
         }
         
         // Detect when the signal has risen back above the threshold 
         // Pulse has ended → finalize the peak
         if (peak_height != peak_init && avg > threshold_cut) {
+
+          // Declare EWT to store
+          EWT_info* EWT_to_store;
           
-          // Store the peak time and height in the same buffer
-          data_ptr[2*peak_count] = peak_time; // Peak time index (from start of EWT)
-          data_ptr[2*peak_count+1] = peak_height; // Peak height
+          // Did this peak region start in the prev buffer
+          if (peak_in_prev_buffer){
+            // The prev buffer's EWT data
+            EWTinfo& prev_EWTs = prev_buffer->EWTs;
+            // Find the EWT in the prev buffer
+            EWT_to_store = &prev_EWTs[prev_buffer_EWT_idx];
+            // Prev EWT header
+            sw_event_header& prev_header = EWT_to_store->hdr; 
+            // Incrememt number of pulse heights in EWT header
+            ++prev_header[sw_eHdr.PH_NUM];
 
+            // Define a pointer to the prev data buffer
+            double* prev_data_ptr = prev_buffer->ph.data();
+            // Get prev peak count
+            size_t prev_peak_count = prev_buffer->peak_count;
+            // Store the peak time and height in the same buffer
+            prev_data_ptr[2*prev_peak_count] = peak_time; // Peak time index
+            prev_data_ptr[2*prev_peak_count+1] = peak_height; // Peak height
+            // Increment prev buffer peak count
+            ++prev_buffer->peak_count;
+            // Increase prev buffer ph length
+            prev_buffer->ph_len += 2;
+            // Increase total mwd length
+            tot_mwd_data_len += 2;
+          }
+          // If peak is in this EWT
+          else{
+            // EWT to store is this EWT
+            EWT_to_store = peak_EWT;
+            // Incrememt number of pulse heights in EWT header
+	    ++peak_EWT->hdr[sw_eHdr.PH_NUM];
+            // Increment counters
+            peak_count++; 
+          }
+          
           // Add a new peak time and height entry to the peak's EWT info
-          peak_EWT->ph.emplace_back(static_cast<int16_t>(std::lround(peak_time)),
-                                    static_cast<int16_t>(std::lround(peak_height))
-                                    );
-          //          peak_EWT->peaks.emplace_back( peak_time, peak_height );
+          EWT_to_store->ph.emplace_back(static_cast<int16_t>(std::lround(peak_time)),
+                                        static_cast<int16_t>(std::lround(peak_height)));
 
-          // Increment counters
-          peak_count++; 
+          // Increment all peak counters
           peak_count_all++;
                              
           // Reset for next peak search
           peak_height = peak_init;
+
+          // Ensure peak in prev buffer is false
+          peak_in_prev_buffer = false;
+          
+          // Signal above threshold
+          below_threshold = false;
+          
         }
       }      
       
@@ -324,26 +373,50 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer){
       // Increment the sample index
       ++pf_index;
       
-    }
-    
+    }    
+
+    // Now we need to update the ph vector with
+    // the correct pulses for binary file writing    
+    // Initialise counter
+    size_t count = 0;    
     // Loop over all EWTs
-    for (int j = 0; j < buffer->EWT_count; j++){
+    for (int i = 0; i < buffer->EWT_count; i++){
       // Get the EWT info
-      EWT_info* this_EWT = &EWTs[j];
-      //    uint64_t EWT = this_EWT->EWT;
-      // Get number of pulse heights
-      int16_t ph_num = this_EWT->ph.size();
-      // Get EWT header
-      sw_event_header& header = this_EWT->hdr;
-      // Store number of pulse heights in header
-      header[sw_eHdr.PH_NUM] = ph_num;
-      //    std::cout << EWT << " " << this_EWT->peaks.size();) << " " << header[sw_eHdr.PH_NUM] << std::endl;
+      const EWT_info* this_EWT = &EWTs[i];
+      // Loop through all pulses in this EWT
+      for (int j = 0; j < this_EWT->ph.size(); j++){
+        // Get time and height of pulse
+        const double time = static_cast<double>(this_EWT->ph[j].time);
+        const double height = static_cast<double>(this_EWT->ph[j].height);
+        // Store the peak time and height in the same buffer
+        data_ptr[count] = time; // Peak time index (from start of EWT)
+        ++count;
+        data_ptr[count] = height; // Peak height
+        ++count;
+      }
     }
     
     // Record number of peaks and data length
     buffer->peak_count = peak_count;
     buffer->ph_len = 2*peak_count;
     tot_mwd_data_len += buffer->ph_len;
+
+    // If unequal, throw errors
+    if (buffer->ph_len != count){
+      std::string error = "MWD::find_peaks: ERROR. Total ph data len in buffer = "
+        + std::to_string(buffer->ph_len) + ", total ph data len in EWTs ="
+        + std::to_string(count) + "!";
+      logger->log(error,0);
+      return;
+    }
+    
+    // If still in a below threshold region
+    if (below_threshold){
+      // Signal peak in prev buffer
+      peak_in_prev_buffer = true;
+      // Store the EWT where the peak was found
+      prev_buffer_EWT_idx = peak_EWT_idx;
+    }
     
     return;
 }
