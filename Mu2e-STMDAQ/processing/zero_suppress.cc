@@ -122,43 +122,36 @@ void ZeroSuppress::find_peaks(std::shared_ptr<DataStruct>& buffer,
 
       // Get the peak start location
       int64_t peak_start = (int64_t)peak_loc - before_peak;
-      if (first_buffer && peak_start < 0) peak_start = 0;
+      // If first buffer or no prev buffer, set peak start to 0
+      if ((first_buffer || !prev_buffer) && peak_start < 0) peak_start = 0;
 
       // Set the data length as total peak length
       size_t data_len = total_peak;
 
       // If the peak starts in the previous buffer
-      if (!first_buffer && peak_start < 0) {
-        // No previous buffer = no prev_data --> ERROR
-        if (!prev_buffer){
-          logger->log("ZeroSuppress::find_peaks Error! peak_start < 0 but no prev buffer avavilable!",0);
-          std::this_thread::sleep_for(std::chrono::seconds(1));
-          return;
-        }
-        else{
-          // How many samples of this peak belong to the previous buffer?
-          // peak_start is negative (int64_t), so -peak_start is positive.
-          const size_t need_prev = static_cast<size_t>(-peak_start);
+      if (peak_start < 0) {
+	// How many samples of this peak belong to the previous buffer?
+	// peak_start is negative (int64_t), so -peak_start is positive.
+	const size_t need_prev = static_cast<size_t>(-peak_start);
 
-          // Previous buffer length (size_t)
-          const size_t prev_n = prev_buffer->raw_len;
+	// Previous buffer length (size_t)
+	const size_t prev_n = prev_buffer->raw_len;
 
-          // Clamp so we never underflow
-          const size_t prev_len = (need_prev <= prev_n) ? need_prev : prev_n;
+	// Clamp so we never underflow
+	const size_t prev_len = (need_prev <= prev_n) ? need_prev : prev_n;
 
-          // Tail start index in previous buffer
-          const size_t prev_start = prev_n - prev_len;
+	// Tail start index in previous buffer
+	const size_t prev_start = prev_n - prev_len;
 
-          // Record the tail segment INSIDE buffer0 boundaries
-          prev_buffer->zs_data.emplace_back(prev_start, prev_len);
+	// Record the tail segment INSIDE buffer0 boundaries
+	prev_buffer->zs_data.emplace_back(prev_start, prev_len);
 
-          // Now the remaining part in current buffer begins at 0
-          peak_start = 0;
+	// Now the remaining part in current buffer begins at 0
+	peak_start = 0;
 
-          // Reduce how much we still need to store in this/current/next buffer
-          if (data_len >= prev_len) data_len -= prev_len;
-          else data_len = 0;
-        }
+	// Reduce how much we still need to store in this/current/next buffer
+	if (data_len >= prev_len) data_len -= prev_len;
+	else data_len = 0;
       }
 
       // If data start + data len in this buffer is larger than the buffer
