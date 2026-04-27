@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>STM DQM - HPGe Overview</title>
+
+  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+  <link href="../../css/stm_layout.css" rel="stylesheet">
+  <link href="../../css/stm_dqm.css" rel="stylesheet">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../js/stm_dqm.js"></script>
+
+  <script>
+  (function() {
+    const theme = localStorage.getItem("theme") || "dark";
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    }
+  })();
+  </script>
+</head>
+
+<body>
+
+<div id="banner" class="banner ok">System OK</div>
+
+<div class="sidebar">
+  <h2>HPGe DQM</h2>
+
+  <div class="nav">
+
+    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+      <i id="themeIcon" data-lucide="moon"></i>
+      <span id="themeText">Dark Mode</span>
+    </div>
+
+    <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+      <i id="soundIcon" data-lucide="volume-2"></i>
+      <span id="soundText">Sound ON</span>
+    </div>
+
+    <a class="home-link" href="../STMMain.html">
+      <i data-lucide="home"></i> Home
+    </a>
+
+    <a href="../STMLABR.html">
+      <i data-lucide="repeat"></i> Switch to LaBr
+    </a>
+
+    <a class="active" href="STMOverview.html">Overview</a>
+    <a href="STMTrends.html">Trends</a>
+    <a href="STMTiming.html">Timing</a>
+    <a href="STMCorrelation.html">Correlation</a>
+    <a href="STMIntegrity.html">Integrity</a>
+    <a href="STMAlarms.html">Alarms</a>
+
+    <div class="sec-label">SPECTRA</div>
+
+    <a href="STMSpectra.html">
+      <i data-lucide="activity"></i> Spectrum
+    </a>
+
+  </div>
+</div>
+
+<div class="main">
+
+  <h1>Overview</h1>
+
+  <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+    Updating...
+  </div>
+
+  <div style="opacity:0.6; font-size:12px; margin-bottom:10px;">
+    Live system snapshot
+  </div>
+
+  <!-- ===== Detector Status ===== -->
+  <div class="section">
+    <h3 class="section-title">Detector Status</h3>
+    <div class="grid">
+
+      <div class="card">
+        <h3>Calibration (a)</h3>
+        <div class="value" id="calA">--</div>
+      </div>
+
+      <div class="card">
+        <h3>Resolution (A)</h3>
+        <div class="value" id="resA">--</div>
+      </div>
+
+      <div class="card">
+        <h3>Cs137 Peak (ADC)</h3>
+        <div class="value" id="csMean">--</div>
+      </div>
+
+      <div class="card">
+        <h3>χ² / ndf</h3>
+        <div class="value" id="chi2">--</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== Data Flow ===== -->
+  <div class="section">
+    <h3 class="section-title">Data Flow</h3>
+    <div class="grid">
+
+      <div class="card">
+        <h3>Event Rate (Hz)</h3>
+        <div class="value" id="eventRate">--</div>
+      </div>
+
+      <div class="card">
+        <h3>Events / Window</h3>
+        <div class="value" id="events">--</div>
+      </div>
+
+      <div class="card">
+        <h3>EWT Span (ticks)</h3>
+        <div class="value" id="ewtSpan">--</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== Spill ===== -->
+  <div class="section">
+    <h3 class="section-title">Spill</h3>
+    <div class="grid">
+
+      <div class="card">
+        <h3>End State</h3>
+        <div class="value" id="spillState">--</div>
+      </div>
+
+      <div class="card">
+        <h3>Transitions</h3>
+        <div class="value" id="spillTrans">--</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== Timing Health ===== -->
+  <div class="section">
+    <h3 class="section-title">Timing Health</h3>
+    <div class="grid">
+
+      <div class="card">
+        <h3>EWT Small Jumps</h3>
+        <div class="value" id="ewtSmall">--</div>
+      </div>
+
+      <div class="card">
+        <h3>EWT Transition Issues</h3>
+        <div class="value" id="ewtTrans">--</div>
+      </div>
+
+      <div class="card">
+        <h3>DTC Jumps</h3>
+        <div class="value" id="dtcJumps">--</div>
+      </div>
+
+      <div class="card">
+        <h3>ADC Jumps</h3>
+        <div class="value" id="adcJumps">--</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== Alarms ===== -->
+  <div class="alarm-box">
+    <h3>Alarms</h3>
+    <div id="alarms">Loading...</div>
+  </div>
+
+</div>
+
+<script>
+
+localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+
+function getOverviewState() {
+    return JSON.parse(localStorage.getItem("overviewState") || "{}");
+}
+
+function setOverviewState(state) {
+    localStorage.setItem("overviewState", JSON.stringify(state));
+}
+
+async function update() {
+    try {
+        const data = await fetchSTM();
+
+        // ===== Detector Health =====
+        const health = getDetectorHealth(data);
+
+        setCard("calA",
+            health.calibration !== null ? health.calibration.toFixed(4) : "--",
+            health.states.calibration
+        );
+
+        setCard("resA",
+            health.resolution !== null ? health.resolution.toFixed(2) : "--",
+            health.states.resolution || "ok"
+        );
+
+        const cs = data.spectrum?.peaks?.find(p => p.name === "Cs137");
+
+        if (cs && cs.mean) {
+            setCard("csMean", cs.mean.toFixed(1), health.states.peakShift);
+        } else {
+            setCard("csMean", "--", "warn");
+        }
+
+        setCard("chi2",
+            health.chi2 ? health.chi2.toFixed(2) : "--",
+            health.states.chi2
+        );
+
+        // ===== Data Flow =====
+        const events = data.window?.events ?? 0;
+        const first  = data.window?.first_ewt ?? 0;
+        const last   = data.window?.last_ewt ?? 0;
+
+        const span = last - first;
+        const rate = events / 0.5;
+
+        const flowState = events === 0 ? "bad" : "ok";
+        const spanState = span <= 0 ? "bad" : "ok";
+
+        setCard("eventRate", rate.toFixed(2), flowState);
+        setCard("events", events, flowState);
+        setCard("ewtSpan", span, spanState);
+
+        // ===== Spill =====
+        const spillEnd = data.spill?.end ?? false;
+        const spillText = spillEnd ? "ON" : "OFF";
+
+        setCard("spillState", spillText, spillEnd ? "ok" : "warn");
+        let state = getOverviewState();
+
+if (!state.initialized) {
+    state = {
+        initialized: true,
+        spillTrans: 0,
+        lastTimestamp: null
+    };
+}
+
+if (state.lastTimestamp !== data.timestamp) {
+    state.spillTrans = data.timing?.spill_transitions ?? 0;
+    state.lastTimestamp = data.timestamp;
+}
+
+setOverviewState(state);
+
+setCard("spillTrans", state.spillTrans, "ok");
+
+        // ===== Timing =====
+        const T = DQM_THRESHOLDS.timing;
+
+        const ewtSmall = data.timing?.ewt_small_jumps ?? 0;
+        const ewtTrans = data.timing?.ewt_transition_issues ?? 0;
+        const dtc      = data.timing?.dtc_jumps ?? 0;
+        const adc      = data.timing?.adc_jumps ?? 0;
+
+        setCard("ewtSmall", ewtSmall, getState(ewtSmall, T.ewt_small_warn, T.ewt_small_bad));
+        setCard("ewtTrans", ewtTrans, getState(ewtTrans, T.ewt_small_warn, T.ewt_small_bad));
+        setCard("dtcJumps", dtc, getState(dtc, T.dtc_warn, T.dtc_bad));
+        setCard("adcJumps", adc, getState(adc, T.adc_warn, T.adc_bad));
+
+        // ===== Alarms =====
+        renderAlarms("alarms", data.alarms, Object.keys(data.alarms));
+
+        // ===== Banner =====
+        updateBanner(data);
+
+        // ===== Timestamp =====
+        document.getElementById("lastUpdate").textContent =
+          `Run ${data.run} | Subrun ${data.subrun} | ` +
+          new Date(data.timestamp * 1000).toLocaleTimeString();
+
+    } catch (err) {
+        console.error(err);
+
+        const banner = document.getElementById("banner");
+        banner.classList.remove("ok");
+        banner.classList.add("bad");
+        banner.textContent = "DATA ERROR";
+    }
+}
+
+window.addEventListener("load", () => {
+    lucide.createIcons();
+});
+
+setInterval(update, 1000);
+update();
+
+</script>
+
+</body>
+</html>

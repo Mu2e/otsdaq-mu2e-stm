@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>STM DQM - HPGe Timing</title>
+
+  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+  <link href="../../css/stm_layout.css" rel="stylesheet">
+  <link href="../../css/stm_dqm.css" rel="stylesheet">
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../js/stm_dqm.js"></script>
+
+  <script>
+  (function() {
+    const theme = localStorage.getItem("theme") || "dark";
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    }
+  })();
+</script>
+
+</head>
+
+<body>
+
+<div id="banner" class="banner ok">System OK</div>
+
+<div class="sidebar">
+
+  <h2>HPGe DQM</h2>
+
+  <div class="nav">
+
+    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+      <i id="themeIcon" data-lucide="moon"></i>
+      <span id="themeText">Dark Mode</span>
+    </div>
+
+    <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+      <i id="soundIcon" data-lucide="volume-2"></i>
+      <span id="soundText">Sound ON</span>
+    </div>
+
+    <a class="home-link" href="../STMMain.html">
+      <i data-lucide="home"></i> Home
+    </a>
+
+    <a href="../STMLABR.html">
+      <i data-lucide="repeat"></i> Switch to LaBr
+    </a>
+
+    <a href="STMOverview.html">Overview</a>
+    <a href="STMTrends.html">Trends</a>
+    <a class="active" href="STMTiming.html">Timing</a>
+    <a href="STMCorrelation.html">Correlation</a>
+    <a href="STMIntegrity.html">Integrity</a>
+    <a href="STMAlarms.html">Alarms</a>
+
+    <div class="sec-label">SPECTRA</div>
+
+    <a href="STMSpectra.html">
+      <i data-lucide="activity"></i> Spectrum
+    </a>
+    
+  </div>
+
+</div>
+
+<div class="main">
+
+  <h1>Timing</h1>
+
+  <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+    Updating...
+  </div>
+
+  <div style="opacity:0.6; font-size:12px; margin-bottom:10px;">
+    Accumulated since run start
+  </div>
+  <div style="margin-bottom:15px;">
+  <button onclick="clearTiming()" class="clear-btn">
+    Clear Counters
+  </button>
+</div>
+  
+  <div class="grid">
+
+    <div class="card">
+      <h3>EWT Small Jumps</h3>
+      <div class="value" id="ewtSmall">--</div>
+    </div>
+
+    <div class="card">
+      <h3>Transition Issues</h3>
+      <div class="value" id="ewtTrans">--</div>
+    </div>
+
+    <div class="card">
+      <h3>Spill Transitions</h3>
+      <div class="value" id="spillTrans">--</div>
+    </div>
+
+    <div class="card">
+      <h3>DTC Jumps</h3>
+      <div class="value" id="dtcJumps">--</div>
+    </div>
+
+    <div class="card">
+      <h3>ADC Jumps</h3>
+      <div class="value" id="adcJumps">--</div>
+    </div>
+
+  </div>
+
+  <div class="alarm-box">
+    <h3>Timing Alarms</h3>
+    <div id="alarms">Loading...</div>
+  </div>
+
+</div>
+
+<script>
+
+function clearTiming() {
+    resetTimingState();
+
+    // Reset display
+    setCard("ewtSmall", 0, "ok");
+    setCard("ewtTrans", 0, "ok");
+    setCard("spillTrans", 0, "ok");
+    setCard("dtcJumps", 0, "ok");
+    setCard("adcJumps", 0, "ok");
+
+    console.log("Timing counters cleared");
+}  
+
+// ===== Persistent accumulation =====
+function getTimingState() {
+    return JSON.parse(localStorage.getItem("timingState") || "{}");
+}
+
+function setTimingState(state) {
+    localStorage.setItem("timingState", JSON.stringify(state));
+}
+
+function resetTimingState() {
+    localStorage.removeItem("timingState");
+}
+
+function handleRunForTiming(run) {
+    const changed = checkRunChange(run);
+    if (changed) resetTimingState();
+}
+
+localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+
+async function update() {
+    try {
+        const data = await fetchSTM();
+
+        handleRunForTiming(data.run);
+
+        let state = getTimingState();
+
+        if (!state.initialized) {
+            state = {
+                initialized: true,
+                ewtSmall: 0,
+                ewtTrans: 0,
+                spillTrans: 0,
+                dtcJumps: 0,
+                adcJumps: 0,
+                lastTimestamp: null   // ✅ added
+            };
+        }
+
+        const T = DQM_THRESHOLDS.timing;
+
+        const cur = {
+            ewtSmall:  data.timing?.ewt_small_jumps ?? 0,
+            ewtTrans:  data.timing?.ewt_transition_issues ?? 0,
+            dtc:       data.timing?.dtc_jumps ?? 0,
+            adc:       data.timing?.adc_jumps ?? 0
+        };
+
+        // ===== FIX: only accumulate on new data =====
+        if (state.lastTimestamp !== data.timestamp) {
+
+            state.ewtSmall  += cur.ewtSmall;
+            state.ewtTrans  += cur.ewtTrans;
+            state.spillTrans += data.timing?.spill_transitions ?? 0;
+            state.dtcJumps  += cur.dtc;
+            state.adcJumps  += cur.adc;
+
+            state.lastTimestamp = data.timestamp;
+        }
+
+        setTimingState(state);
+
+        // ===== Display =====
+        setCard("ewtSmall", state.ewtSmall,
+            getState(cur.ewtSmall, T.ewt_small_warn, T.ewt_small_bad)
+        );
+
+        setCard("ewtTrans", state.ewtTrans,
+            getState(cur.ewtTrans, T.ewt_trans_warn, T.ewt_trans_bad)
+        );
+
+        setCard("spillTrans", state.spillTrans, "ok");
+
+        setCard("dtcJumps", state.dtcJumps,
+            getState(cur.dtc, T.dtc_warn, T.dtc_bad)
+        );
+
+        setCard("adcJumps", state.adcJumps,
+            getState(cur.adc, T.adc_warn, T.adc_bad)
+        );
+
+        renderAlarms("alarms", data.alarms, [
+            "ewt_error",
+            "transition_error",
+            "clock_error"
+        ]);
+
+        updateBanner(data);
+
+        document.getElementById("lastUpdate").textContent =
+          `Run ${data.run} | Subrun ${data.subrun} | ` +
+          new Date(data.timestamp * 1000).toLocaleTimeString();
+
+        lucide.createIcons();
+
+    } catch (err) {
+        console.error(err);
+
+        const banner = document.getElementById("banner");
+        banner.classList.remove("ok");
+        banner.classList.add("bad");
+        banner.textContent = "DATA ERROR";
+    }
+}
+
+window.addEventListener("load", () => {
+    lucide.createIcons();
+});
+
+setInterval(update, 1000);
+update();
+
+</script>
+
+</body>
+</html>

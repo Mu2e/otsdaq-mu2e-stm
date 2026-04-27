@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>STM DQM - LaBr Correlation</title>
+
+  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+  <link href="../../css/stm_layout.css" rel="stylesheet">
+  <link href="../../css/stm_dqm.css" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../js/stm_dqm.js"></script> 
+
+  <script>
+  (function() {
+    const theme = localStorage.getItem("theme") || "dark";
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    }
+  })();
+</script>
+
+</head>
+
+<body>
+
+<div id="banner" class="banner ok">System OK</div>
+
+<div class="sidebar">
+  <h2>LaBr DQM</h2>
+
+  <div class="nav">
+
+    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+      <i id="themeIcon" data-lucide="moon"></i>
+      <span id="themeText">Dark Mode</span>
+    </div>
+    
+    <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+      <i id="soundIcon" data-lucide="volume-2"></i>
+      <span id="soundText">Sound ON</span>
+    </div>
+
+    <a class="home-link" href="../STMMain.html">
+      <i data-lucide="home"></i> Home
+    </a>
+
+    <a href="../STMHPGE.html">
+      <i data-lucide="repeat"></i> Switch to HPGe
+    </a>
+
+    <a href="STMOverview.html">Overview</a>
+    <a href="STMTrends.html">Trends</a>
+    <a href="STMTiming.html">Timing</a>
+    <a class="active" href="STMCorrelation.html">Correlation</a>
+    <a href="STMIntegrity.html">Integrity</a>
+    <a href="STMAlarms.html">Alarms</a>
+
+    <div class="sec-label">SPECTRA</div>
+
+    <a href="STMSpectra.html">
+      <i data-lucide="activity"></i> Spectrum
+    </a>
+
+  </div>
+
+</div>
+
+<div class="main">
+
+  <h1>Correlation</h1>
+
+  <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+    Updating...
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>ΔDTC / ΔEWT (Slope)</h3>
+      <div class="value" id="slope">--</div>
+    </div>
+
+    <div class="card">
+      <h3>Slope Stability (σ)</h3>
+      <div class="value" id="stability">--</div>
+    </div>
+
+    <div class="card">
+      <h3>Window Size (Events)</h3>
+      <div class="value" id="window">--</div>
+    </div>
+
+  </div>
+
+  <div class="alarm-box">
+    <h3>Correlation Alarms</h3>
+    <div id="alarms">Loading...</div>
+  </div>
+
+</div>
+
+<script>
+
+localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+
+// ===== Buffer =====
+const slopeBuffer = [];
+const MAX_POINTS = 20;
+
+async function update() {
+    try {
+        const data = await fetchSTM();
+
+        const events = data.window?.events ?? 0;
+        const dtc    = data.timing?.dtc_jumps ?? 0;
+
+        // ===== Instant slope =====
+        let slope = 0;
+        if (events > 0) slope = dtc / events;
+
+        // ===== Buffer =====
+        slopeBuffer.push(slope);
+        if (slopeBuffer.length > MAX_POINTS) slopeBuffer.shift();
+
+        // ===== Mean + stability =====
+        const mean = slopeBuffer.reduce((a,b)=>a+b,0) / slopeBuffer.length;
+
+        const variance = slopeBuffer.reduce((a,b)=>a+(b-mean)*(b-mean),0) / slopeBuffer.length;
+        const sigma = Math.sqrt(variance);
+
+        // ===== State =====
+        let slopeState = "ok";
+
+        if (mean < 4000 || mean > 7000) slopeState = "bad";
+        if (events === 0) slopeState = "warn";
+
+        let stabilityState = sigma > 500 ? "warn" : "ok";
+
+        // ===== Cards =====
+        setCard("slope", mean.toFixed(2), slopeState);
+        setCard("stability", sigma.toFixed(2), stabilityState);
+        setCard("window", events, events === 0 ? "warn" : "ok");
+
+        // ===== Alarms =====
+        renderAlarms("alarms", data.alarms, [
+            "correlation_error"
+        ]);
+
+        updateBanner(data);
+
+        document.getElementById("lastUpdate").textContent =
+          `Run ${data.run} | Subrun ${data.subrun} | ` +
+          new Date(data.timestamp * 1000).toLocaleTimeString();
+
+    } catch (err) {
+        console.error(err);
+
+        const banner = document.getElementById("banner");
+        banner.classList.remove("ok");
+        banner.classList.add("bad");
+        banner.textContent = "DATA ERROR";
+    }
+}
+
+window.addEventListener("load", () => {
+    lucide.createIcons();
+});
+
+setInterval(update, 1000);
+update();
+
+</script>
+
+</body>
+</html>
