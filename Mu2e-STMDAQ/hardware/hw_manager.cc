@@ -329,7 +329,7 @@ void HardwareManager::run_dtc_sim(){
   // Reset readout
   reset_readout();
   
-  py::gil_scoped_acquire gil;
+  //py::gil_scoped_acquire gil;
   
   // Get python script name
   std::string script = stm->fw_config.python.dtc_sim.first+".py";
@@ -345,6 +345,38 @@ void HardwareManager::run_dtc_sim(){
                                          retvar // Variable to return
                                          );
   return;
+
+}
+
+// Set board to real DTC
+bool HardwareManager::set_real_dtc(){
+
+  //py::gil_scoped_acquire gil;
+
+  // Get python script name
+  std::string script = stm->fw_config.python.dtc_set_real.first+".py";
+  // Get python script return variable name
+  std::string retvar = "finished";
+
+  // Log to user
+  logger->log("Running script to set ROC to real DTC: " + script + "... ",1);
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // Declare the python object and run python script
+  py::object out = impl->call_script_get(script,// Script
+                                         impl->device, // Device
+                                         retvar // Variable to return
+                                         );
+  // Get returned result
+  bool success = out.cast<bool>();
+  // Log outcome to user
+  if (success){
+    logger->log("Real DTC mode set",1);
+  }
+  else{
+    logger->log("Error running real DTC script",2);
+  }
+  // Return boolean
+  return success;
 
 }
 
