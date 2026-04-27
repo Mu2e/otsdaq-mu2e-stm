@@ -115,21 +115,37 @@ void ThreadManager::worker_thread(const size_t thrd_idx,
 
     // If this buffer has NOT been set to do not use
     if (!buffer->do_not_use){      
-      // Perform operation on buffer
-      op_on_buffer(thrd_idx,operation,buffer,prev_buffer);
+      // Perform operation on buffer 
+      if(!std::get_if<op2>(&operation)) {
+        op_on_buffer(thrd_idx,operation,buffer,prev_buffer);
+        push_buffer(thrd_idx,outq,buffer); // done with current
+      }
+      // Special conditions for op2
+      else {
+	op_on_buffer(thrd_idx,operation,buffer,prev_buffer);
+	// If there is prev buffer, push it
+        if (prev_buffer) push_buffer(thrd_idx, outq, prev_buffer);
+	// If null hb detected, buffers not concurrent so push current
+	if (buffer->has_null_hb) {
+	  push_buffer(thrd_idx,outq,buffer);
+	  prev_buffer =  nullptr;
+	}
+	// Else, store buffer as prev_buffer
+	else prev_buffer = std::move(buffer);
+      }
+
       // If first successful op, restart timer
       if (first_buffer) thread_start_time = std::chrono::high_resolution_clock::now();
+      first_buffer = false;
+    }
+    // Push do not use buffer through
+    else {
+      push_buffer(thrd_idx,outq,buffer);
     }
 
-    // Push/release outgoing buffer
-    if(!first_buffer) push_buffer(thrd_idx,outq,prev_buffer);
-
-    // Shift buffers
-    prev_buffer = std::move(buffer);
-    
     // Set first buffer to false;
     first_buffer = false;
-    
+
     // If in receive data thread and the user has requested a stop
     if (thrd_idx == 0 && stop::should_stop()){
       // Notify other threads to finish
@@ -282,29 +298,27 @@ void ThreadManager::data_source_thread(const size_t thrd_idx){
 
   // Log to user
   if (stm->master_config.use_sw_sim){
-    logger->log("ThreadManager::data_source_thread: Initialising software data sending...",1);
+    logger->log("ThreadManager::data_source_thread: Initialising software data setup...",1);
   }
   else{
-    logger->log("ThreadManager::data_source_thread: Initialising firmware data sending...",1);
-    if (stm->fw_config.use_dtc_sim){
-      logger->log("ThreadManager::data_source_thread: Initialising DTC simulation...",1);
-    }
+    logger->log("ThreadManager::data_source_thread: Initialising firmware data setup...",1);
   }
     
-  // If using software simulation for data source
+  // If using software simulation for data source (comment for now until it is setup)
   if (stm->master_config.use_sw_sim){
     // Sleep for 3 seconds
-    for (int i = 0; i < 3; i++){
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      std::cout << "Starting softwate data sending in " << 3-i << std::endl;
-    }
+    //for (int i = 0; i < 3; i++){
+    //  std::this_thread::sleep_for(std::chrono::seconds(1));
+    //  std::cout << "Starting softwate data sending in " << 3-i << std::endl;
+    //}
     // Log to user
-    logger->log("ThreadManager::data_source_thread: Starting data sending...",1);
+    //logger->log("ThreadManager::data_source_thread: Starting data sending...",1);
   }
-  // If you dtc_sim_test_new.py
+  // If using firmware and dtc_sim_test_new.py
   else if (stm->fw_config.use_dtc_sim){
-    // If we are using version of the hardware manager z
+    // If we are using the hardware manager
     if (hw){
+      logger->log("ThreadManager::data_source_thread: Initialising DTC simulation...",1);
       // Sleep for 3 seconds
       for (int i = 0; i < 3; i++){
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -316,10 +330,16 @@ void ThreadManager::data_source_thread(const size_t thrd_idx){
       hw->run_dtc_sim();
     }
   }
-  // If using firmware for data source
+  // If using firmware and real DTC
   else{
-    // Log to user
-    logger->log("Expecting signal from DTC...",1);
+    // If using hardware manager
+    if (hw){
+      logger->log("ThreadManager::data_source_thread: Setting ROC for real DTC...",1);
+      // Set real dtc board register
+      bool dtc_set = hw->set_real_dtc();
+      //bool dtc_set = false;
+      if (!dtc_set) logger->log("ThreadManager::data_source_thread: Error setting ROC to real DTC.",1);
+    }
   }  
   
 }

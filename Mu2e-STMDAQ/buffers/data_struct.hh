@@ -99,6 +99,7 @@ struct DataStruct {
   size_t lost_EWT_count = 0;
   std::vector<std::pair<uint64_t,uint64_t>> lost_EWTs;
   std::vector<std::pair<uint64_t,uint64_t>> incomplete_EWTs;
+  bool has_null_hb;
   
   // The EWT data
   EWTinfo EWTs;
@@ -176,6 +177,7 @@ struct DataStruct {
     lost_EWT_count = 0;
     lost_EWTs.resize(0);
     incomplete_EWTs.resize(0);
+    has_null_hb = false;
     for (auto& e : EWTs) {
       e.EWT = 0;
       e.raw = raw_info{};              // if raw_info is trivially copyable      

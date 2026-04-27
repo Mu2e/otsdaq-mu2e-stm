@@ -102,7 +102,8 @@ public:
         thread.join();
       }
     }
-    std::cout << "ThreadManager destructor called.\n";    
+    //std::cout << "ThreadManager destructor called.\n";    
+    logger->log("ThreadManager destructor called",1);
   }
   
   // General worker thread function 
