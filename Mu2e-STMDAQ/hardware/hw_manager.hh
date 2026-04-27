@@ -55,6 +55,9 @@ public:
   // Run dtc simulation
   void run_dtc_sim();
 
+  // Set dtc real
+  bool set_real_dtc();
+
   // Check ADC temperature
   double read_adc_temp();
 
