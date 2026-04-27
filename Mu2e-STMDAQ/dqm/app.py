@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET           # For parsing XML configuration fil
 from utils.config import get_xml_node_value
 from worker_manager import manager
 from workers import worker_raw_data, worker_baseline, worker_peaks, worker_cpu, worker_alarms
+from flask import make_response
 
 # Create the Dash app and enable page system
 app = dash.Dash(__name__,
@@ -158,8 +159,26 @@ app.layout = dmc.MantineProvider(
 
 #atexit.register(shutdown)
 
+@app.server.route('/status')
+def get_status():
+    return "hello!", 200, {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Connection": "close"
+    }
+
+# @app.server.route('/status')
+# def get_status():
+#     response = make_response("hello!")
+#     response.headers['Access-Control-Allow-Origin'] = 'http://localhost:30351'   
+#     response.headers['Access-Control-Allow-Methods'] = 'GET' 
+#     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+#     return response
+
+
 # Start the Dash server
 if __name__ == '__main__':
-    app.run(debug=True, port=port_num)
+    app.run(debug=True, port=port_num, host='0.0.0.0')
+    #app.run(debug=True, port=port_num)
     #app.run(debug=True, port=port_num, use_reloader=False)
 
