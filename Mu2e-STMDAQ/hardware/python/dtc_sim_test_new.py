@@ -97,6 +97,8 @@ hw.getNode("Buffers.Readout_regs.10g_readout_chan1").write(dtc_regs["10g_readout
 hw.dispatch()
 hw.getNode("Buffers.Readout_regs.10g_readout_chan2").write(dtc_regs["10g_readout_chan2"])
 hw.dispatch()
+hw.getNode("Buffers.Controls_simADC_simDTC.actual_dtc_enable").write(0x0)
+hw.dispatch()
 hw.getNode("Buffers.dtc_sim_params.dtc_sim_reset").write(0x1)
 hw.dispatch()
 hw.getNode("Buffers.dtc_sim_params.dtc_sim_reset").write(0x0)
