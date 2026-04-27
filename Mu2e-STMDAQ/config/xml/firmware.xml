@@ -27,6 +27,9 @@
     </adc_temp>
     <reset_readout>reset_readout</reset_readout>
     <dtc_sim>dtc_sim_test_new</dtc_sim>
+    <dtc_set_real>dtc_test_real_setup <!-- Script -->
+    <retvar>success</retvar> <!-- Return variable -->
+    </dtc_set_real>
   </python>
   <use_dtc_sim>0 <!-- Use dtc simulation? -->
     <!-- Buffers.Readout_regs -->
@@ -36,7 +39,7 @@
     <readout_chan2>0x1</readout_chan2>
     <!-- Buffers.dtc_sim_params -->
     <deltahb>0x30D4</deltahb> <!-- (0x2064) ... -->
-    <numberhb>0xFFFF</numberhb> <!-- (0x2428e) ... -->
+    <numberhb>0xFA</numberhb> <!-- (0x2428e) ... -->
     <!-- Buffers.Controls_simADC_simDTC -->
     <actual_adc_enable>0x1</actual_adc_enable>
   </use_dtc_sim>
