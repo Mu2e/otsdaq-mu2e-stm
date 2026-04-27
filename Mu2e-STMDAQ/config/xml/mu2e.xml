@@ -1,7 +1,7 @@
 <!-- Mu2e event parameters -->
 <mu2e>
   <min_event_period>1.675</min_event_period> <!-- Minimum event period (us) -->
-  <max_event_period>100.1</max_event_period> <!-- Minimum event period (us) -->
+  <max_event_period>400.1</max_event_period> <!-- Minimum event period (us) -->
   <on_spill_period>1.695</on_spill_period> <!-- On-spill event period (us) -->
   <off_spill_period>100</off_spill_period>  <!-- Off-spill event period (us) -->
 </mu2e>

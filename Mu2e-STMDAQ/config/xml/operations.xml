@@ -16,6 +16,9 @@
    <find_peaks>1</find_peaks>
    <suppress_data>1</suppress_data>
   </ZeroSuppress>
+  <Noise>1
+    <get_noise_data>1</get_noise_data>
+  </Noise>
   <MWD>1 <!-- MWD class -->
    <subtract_baseline>1</subtract_baseline>
    <deconv>1</deconv>
