@@ -14,15 +14,21 @@ AsyncLogger::AsyncLogger(const Config& cfg, const std::shared_ptr<cpu_utils>& cp
 
   // Get the log directory
   std::string log_dir = EnvVars::expand("${LOG_DIR}");
+  // Get channel
+  std::string host = EnvVars::expand("${HOSTNAME}");
+  std::string channel = "LaBr";
+  if ( host == cfg.getValue<std::string>("stm.ch0_host")) channel = "HPGe";
   // Get log file name
-  std::string log_file = cfg.getValue<std::string>("stm.write_data.logfile")+"_"+date_time+".log";
+  std::string log_file = cfg.getValue<std::string>("stm.write_data.logfile")+"_"+channel+"_"+date_time+".log";
   // Get number alarms to store in SHM
   size_t max_shm_alarms = cfg.getValue<int>("stm.dqm.max_num_alarms");
+  // Only make SHM if dqm on
+  bool make_shm = cfg.getValue<bool>("stm.operations.DQM");
   
   // LoggerSTM
   LoggerSTM::Instance(LoggerSTM::DEBUG);
   LoggerSTM::Instance()->setStylePlain();
-  LoggerSTM::Instance()->initSHM(max_shm_alarms);
+  LoggerSTM::Instance()->initSHM(make_shm, max_shm_alarms);
   LoggerSTM::Instance()->LogToFile(log_dir+log_file);
   LoggerSTM::Instance()->write(1,"STM DAQ started: " + date_time);
   LoggerSTM::Instance()->write(1,"Loaded configuration file: " + cfg.getXMLpath());

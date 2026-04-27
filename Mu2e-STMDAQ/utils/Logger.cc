@@ -254,28 +254,30 @@ void LoggerSTM::CloseLogFile() {
 
 }
 
-void LoggerSTM::initSHM(unsigned int max_alarms) {
+void LoggerSTM::initSHM(bool make_shm, unsigned int max_alarms) {
 
-  std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
+  if (make_shm) {
+    std::lock_guard<std::mutex> lock(_mutex); //Lock mutex for duration of function
 
-  // Calculate necessary size of SHM
-  size_t alarm_bytes = sizeof(dqm_data_alarm) +
-		   (max_alarms - 1) * sizeof(alarm_entry) + // -1 for array initialised with size 1
-		   sizeof(uint64_t);  
+    // Calculate necessary size of SHM
+    size_t alarm_bytes = sizeof(dqm_data_alarm) +
+		     (max_alarms - 1) * sizeof(alarm_entry) + // -1 for array initialised with size 1
+		     sizeof(uint64_t);  
 
-  // Create persistent SHM block
-  registerBlock<dqm_data_alarm>(DQMPageType::ALARMS, "/dqm_alarm_data", alarm_bytes, true);
-  _logToSHM = true;
+    // Create persistent SHM block
+    registerBlock<dqm_data_alarm>(DQMPageType::ALARMS, "/dqm_alarm_data", alarm_bytes, true);
+    _logToSHM = true;
 
-  std::stringstream ss; ss << "[ LoggerSTM::initSHM ] Registered SHM block for alarms" <<
-	 " with size " << alarm_bytes;
-  this->write(LoggerSTM::INFO,ss.str(),lock);
+    std::stringstream ss; ss << "[ LoggerSTM::initSHM ] Registered SHM block for alarms" <<
+	   " with size " << alarm_bytes;
+    this->write(LoggerSTM::INFO,ss.str(),lock);
 
-  auto* alarm_data = get<dqm_data_alarm>(DQMPageType::ALARMS);
+    auto* alarm_data = get<dqm_data_alarm>(DQMPageType::ALARMS);
 
-  alarm_data->max_alarms = max_alarms;
-  alarm_data->write_idx = 0;
-  alarm_data->num_alarms = 0;
+    alarm_data->max_alarms = max_alarms;
+    alarm_data->write_idx = 0;
+    alarm_data->num_alarms = 0;
+  }
 
 }
 
