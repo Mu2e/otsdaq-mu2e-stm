@@ -1,13 +1,13 @@
 #ifndef _ots_STMDAQSupervisor_h_
 #define _ots_STMDAQSupervisor_h_
 
-#include "otsdaq/CoreSupervisors/FESupervisor.h"
+#include "otsdaq/CoreSupervisors/CoreSupervisorBase.h"
 #include "Mu2e-STMDAQ/frontend/stm_frontend.hh"
 
 namespace ots
 {
 
-  class STMDAQSupervisor : public FESupervisor
+  class STMDAQSupervisor : public CoreSupervisorBase
   {
   public:
     XDAQ_INSTANTIATOR();
