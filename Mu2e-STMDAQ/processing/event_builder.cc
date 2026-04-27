@@ -62,12 +62,16 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
     if (!ewt.zs.prescale){
       // Loop over all ZS regions
       for (int i = 0; i < ewt.zs.zs_regions.size(); i++){
-        // Start index of ZS region in buffer
+	// Start index of raw EWT data in buffer
+	size_t raw_start = ewt.raw.start;
+        // Start index of ZS in buffer
         size_t start = ewt.zs.zs_regions[i].start;
-        // Length of ZS regionin buffer
+        // Start index of ZS region in event
+        size_t evt_start = start - raw_start;
+        // Length of ZS region in event
         size_t len = ewt.zs.zs_regions[i].len;
         // Insert start and length into the event
-        event[data_len] = static_cast<int16_t>(start); // start
+        event[data_len] = static_cast<int16_t>(evt_start); // event start
         ++data_len; // Increase data length
         event[data_len] = static_cast<int16_t>(len); // length      
         ++data_len; // Increase data length
