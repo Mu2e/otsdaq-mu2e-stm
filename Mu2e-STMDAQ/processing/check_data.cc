@@ -273,6 +273,7 @@ uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr
   // Check for null heartbeat (event mode = 0)
   if (EM == 0){
     is_null_hb = true;
+    buffer->has_null_hb = true;
     logger->log("CheckData: Null heartbeat detected in channel " +
 		std::to_string(channel) +
 		".",2);    
