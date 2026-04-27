@@ -28,6 +28,11 @@ public:
   std::string getXMLpath() const {
     return xml_path;
   }
+
+  // Re-read the XML file and reset all internal state
+  void reinit() {
+    rebuildExpandedDocument();
+  }
   
   // Access configuration values
   // Template method definition must be in the header
