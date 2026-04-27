@@ -1,0 +1,167 @@
+/* === stm_layout.css === */
+
+/* ===== Theme variables (default: DARK) ===== */
+:root {
+    --bg-main: #111;
+    --bg-sidebar: #1a1a1a;
+    --bg-card: #1c1c1c;
+    --bg-nav: #222;
+
+    --border: #333;
+    --border-strong: #444;
+
+    --text-main: #ffffff;
+    --text-accent: #00ffaa;
+}
+
+/* ===== Light mode ===== */
+body.light,
+.light body {
+    --bg-main: #f4f6f5;
+    --bg-sidebar: #e6ebe8;
+    --bg-card: #ffffff;
+    --bg-nav: #ffffff;
+
+    --border: #cfd8d3;
+    --border-strong: #aab7b0;
+
+    --text-main: #1a1a1a;
+    --text-accent: #064e3b;
+}
+
+/* ===== Root ===== */
+html, body {
+    margin: 0;
+    height: 100%;
+    background-color: var(--bg-main) !important;
+    color: var(--text-main);
+    font-family: Comfortaa, sans-serif;
+}
+
+/* ===== Page layout ===== */
+body {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    width: 220px;
+    background: var(--bg-sidebar);
+    padding: 20px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+/* ===== Navigation ===== */
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav a {
+    padding: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    background: var(--bg-nav);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: Inconsolata, monospace;
+    transition: all 0.15s ease;
+}
+
+.nav a:hover {
+    background: var(--bg-card);
+}
+
+.nav .active {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+}
+
+.nav .home {
+    margin-top: auto;
+    opacity: 0.7;
+}
+
+/* ===== Home link ===== */
+.home-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+
+    text-decoration: none;
+    color: var(--text-main);
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+
+    font-family: Inconsolata, monospace;
+    font-weight: bold;
+
+    transition: all 0.15s ease;
+}
+
+.home-link:hover {
+    background: var(--bg-nav);
+    border-color: var(--border-strong);
+}
+
+/* ===== Theme toggle button ===== */
+.theme-toggle {
+    margin-bottom: 15px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+
+    background: var(--bg-nav);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+
+    font-size: 12px;
+    font-family: Inconsolata, monospace;
+    opacity: 0.8;
+
+    transition: all 0.15s ease;
+}
+
+.theme-toggle:hover {
+    opacity: 1.0;
+    background: var(--bg-card);
+}
+
+/* ===== Main content ===== */
+.main {
+    flex: 1;
+    padding: 30px;
+    padding-top: 70px; /* banner offset */
+    overflow-y: auto;
+    min-width: 0;
+}
+
+h1 {
+    margin-top: 0;
+}
+
+/* ===== Grid system ===== */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* ===== Sections ===== */
+.section {
+    margin-top: 25px;
+}

@@ -1,0 +1,337 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>STM DQM - HPGe Alarm Log</title>
+
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+
+    <link href="../../css/stm_layout.css" rel="stylesheet">
+    <link href="../../css/stm_dqm.css" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/stm_dqm.js"></script>
+
+    <script>
+      (function() {
+          const theme = localStorage.getItem("theme") || "dark";
+          if (theme === "light") {
+              document.documentElement.classList.add("light");
+          }
+      })();
+    </script>
+  </head>
+
+  <body>
+
+    <div id="banner" class="banner ok">System OK</div>
+
+    <div class="sidebar">
+      <h2>HPGe DQM</h2>
+
+      <div class="nav">
+        <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
+
+        <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
+
+        <a class="home-link" href="../STMMain.html">
+          <i data-lucide="home"></i> Home
+        </a>
+
+        <a href="../STMLABR.html">
+          <i data-lucide="repeat"></i> Switch to LaBr
+        </a>
+
+        <a href="STMOverview.html">Overview</a>
+        <a href="STMTrends.html">Trends</a>
+        <a href="STMTiming.html">Timing</a>
+        <a href="STMCorrelation.html">Correlation</a>
+        <a href="STMIntegrity.html">Integrity</a>
+        <a class="active" href="STMAlarms.html">Alarms</a>
+
+        <div class="sec-label">SPECTRA</div>
+
+        <a href="STMSpectra.html">
+          <i data-lucide="activity"></i> Spectrum
+        </a>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <h1 id="title">Alarm Log</h1>
+
+      <div class="card" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input id="runFilter" placeholder="Run" style="width:80px;">
+        <input id="subrunFilter" placeholder="Subrun" style="width:80px;">
+
+        <select id="alarmFilter">
+          <option value="">All Alarms</option>
+        </select>
+
+        <select id="timeFilter">
+          <option value="0">All Time</option>
+          <option value="60">Last 1 min</option>
+          <option value="300">Last 5 min</option>
+          <option value="900">Last 15 min</option>
+        </select>
+
+        <button onclick="applyFilters()">Apply</button>
+
+        <button id="resumeBtn" onclick="resumeAuto()">Pause Live</button>
+
+        <span id="liveStatus" style="margin-left:auto; font-weight:bold;">
+          LIVE
+        </span>
+      </div>
+
+      <div class="card">
+        <table id="alarmTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Run</th>
+              <th>Subrun</th>
+              <th>EWT</th>
+              <th>Spill</th>
+              <th>Alarm</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <script>
+
+      applyTheme(localStorage.getItem("theme") || "dark");
+
+      let autoRefresh = true;
+      let fullData = [];
+
+     // ===== Alarm JSON path (auto depth-safe) =====
+function getAlarmPath(run) {
+    if (!run) return null;
+
+    const detector = getDetector();
+    return `../../json/logs/stm_alarm_log_${detector}_run_${run}.json`;
+}
+
+      function updateLiveUI() {
+          const status = document.getElementById("liveStatus");
+          const btn = document.getElementById("resumeBtn");
+          if (!status || !btn) return;
+
+          if (autoRefresh) {
+              status.textContent = "LIVE";
+              status.style.color = "#4caf50";
+              btn.textContent = "Pause Live";
+          } else {
+              status.textContent = "PAUSED";
+              status.style.color = "#ff9800";
+              btn.textContent = "Resume Live";
+          }
+      }
+
+      function resumeAuto() {
+          autoRefresh = !autoRefresh;
+          updateLiveUI();
+      }
+
+      function setupInteractionPause() {
+          ["runFilter","subrunFilter","alarmFilter","timeFilter"].forEach(id => {
+              const el = document.getElementById(id);
+              el.addEventListener("focus", () => { autoRefresh = false; updateLiveUI(); });
+              el.addEventListener("input", () => { autoRefresh = false; updateLiveUI(); });
+          });
+      }
+
+      async function loadData(run) {
+    if (!run) return;
+
+    const url = getAlarmPath(run) + "?_=" + Date.now();
+
+    console.log("==== LOAD DATA ====");
+    console.log("Run:", run);
+    console.log("URL:", url);
+
+    try {
+        const res = await fetch(url);
+
+        console.log("Fetch response:", res);
+        console.log("Status:", res.status, res.statusText);
+        console.log("OK?:", res.ok);
+
+        const text = await res.text();
+        console.log("Raw response text:", text.slice(0, 500)); // first 500 chars
+
+        const data = JSON.parse(text);
+
+        console.log("Parsed JSON:", data);
+
+        fullData = Array.isArray(data) ? data : [];
+
+        populateAlarmTypes();
+        applyFilters();
+
+    } catch (err) {
+        console.error("🚨 LOAD FAILED:", err);
+        console.error("URL was:", url);
+
+        fullData = [];
+        applyFilters();
+    }
+}
+
+      function extractAlarms(entry) {
+          if (entry.cleared) return ["cleared"];
+
+          if (!entry.alarms) return [];
+
+          return Object.entries(entry.alarms)
+              .filter(([_, v]) => v)
+              .map(([k]) => k);
+      }
+
+      function populateAlarmTypes() {
+          const set = new Set();
+
+          fullData.forEach(entry => {
+              extractAlarms(entry).forEach(a => set.add(a));
+          });
+
+          const select = document.getElementById("alarmFilter");
+          select.innerHTML = `<option value="">All Alarms</option>`;
+
+          [...set].sort().forEach(a => {
+              select.innerHTML += `<option value="${a}">${formatAlarm(a)}</option>`;
+          });
+      }
+
+      function applyFilters() {
+
+        const runF = document.getElementById("runFilter").value;
+        const subF = document.getElementById("subrunFilter").value;
+        const alarmF = document.getElementById("alarmFilter").value;
+        const timeF = parseInt(document.getElementById("timeFilter").value);
+
+        const now = Date.now() / 1000;
+        const table = document.querySelector("#alarmTable tbody");
+        table.innerHTML = "";
+
+        const groups = {};
+
+        fullData.forEach(entry => {
+
+            const ts = entry.timestamp || 0;
+            const run = entry.run ?? "-";
+            const subrun = entry.subrun ?? "-";
+            const ewt = entry.ewt ?? "-";
+            const spill = entry.on_spill ?? false;
+
+            if (runF && String(run) !== runF) return;
+            if (subF && String(subrun) !== subF) return;
+            if (timeF > 0 && (now - ts) > timeF) return;
+
+            const alarms = extractAlarms(entry);
+
+            alarms.forEach(alarm => {
+
+                if (alarmF && alarm !== alarmF) return;
+
+                const key = `${alarm}_${run}_${subrun}`;
+
+                if (!groups[key]) {
+                    groups[key] = {
+                        alarm,
+                        run,
+                        subrun,
+                        count: 0,
+                        lastTime: ts,
+                        lastEWT: ewt,
+                        lastSpill: spill
+                    };
+                }
+
+                const g = groups[key];
+                g.count++;
+
+                if (ts > g.lastTime) {
+                    g.lastTime = ts;
+                    g.lastEWT = ewt;
+                    g.lastSpill = spill;
+                }
+            });
+        });
+
+        const sorted = Object.values(groups).sort((a, b) => b.lastTime - a.lastTime);
+
+        sorted.forEach(g => {
+
+            const row = document.createElement("tr");
+            row.classList.add(getAlarmSeverity(g.alarm));
+
+            const ageSec = Math.floor(now - g.lastTime);
+            const ageText = ageSec > 60 ? `${Math.floor(ageSec/60)}m ago` : `${ageSec}s ago`;
+
+            row.innerHTML = `
+                <td>
+                    ${new Date(g.lastTime * 1000).toLocaleTimeString()}<br>
+                    <span style="opacity:0.6; font-size:11px;">(${ageText})</span>
+                </td>
+                <td>${g.run}</td>
+                <td>${g.subrun}</td>
+                <td>${g.lastEWT}</td>
+                <td>${g.lastSpill ? "ON" : "OFF"}</td>
+                <td>
+                    ${formatAlarm(g.alarm)}
+                    ${g.count > 1 ? `<span style="opacity:0.7;"> (x${g.count})</span>` : ""}
+                </td>
+            `;
+
+            table.appendChild(row);
+        });
+      }
+
+      async function update() {
+          try {
+              const data = await fetchSTM();
+              updateBanner(data);
+
+              const run = data.run ?? "N/A";
+
+              document.getElementById("title").textContent =
+                  `Alarm Log (Run ${run})`;
+
+              if (autoRefresh) {
+                  await loadData(run);
+              }
+
+          } catch (err) {
+              console.error(err);
+              const banner = document.getElementById("banner");
+              banner.classList.remove("ok");
+              banner.classList.add("bad");
+              banner.textContent = "DATA ERROR";
+          }
+      }
+
+      window.addEventListener("load", () => {
+          lucide.createIcons();
+          setupInteractionPause();
+          updateLiveUI();
+          update();
+          setInterval(update, 2000);
+      });
+
+    </script>
+
+  </body>
+</html>

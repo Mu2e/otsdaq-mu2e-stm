@@ -1,0 +1,261 @@
+/* === stm_main.css === */
+
+/* ===== Base ===== */
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: Comfortaa, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #111;
+    color: white;
+}
+
+/* ===== Light mode ===== */
+.light,
+.light body {
+    background: #f5f5f5;
+    color: #111;
+}
+
+/* ===== Container ===== */
+.container {
+    text-align: center;
+    width: 420px; /* slightly wider for 2 panels */
+}
+
+/* ===== Logos ===== */
+.banner {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.banner img {
+    width: 100px;
+    height: 70px;
+    object-fit: contain;
+    background: white;
+    border-radius: 6px;
+    padding: 5px;
+    border: 1px solid #333;
+}
+
+/* ===== Title ===== */
+h1 {
+    margin: 20px 0 15px 0;
+}
+
+/* ===== STATUS CONTAINER (NEW) ===== */
+.status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ===== Status Box ===== */
+.status-box {
+    padding: 12px;
+    border-radius: 8px;
+
+    border: 1px solid #333;
+    background: #1a1a1a;
+
+    font-family: Inconsolata, monospace;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.status-box:hover {
+    transform: scale(1.02);
+}
+
+/* ===== Detector Colour Accents ===== */
+.status-box.hpge {
+    border-left: 5px solid #4da3ff;
+}
+
+.status-box.labr {
+    border-left: 5px solid #ff9f4d;
+}
+
+/* ===== Alarm States ===== */
+.status-box.ok { color: #4caf50; }
+.status-box.bad { color: #f44336; }
+
+/* ===== Header (icon + name) ===== */
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.detector-icon {
+    width: 26px;
+    height: 26px;
+}
+
+.detector-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ===== Content ===== */
+.status-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.sub-text {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* ===== Light override ===== */
+.light .status-box {
+    background: #fff;
+    border-color: #ccc;
+}
+
+/* ===== UI Controls ===== */
+.ui-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ui-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+
+    background: #1e1e1e;
+    border: 1px solid #444;
+}
+
+.ui-btn:hover {
+    background: #2a2a2a;
+}
+
+/* ACTIVE */
+.ui-btn.active {
+    border-color: #00ffaa;
+    color: #00ffaa;
+}
+
+/* MUTED */
+.ui-btn.muted {
+    border-color: #666;
+    color: #888;
+}
+
+/* Light */
+.light .ui-btn {
+    background: #fff;
+    color: #111;
+    border-color: #ccc;
+}
+
+/* ===== Menu ===== */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+}
+
+.btn:hover {
+    background: #333;
+}
+
+/* Light */
+.light .btn {
+    background: #fff;
+    color: #111;
+    border-color: #ccc;
+}
+
+/* ===== Labels ===== */
+.section-label {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.hint {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* ===== Icons ===== */
+i[data-lucide] {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Ports ===== */
+#ports_text {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: nowrap;   /* prevent stacking */
+    width: 100%;
+}
+
+.port-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: Inconsolata, monospace;
+    white-space: nowrap;
+}
+
+/* Status colors */
+.port-item .ok {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.port-item .bad {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.hpge-label {
+    color: #4da3ff;
+    font-weight: 600;
+}
+
+.labr-label {
+    color: #ff9f4d;
+    font-weight: 600;
+}

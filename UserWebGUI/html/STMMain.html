@@ -1,84 +1,296 @@
 <!DOCTYPE HTML>
 <html lang="en">
-<head>
+  <head>
     <title>STM DQM</title>
 
     <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
     <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="../css/stm_main.css" rel="stylesheet">
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: #111;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Comfortaa;
-        }
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../js/stm_dqm.js"></script>    
+  </head>
 
-        .container {
-            text-align: center;
-        }
+  <body>
 
-        h1 {
-            margin-bottom: 40px;
-            font-size: 32px;
-        }
+    <div class="container">
 
-        .btn {
-            display: block;
-            width: 260px;
-            margin: 15px auto;
-            padding: 14px;
-            font-size: 16px;
-            font-family: Inconsolata;
-            background: #222;
-            color: white;
-            border: 2px solid #444;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+      <!-- ===== Logos ===== -->
+      <div class="banner">
+        <img src="../images/uom.png" alt="UoM">
+        <img src="../images/uol.png" alt="UoL">
+        <img src="../images/ucl.png" alt="UCL">
+      </div>
 
-        .btn:hover {
-            background: #333;
-            border-color: #777;
-        }
+      <h1>STM DQM</h1>
 
-        .hint {
-            margin-top: 30px;
-            font-size: 12px;
-            opacity: 0.6;
-        }
-    </style>
-</head>
+      <!-- ===== UI ===== -->
+      <div class="section-label">UI</div>
+      <div class="ui-controls">
 
-<body>
+        <div id="themeToggle" class="ui-btn" onclick="toggleTheme()">
+          <i id="themeIcon" data-lucide="moon"></i>
+          <span id="themeText">Dark Mode</span>
+        </div>
 
-<div class="container">
-    <h1>STM DQM</h1>
+        <div id="soundToggle" class="ui-btn" onclick="toggleMute()">
+          <i id="soundIcon" data-lucide="volume-2"></i>
+          <span id="soundText">Sound ON</span>
+        </div>
 
-    <button class="btn" onclick="openPage('STMStatus.html')">
-        Status & Alarms
-    </button>
+      </div>
 
-    <button class="btn" onclick="openPage('STMFFT.html')">
-        FFT Diagnostics
-    </button>
+      <!-- ===== PORT STATUS ===== -->
+      <div class="section-label">PORT STATUS</div>
+      
+      <div class="status-container">
+	
+	<div id="status_ports" class="status-box">
+	  <div class="status-header">
+	    <span class="detector-title">DQM Ports</span>
+	  </div>
+	  
+	  <div class="status-content">
+	    <span id="ports_text" class="status-text">Loading...</span>
+	  </div>
+	</div>
+	
+      </div>
+      
+      <!-- ===== DETECTORS ===== -->
+      <div class="section-label">DETECTORS</div>
 
-    <div class="hint">
-        Monitoring & diagnostics
+      <div class="status-container">
+
+        <!-- ===== HPGe ===== -->
+        <div id="status_hpge" class="status-box hpge" onclick="location.href='STMHPGE.html'">
+          <div class="status-header">
+            <img src="../images/hpge.png" class="detector-icon">
+            <span class="detector-title">HPGe</span>
+          </div>
+
+          <div class="status-content">
+            <span class="status-text">Loading...</span>
+            <span class="sub-text"></span>
+          </div>
+        </div>
+
+        <!-- ===== LaBr ===== -->
+        <div id="status_labr" class="status-box labr" onclick="location.href='STMLABR.html'">
+          <div class="status-header">
+            <img src="../images/labr.png" class="detector-icon">
+            <span class="detector-title">LaBr</span>
+          </div>
+
+          <div class="status-content">
+            <span class="status-text">Loading...</span>
+            <span class="sub-text"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="hint">
+        Click a detector for detailed monitoring
+      </div>
+
     </div>
-</div>
 
-<script>
-function openPage(page) {
-    // Forward query parameters (addr, monitoring, etc.)
-    const params = window.location.search;
-    window.open(page + params, '_blank');
-}
-</script>
+    <script>
 
-</body>
+      applyTheme(localStorage.getItem("theme") || "dark");
+
+      // ===== Restore last page =====
+      const last = localStorage.getItem("lastPage");
+      if (last && !window.location.pathname.includes("STMMain.html")) {
+          window.location.href = last;
+      }
+
+      async function checkDQM(port) {
+          try {
+              const res = await fetch(`http://localhost:${port}/status`);
+              if (!res.ok) return false;
+
+              const text = await res.text();
+              return text.trim() === "hello!";
+          } catch {
+              return false;
+          }
+      }
+
+      async function updatePorts() {
+	  const ports = [
+              { name: "HPGe STMDQM:", port: 8050, class: "hpge-label" },
+              { name: "LaBr STMDQM:", port: 8060, class: "labr-label" }
+	  ];
+
+	  const results = await Promise.allSettled(
+              ports.map(async (p) => {
+		  try {
+                      const res = await fetch(`http://127.0.0.1:${p.port}/status`);
+
+                      if (!res.ok) {
+			  return { ok: false, reason: "HTTP " + res.status };
+                      }
+
+                      const text = (await res.text()).trim();
+
+                      if (text === "hello!") {
+			  return { ok: true };
+                      } else {
+			  return { ok: false, reason: "BAD RESPONSE" };
+                      }
+
+		  } catch (err) {
+                      if (err.name === "TypeError") {
+			  return { ok: false, reason: "CORS / BLOCKED" };
+                      }
+                      return { ok: false, reason: "NO RESPONSE" };
+		  }
+              })
+	  );
+
+	  const box = document.getElementById("status_ports");
+	  const el = document.getElementById("ports_text");
+
+	  const statuses = results.map((res, i) => {
+              const p = ports[i];
+
+              if (res.status !== "fulfilled") {
+		  return `
+                <div class="port-item">
+                    <span class="${p.class}">${p.name}</span>
+                    <span class="bad">ERROR</span>
+                </div>
+            `;
+              }
+
+              if (res.value.ok) {
+		  return `
+                <div class="port-item">
+                    <span class="${p.class}">${p.name}</span>
+                    <span class="ok">UP</span>
+                </div>
+            `;
+              } else {
+		  return `
+                <div class="port-item">
+                    <span class="${p.class}">${p.name}</span>
+                    <span class="bad">DOWN (${res.value.reason})</span>
+                </div>
+            `;
+              }
+	  });
+
+	  el.innerHTML = statuses.join("");
+
+	  box.classList.remove("ok", "bad");
+
+	  const allUp = results.every(r =>
+              r.status === "fulfilled" && r.value.ok === true
+	  );
+
+	  box.classList.add(allUp ? "ok" : "bad");
+      }
+      
+      // ===== Core updater =====
+      async function updateDetector(jsonPath, elementId, label) {
+          try {
+	      const data = await fetch(jsonPath + "?_=" + Date.now())
+		    .then(r => r.json());
+
+              const box = document.getElementById(elementId);
+              const statusText = box.querySelector(".status-text");
+              const subText = box.querySelector(".sub-text");
+
+              const alarms = data.alarms || {};
+              const badKeys = Object.entries(alarms)
+                    .filter(([_, v]) => v === true)
+                    .map(([k]) => k);
+
+              const hasAlarm = badKeys.length > 0;
+
+              const run = data.run ?? "N/A";
+              const subrun = data.subrun ?? "N/A";
+
+              // ===== STALE CHECK =====
+              const now = Date.now() / 1000;
+              const age = now - (data.timestamp ?? 0);
+              const isStale = age > 3;
+
+              const time = new Date().toLocaleTimeString();
+              const spillEnd = data.spill?.end;
+              const spillText = spillEnd ? "ON SPILL" : "OFF SPILL";
+
+              box.classList.remove("ok", "bad");
+
+              if (isStale) {
+                  box.classList.add("bad");
+
+                  statusText.innerHTML = `
+                <i data-lucide="pause-circle"></i>
+                Run ${run}.${subrun} | STOPPED
+            `;
+
+              } else if (hasAlarm) {
+                  box.classList.add("bad");
+
+                  statusText.innerHTML = `
+                <i data-lucide="alert-triangle"></i>
+                Run ${run}.${subrun} | ${badKeys.join(", ")}
+            `;
+
+              } else {
+                  box.classList.add("ok");
+
+                  statusText.innerHTML = `
+                <i data-lucide="check-circle"></i>
+                Run ${run}.${subrun} | OK
+            `;
+              }
+
+	      subText.innerHTML = `
+    ${spillText} &nbsp; | &nbsp; ${time} ${isStale ? "(stale)" : ""}
+`;
+	      
+              lucide.createIcons();
+
+          } catch (err) {
+              console.error(err);
+
+              const box = document.getElementById(elementId);
+              const statusText = box.querySelector(".status-text");
+              const subText = box.querySelector(".sub-text");
+
+              box.classList.remove("ok");
+              box.classList.add("bad");
+
+              statusText.innerHTML = `
+            <i data-lucide="alert-circle"></i>
+            ${label} | Data Error
+        `;
+
+              subText.innerHTML = new Date().toLocaleTimeString();
+
+              lucide.createIcons();
+          }
+      }
+
+      // ===== Update both =====
+      function updateAll() {
+          updateDetector("../json/stm_hpge.json", "status_hpge", "HPGe");
+          updateDetector("../json/stm_labr.json", "status_labr", "LaBr");
+	  updatePorts();
+      }
+
+      // ===== Init =====
+      window.addEventListener("load", () => {
+          lucide.createIcons();
+          updateAll();
+          setInterval(updateAll, 1000);
+      });
+
+    </script>
+
+  </body>
 </html>
