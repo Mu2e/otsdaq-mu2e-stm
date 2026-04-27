@@ -112,6 +112,8 @@ void STMDAQSupervisor::transitionStopping(toolbox::Event::Reference e)
 {
     __SUP_COUT__ << "transitionStopping" << std::endl;
 
+    stop::trigger_user_stop();
+
     // Close thread manager but leave FE
     stmFE_->close_threads();
 
