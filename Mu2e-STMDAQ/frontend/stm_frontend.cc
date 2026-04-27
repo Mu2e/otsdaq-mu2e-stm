@@ -9,7 +9,7 @@ STMfrontend::STMfrontend() :
   logger(std::make_shared<AsyncLogger>(cfg,cpu)),
   signal(std::make_shared<SignalHandler>(logger,cpu)),
   stm(std::make_shared<STMdata>(cfg,logger)){
-    
+
   // If we are on the hardware control server
   if (stm->master_config.host == stm->fw_config.ctrl_srvr){
     // Initialise hardware manager
@@ -38,6 +38,14 @@ void STMfrontend::start_stmdaq(){
 
 }
 
+// Start STMDAQ
+void STMfrontend::close_threads(){
+
+  // Close thread manager
+  if (tm) tm.reset();
+
+  return;
+}
 
 // Wait until stop signal is called
 void STMfrontend::wait(){
@@ -46,5 +54,13 @@ void STMfrontend::wait(){
 
   return;
 
+}
+
+int STMfrontend::return_channel(){
+
+  int channel = 1;
+  if (stm->master_config.host == stm->fw_config.ctrl_srvr) channel = 0;
+
+  return channel;
 }
 
