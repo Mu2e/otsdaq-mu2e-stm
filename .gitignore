@@ -20,7 +20,7 @@ setupARTDAQOTS
 *.vcxproj*
 *.tmp
 *.bk
-*.tmp
+tmp/*
 CMakePresets.json
 build-linux-*
 spack-build-* 
