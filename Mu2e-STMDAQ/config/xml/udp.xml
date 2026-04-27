@@ -3,6 +3,7 @@
   <recv_timeout_secs>10</recv_timeout_secs> <!-- UDP receive timeout (seconds) -->
   <recv_timeout_usecs>0</recv_timeout_usecs> <!-- UDP receive timeout (usecs) -->
   <poll_timeout_ms>100</poll_timeout_ms> <!-- UDP poll timeout (ms) -->
+  <idle_timeout_ms>100</idle_timeout_ms> <!-- UDP idle timeout (ms) -->
   <!-- HPGe UDP parameters -->
   <hpge> 
     <fw>  

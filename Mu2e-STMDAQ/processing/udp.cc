@@ -11,7 +11,9 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>& logger_,
   ip((stm->master_config.ch_num) ? stm->udp_config.rcv_ip : stm->udp_config.snd_ip), // IP address
   port((stm->master_config.ch_num) ? stm->udp_config.rcv_port : stm->udp_config.snd_port), // Port
   max_packet_num(stm->buffer_config.max_packet_num),
-  wait_time(0.0) // Time waiting with no packets received
+  wait_time(0.0), // Time waiting with no packets received
+  idle_timeout_ms(stm->udp_config.idle_timeout_ms)
+
 {
   
   // Create a UDP socket
@@ -313,6 +315,22 @@ void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
       
       // Signal we're waiting for data
       waiting_for_data = true;
+
+     
+      // If we were previously receiving data and have now gone idle
+      if (has_received_data && !idle_timeout_logged) {
+         auto now = std::chrono::steady_clock::now();
+         auto idle_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+             now - last_recv_time).count();
+
+         if (idle_ms > idle_timeout_ms) {
+             idle_timeout_logged = true;
+             logger->log("UDP: Idle timeout after " + std::to_string(idle_ms) +
+                        "ms, releasing buffer", 2);
+             return;
+         }
+      }
+       
       
       // Push what has already been pulled to the queue
       if (packets_this_call > 0) return;
