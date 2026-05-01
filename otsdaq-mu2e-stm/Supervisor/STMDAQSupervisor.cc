@@ -115,7 +115,10 @@ void STMDAQSupervisor::transitionStopping(toolbox::Event::Reference e)
     stop::trigger_user_stop();
 
     // Close thread manager but leave FE
-    stmFE_->close_threads();
+    if (stmFE_) {
+      stmFE_->close_threads();
+      stmFE_->run_reset_readout();
+    }
 
     CoreSupervisorBase::transitionStopping(e);
 }
