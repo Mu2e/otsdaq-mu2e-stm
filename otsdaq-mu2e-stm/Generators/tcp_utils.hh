@@ -27,9 +27,9 @@ constexpr size_t PH_HEADER_LEN = 4; // length in words of PH header
 constexpr int16_t RAW_DATA_LEN   = 30000; // Tunable guess at length of raw payload (per event)
 constexpr int16_t ZS_DATA_LEN    = 5000; // .. of zs payload
 constexpr int16_t PH_DATA_LEN   = 200; // .. of ph payload
-constexpr size_t MAX_RAW_WORDS = 35000;
-constexpr size_t MAX_ZS_WORDS  = 35000;
-constexpr size_t MAX_PH_WORDS = 35000;
+constexpr size_t MAX_RAW_WORDS = 65535;
+constexpr size_t MAX_ZS_WORDS  = 65535;
+constexpr size_t MAX_PH_WORDS = 65535;
 constexpr size_t MAX_EVENT_WORDS = 30032;   // maximum expected words per dataset for reserve
 constexpr size_t MAX_BYTE_BUFFER = 18000000; // Max number of bytes to recv per call
 
