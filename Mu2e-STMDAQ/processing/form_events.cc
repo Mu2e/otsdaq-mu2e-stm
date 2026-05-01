@@ -55,7 +55,7 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
       size_t data_len = data_ptr[data_len_loc];      
     
       // Get total event length
-      size_t event_len = data_ptr[hdr_start_loc + fw_eHdr.EvLen];      
+      size_t event_len = static_cast<uint16_t>(data_ptr[hdr_start_loc + fw_eHdr.EvLen]);      
     
       // Get the event window tag
       uint64_t EWT = stm->get_EWT(data_ptr,hdr_start_loc);
