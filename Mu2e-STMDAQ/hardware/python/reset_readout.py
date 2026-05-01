@@ -19,4 +19,6 @@ hw.getNode("Buffers.Readout_regs.reset_trig_count").write(0x1)
 hw.dispatch()
 hw.getNode("Buffers.Debug_controls_pulse_4.DDR_wr_addr_reset").write(0x1)
 hw.dispatch()
+hw.getNode("Buffers.Readout_regs.reset_40MHz_75MHz_timers").write(0x1)
+hw.dispatch()
 finished = True
