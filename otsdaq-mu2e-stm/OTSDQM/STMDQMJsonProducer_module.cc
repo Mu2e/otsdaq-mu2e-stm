@@ -166,13 +166,19 @@ double STMDQMJsonProducer::computeSlope(
   return (n*sumXY - sumX*sumY) / denom;
 }
 
+std::string detectorName(int ch) {
+  if (ch == 0) return "hpge";
+  if (ch == 1) return "labr";
+  return "unknown";
+}
+
 std::string STMDQMJsonProducer::makeJsonPath(int ch) const {
-  return cfg_.jsonBasePath() + "_ch" + std::to_string(ch) + ".json";
+  return cfg_.jsonBasePath() + "_" + detectorName(ch) + ".json";
 }
 
 std::string STMDQMJsonProducer::makeLogPath(int ch, int run) const {
-  return cfg_.logBasePath() + "_ch" + std::to_string(ch)
-       + "_run_" + std::to_string(run) + ".json";
+  return cfg_.logBasePath() + "/logs/" +
+         detectorName(ch) + "_run_" + std::to_string(run) + ".json";
 }
 
 // ============================================================
