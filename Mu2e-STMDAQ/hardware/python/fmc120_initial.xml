@@ -95,7 +95,11 @@
            <node id="dtc_link_rst" address="0x6"/>
            <node id="dtc_link_up" address="0x7"/>
            <node id="clk_marker_sync_off_count" address="0x8"/>
-           <node id="ps_mem_1_wready" address="0x9"/>
+	   <node id="ps_mem_1_wready" address="0x9"/>
+	   <node id="evm_received_count" address="0xA"/>
+	   <node id="hb_received_count" address="0xB"/>
+	   <node id="evm_processed_count_0" address="0xC"/>
+	   <node id="evm_processed_count_1" address="0xD"/>
        </node>
        
     </node> 
