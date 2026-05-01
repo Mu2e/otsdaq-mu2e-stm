@@ -76,6 +76,8 @@ public:
 
   void close_threads();
 
+  void run_reset_readout();
+
   //Get 0 or 1 to know what channel we are on
   int return_channel();
 

@@ -38,11 +38,20 @@ void STMfrontend::start_stmdaq(){
 
 }
 
-// Start STMDAQ
+// Close threads
 void STMfrontend::close_threads(){
 
   // Close thread manager
   if (tm) tm.reset();
+
+  return;
+}
+
+// Function so ots can call readout reset
+void STMfrontend::run_reset_readout(){
+
+  // If hw manager reset readout
+  if (hw) hw->reset_readout();
 
   return;
 }
