@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
+#include <fcntl.h>
+#include <sys/file.h>
 
 using namespace ots;
 
@@ -51,9 +54,41 @@ void SubsystemSTMDAQTable::updateXMLfiles(const ConfigurationManager* configMana
   auto table = configManager->getTable<TableBase>("SubsystemSTMDAQTable");
   const auto& tableView = table->getView();
 
+  //Copy from source to scratch
+  const std::string copyFrom = getenv("XML_PATH") ? getenv("XML_PATH") : "";
+  const std::string xmlMaster = getenv("STM_XML") ? getenv("STM_XML") : "";
+  std::filesystem::path p(xmlMaster);
+  std::filesystem::path xmlPath = p.parent_path();
+  std::filesystem::path realXmlPath = std::filesystem::canonical(xmlPath);
+  std::filesystem::path realMasterPath = std::filesystem::canonical(xmlMaster);
+
+  std::string lock_file = realXmlPath /".lock";
+
+  int fd = open(lock_file.c_str(), O_CREAT | O_RDWR, 0666);
+
+  if (fd == -1) {
+    std::cerr << "Fatal: Could not open/create lock file.\n";
+    return;
+  }
+
+  if (::flock(fd, LOCK_EX | LOCK_NB) == -1) {
+    if (errno == EWOULDBLOCK) {
+      // The file exists AND someone else currently holds the lock!
+      std::cout << "Another DAQ process is currently copying. Skipping...\n";
+      close(fd);
+      return;
+    } else {
+      // Some other system error happened
+      std::cerr << "Error acquiring lock.\n";
+      close(fd);
+      return;
+    }
+  }
+
+  std::filesystem::copy(copyFrom, realXmlPath, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+
   // Get the config instance of the stmdaq
-  const std::string xmlPath = getenv("STM_XML") ? getenv("STM_XML") : "";
-  auto& cfg = Config::getInstance(xmlPath);
+  auto& cfg = Config::getInstance(realMasterPath);
 
   // Iterate over rows
   for(unsigned int row = 1; row < tableView.getNumberOfRows(); ++row) {
@@ -67,6 +102,9 @@ void SubsystemSTMDAQTable::updateXMLfiles(const ConfigurationManager* configMana
     std::string config_str = "stm." + key;
     cfg.setValue(config_str, value);
   }
+
+  flock(fd, LOCK_UN);
+  close(fd);
 
 }
 
