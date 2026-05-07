@@ -130,6 +130,13 @@ HardwareManager::HardwareManager(const std::shared_ptr<AsyncLogger>& logger_,
       logger->log("HardwareManager: Error loading FPGA firmware. Exiting...",0);
       return;
     }
+    // Check if PS memory is ready
+    bool ps_mem = check_ps_mem();
+    if (!ps_mem) {
+      logger->log("HardwareManager::ps_mem: PS memory not ready, you will need to reboot the board PetaLinux!. Exiting...",0);
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      return;
+    }
     // Check if ADC already is initialised
     bool init = check_adc_init();
     // If ADC is not initalised, initialise ADC
@@ -321,6 +328,37 @@ void HardwareManager::init_adc() {
                                          retvar // Variable to return
                                          );
   
+}
+
+// Check whether ADC is initialised and return boolean
+bool HardwareManager::check_ps_mem() {
+
+  // Reset readout
+  reset_readout();
+  
+  // Get python script name
+  std::string script = stm->fw_config.python.check_ps.first+".py";
+  // Get python script return variable name
+  std::string retvar = stm->fw_config.python.check_ps.second;
+  
+  // Log to user
+  logger->log("Checking if PS is ready...",1);
+  // Declare the python object and run python script  
+  py::object out = impl->call_script_get(script,// Script
+                                         impl->device, // Device  
+                                         retvar // Variable to return
+                                         );  
+  // Get returned result
+  bool success = out.cast<bool>();
+  // Log outcome to user
+  if (success){
+    logger->log("PS memory ready.",1);
+  }
+  else{
+    logger->log("PS memory not ready",2);
+  }
+  // Return boolean
+  return success;
 }
 
 // Run dtc simulation
