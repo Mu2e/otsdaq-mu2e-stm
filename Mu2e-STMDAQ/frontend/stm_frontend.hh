@@ -42,7 +42,7 @@ private:
 
   // Buffer pool
   std::shared_ptr<BufferPool> pool;
-  
+
   // Thread Manager
   std::shared_ptr<ThreadManager> tm;
     

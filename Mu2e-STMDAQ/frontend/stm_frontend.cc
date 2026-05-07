@@ -32,7 +32,14 @@ STMfrontend::STMfrontend() :
 void STMfrontend::start_stmdaq(){
 
   // Instance of thread manager
-  if (!stop::should_stop()) tm = std::make_shared<ThreadManager>(cpu,logger,stm,signal,pool,om,hw);
+  if (!stop::should_stop()) {
+    // If we reset the om, make a new one
+    if (!om) om = std::make_shared<OperationManager>(cfg, logger, stm, signal);
+    // If we previously cleared the pool, make a new one
+    if (!pool) pool = std::make_shared<BufferPool>(cpu,logger,stm,om);
+    // Thread manager
+    tm = std::make_shared<ThreadManager>(cpu,logger,stm,signal,pool,om,hw);
+  }
 
   return;
 
@@ -43,6 +50,8 @@ void STMfrontend::close_threads(){
 
   // Close thread manager
   if (tm) tm.reset();
+  if (pool) pool.reset();
+  if (om) om.reset();
 
   return;
 }
