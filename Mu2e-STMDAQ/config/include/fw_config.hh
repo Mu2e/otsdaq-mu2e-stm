@@ -30,6 +30,7 @@ struct python_scripts{
   const std::pair<std::string,std::string> check_adc; // Check ADC script & return variable
   const std::pair<std::string,std::string> init_adc; // Initialise ADC script & return variable
   const std::pair<std::string,std::string> adc_temp; // Check adc temperature script & return variable
+  const std::pair<std::string,std::string> check_ps; // Check PS memory script & return variable
   const std::pair<std::string,std::string> reset_readout; // Reset readout script
   const std::pair<std::string,std::string> dtc_sim; // DTC simulation script
   const std::pair<std::string,std::string> dtc_set_real; // DTC set real script
@@ -44,6 +45,8 @@ struct python_scripts{
                  std::string init_adc_var_,
                  std::string adc_temp_,
                  std::string adc_temp_var_,
+                 std::string check_ps_,
+                 std::string check_ps_var_,
                  std::string reset_readout_,
                  std::string dtc_sim_,
 		 std::string dtc_set_real_)
@@ -52,6 +55,7 @@ struct python_scripts{
     , check_adc(check_adc_,check_adc_var_)
     , init_adc(init_adc_,init_adc_var_)
     , adc_temp(adc_temp_,adc_temp_var_)
+    , check_ps(check_ps_,check_ps_var_)
     , reset_readout(reset_readout_,"")
     , dtc_sim(dtc_sim_,"")
     , dtc_set_real(dtc_set_real_,"") {}
@@ -63,6 +67,7 @@ struct python_scripts{
                     check_adc,
                     init_adc,
                     adc_temp,
+		    check_ps,
                     reset_readout,
                     dtc_sim,
 		    dtc_set_real
@@ -106,6 +111,8 @@ struct fw_info{
            cfg.getValue<std::string>("stm.fw.python.init_adc.retvar"),
            cfg.getValue<std::string>("stm.fw.python.adc_temp"),
            cfg.getValue<std::string>("stm.fw.python.adc_temp.retvar"),
+           cfg.getValue<std::string>("stm.fw.python.check_ps"),
+           cfg.getValue<std::string>("stm.fw.python.check_ps.retvar"),
            cfg.getValue<std::string>("stm.fw.python.reset_readout"),
            cfg.getValue<std::string>("stm.fw.python.dtc_sim"),
            cfg.getValue<std::string>("stm.fw.python.dtc_set_real")           
