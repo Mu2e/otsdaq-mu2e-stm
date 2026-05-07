@@ -22,9 +22,12 @@ private:
   // Store reference to CPU utils instance                                                            
   const std::shared_ptr<cpu_utils>& cpu;
 
+  // Async Logger
+  const std::shared_ptr<AsyncLogger>& logger;
+  
   // STM data info
   const std::shared_ptr<STMdata>& stm;
-  
+
   // Lock-free stack for buffer storage
   std::unique_ptr<boost::lockfree::stack<std::shared_ptr<DataStruct>>> pool;
 
@@ -83,6 +86,7 @@ public:
     // Ensure reset queue memory cleanup
     resetQueue.reset();
     std::cout << "BufferPool destructor complete.\n";
+    //if (logger) logger->log("BufferPool destructor complete.",1);
   }
   
   // Acquire a buffer from the pool (Non-blocking)
