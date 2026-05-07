@@ -25,6 +25,9 @@
     <adc_temp>check_adc_temp <!-- Script -->
      <retvar>result</retvar> <!-- Return variable -->            
     </adc_temp>
+    <check_ps>check_ps_mem  <!-- Script -->
+     <retvar>success</retvar> <!-- Return variable -->    
+    </check_ps>
     <reset_readout>reset_readout</reset_readout>
     <dtc_sim>dtc_sim_test_new</dtc_sim>
     <dtc_set_real>dtc_test_real_setup <!-- Script -->
