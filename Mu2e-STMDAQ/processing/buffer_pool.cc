@@ -3,10 +3,10 @@
 
 // Constructor: Pre-allocate buffers and push them into the lock-free stack
 BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
-                       const std::shared_ptr<AsyncLogger>& logger,
+                       const std::shared_ptr<AsyncLogger>& logger_,
                        const std::shared_ptr<STMdata>& stm_,
                        const std::shared_ptr<OperationManager>& om) :
-  cpu(cpu_), stm(stm_),
+  cpu(cpu_), logger(logger_), stm(stm_),
   raw_size(stm->buffer_config.raw_size),
   raw_len(stm->buffer_config.raw_len),
   zs_size(stm->buffer_config.zs_size),

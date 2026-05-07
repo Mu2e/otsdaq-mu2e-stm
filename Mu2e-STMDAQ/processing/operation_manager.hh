@@ -175,7 +175,8 @@ public:
   
   // Destructor for logging
   ~OperationManager() {
-    std::cout << "Operation Manager destructor called.\n";
+    //std::cout << "Operation Manager destructor called.\n";
+    if (logger) logger->log("Operation Manager destructor called.",1);
   }
 
 };
