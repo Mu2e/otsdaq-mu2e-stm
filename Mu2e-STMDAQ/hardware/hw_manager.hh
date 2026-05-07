@@ -52,6 +52,9 @@ public:
   // Run script to load initialise ADC
   void init_adc();
 
+  // Check PS memory is ready
+  bool check_ps_mem();
+
   // Run dtc simulation
   void run_dtc_sim();
 

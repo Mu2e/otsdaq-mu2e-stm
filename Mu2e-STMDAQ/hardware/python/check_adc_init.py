@@ -51,9 +51,9 @@ hw.dispatch()
 if (adc1 == 0): success = False
 print("ADC Channel 1 Initialised =",bool(adc0))
 time.sleep(0.5)
-psmem=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
-hw.dispatch()
-if (psmem == 0): success = False
-print("PS Memory Ready =",bool(psmem))
-time.sleep(0.5)
+#psmem=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
+#hw.dispatch()
+#if (psmem == 0): success = False
+#print("PS Memory Ready =",bool(psmem))
+#time.sleep(0.5)
 if (success): print("System Ready...")
