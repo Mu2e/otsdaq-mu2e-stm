@@ -137,7 +137,7 @@ function clearTiming() {
     console.log("Timing counters cleared");
 }  
 
-// ===== Persistent accumulation =====
+//  Persistent accumulation 
 function getTimingState() {
     return JSON.parse(localStorage.getItem("timingState") || "{}");
 }
@@ -173,7 +173,7 @@ async function update() {
                 spillTrans: 0,
                 dtcJumps: 0,
                 adcJumps: 0,
-                lastTimestamp: null   // ✅ added
+                lastTimestamp: null
             };
         }
 
@@ -186,7 +186,7 @@ async function update() {
             adc:       data.timing?.adc_jumps ?? 0
         };
 
-        // ===== FIX: only accumulate on new data =====
+        //  only accumulate on new data 
         if (state.lastTimestamp !== data.timestamp) {
 
             state.ewtSmall  += cur.ewtSmall;
@@ -200,7 +200,7 @@ async function update() {
 
         setTimingState(state);
 
-        // ===== Display =====
+        //  Display 
         setCard("ewtSmall", state.ewtSmall,
             getState(cur.ewtSmall, T.ewt_small_warn, T.ewt_small_bad)
         );

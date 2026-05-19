@@ -48,14 +48,9 @@ void STMDAQSupervisor::transitionConfiguring(toolbox::Event::Reference e)
 
   stop::reset_stops();
 
-  //auto& stm_config = Config::getInstance();
-  //stm_config.reinit();
-
   stmFE_ = std::make_shared<STMfrontend>();
 
-  CoreSupervisorBase::transitionConfiguring(e);
-
-  // Get the channel for log file labelling
+  // Get the channel for DQM log file labelling
   int currentChannel = stmFE_->return_channel();
 
   //HPGe DQM start
@@ -67,7 +62,7 @@ void STMDAQSupervisor::transitionConfiguring(toolbox::Event::Reference e)
     std::string commandResponse = StringMacros::exec("nohup python /home/mu2eshift/ots_ops_stm/srcs/otsdaq-mu2e-stm/Mu2e-STMDAQ/dqm/app.py > /home/mu2eshift/ots_ops_stm/Data_stm/Logs/DQMlogs/dqmout_LaBr.log 2>&1 &");
   }
 
-
+  CoreSupervisorBase::transitionConfiguring(e);
 }
 
 
@@ -120,5 +115,36 @@ void STMDAQSupervisor::transitionStopping(toolbox::Event::Reference e)
       stmFE_->run_reset_readout();
     }
 
+    stop::reset_stops();
+
     CoreSupervisorBase::transitionStopping(e);
 }
+
+std::vector<SupervisorInfo::SubappInfo> STMDAQSupervisor::getSubappInfo(void)
+{
+  SupervisorInfo::SubappInfo info;
+
+  info.name   = "STMDAQ";
+  info.detail = ""; 
+  info.lastStatusTime = time(0);
+  info.progress       = 100;
+  info.url        = "";
+  info.class_name = "STMDAQ ";
+
+  if (stop::should_critical_stop()){
+    info.status = RunControlStateMachine::FAILED_STATE_NAME;
+    theStateMachine_.setErrorMessage("argh!");
+    theStateMachine_.execTransition("fail");
+
+//    throw toolbox::fsm::exception::Exception(
+//        "STMDAQ is dead! Please go back to halted to restart.","","",1,""); 
+  }
+  
+  else info.status = theStateMachine_.getCurrentStateName();
+
+  std::vector<SupervisorInfo::SubappInfo> output;
+  output.push_back(info);
+
+  return output;
+}
+

@@ -71,17 +71,42 @@ public:
     
     std::cerr << "Patching file: " << fileAndLocal.first << " with local key: " << fileAndLocal.second << "\n";
     
-    // Patch the value directly in the raw XML file
-    if (!patchValueInFile(fileAndLocal.first, fileAndLocal.second, strValue)) { // NEW: patch correct file + correct local key
-      throw std::runtime_error("Failed to patch value for key: " + key);
+    // Load the target file (main or included fragment)
+    pugi::xml_document targetDoc;
+    if (!targetDoc.load_file(fileAndLocal.first.c_str()))
+        throw std::runtime_error("Failed to load: " + fileAndLocal.first);
+
+    // Walk the local key path to find the exact node
+    pugi::xml_node targetNode = targetDoc.document_element();
+    std::istringstream ss(fileAndLocal.second);
+    std::string token;
+    while (std::getline(ss, token, '.')) {
+        if (token == targetNode.name()) continue; // skip root element name
+        targetNode = targetNode.child(token.c_str());
+        if (!targetNode)
+            throw std::runtime_error("Node not found in file: " + token);
     }
 
+    // Set the value on the exact node — no regex, no ambiguity
+    targetNode.text().set(strValue.c_str());
+
+    // Save back to the correct file
+    if (!targetDoc.save_file(fileAndLocal.first.c_str()))
+        throw std::runtime_error("Failed to save: " + fileAndLocal.first);
+
+    // Rebuild in-memory DOM to reflect the change
+    rebuildExpandedDocument();
+    // Patch the value directly in the raw XML file
+    //if (!patchValueInFile(fileAndLocal.first, fileAndLocal.second, strValue)) { // NEW: patch correct file + correct local key
+    //  throw std::runtime_error("Failed to patch value for key: " + key);
+    //}
+
     // Reload the updated document into memory
-    pugi::xml_parse_result result = doc.load_file(xml_path.c_str());
-    if (!result) throw std::runtime_error("Failed to reload XML file after patching.");
+    //pugi::xml_parse_result result = doc.load_file(xml_path.c_str());
+    //if (!result) throw std::runtime_error("Failed to reload XML file after patching.");
 
     // Re-expand <include .../> nodes so the in-memory DOM matches the split-on-disk configuration // NEW
-    rebuildExpandedDocument(); // NEW: reload + expand includes + rebuild key->file map
+    //rebuildExpandedDocument(); // NEW: reload + expand includes + rebuild key->file map
   }
 
   // Print all key paths and values
@@ -147,69 +172,69 @@ private:
 
   // Patch th
   //e XML value by directly editing the raw file content
-  bool patchValueInFile(const std::string& targetPath, const std::string& key, const std::string& newValue) { // NEW: patch a specified file + local key
-    // Load the entire file into a string
-    std::ifstream fileIn(targetPath); // NEW: open the selected file (main or included)
-    if (!fileIn.is_open()) return false;
+  //bool patchValueInFile(const std::string& targetPath, const std::string& key, const std::string& newValue) { // NEW: patch a specified file + local key
+  //  // Load the entire file into a string
+  //  std::ifstream fileIn(targetPath); // NEW: open the selected file (main or included)
+  //  if (!fileIn.is_open()) return false;
 
-    std::ostringstream buffer;
-    buffer << fileIn.rdbuf();
-    std::string content = buffer.str();
-    fileIn.close();
+  //  std::ostringstream buffer;
+  //  buffer << fileIn.rdbuf();
+  //  std::string content = buffer.str();
+  //  fileIn.close();
 
-    // Parse key into path segments
-    std::vector<std::string> pathSegments; // NEW: now supports root-only keys too
-    std::istringstream iss(key); // NEW: parse the LOCAL key (within that file)
-    std::string token; // NEW: token for splitting
-    while (std::getline(iss, token, '.')) { // NEW: split local key on '.'
-      if (!token.empty()) pathSegments.push_back(token); // NEW: ignore empty tokens defensively
-    }
+  //  // Parse key into path segments
+  //  std::vector<std::string> pathSegments; // NEW: now supports root-only keys too
+  //  std::istringstream iss(key); // NEW: parse the LOCAL key (within that file)
+  //  std::string token; // NEW: token for splitting
+  //  while (std::getline(iss, token, '.')) { // NEW: split local key on '.'
+  //    if (!token.empty()) pathSegments.push_back(token); // NEW: ignore empty tokens defensively
+  //  }
 
-    if (pathSegments.empty()) return false; // NEW: no key segments -> cannot patch
+  //  if (pathSegments.empty()) return false; // NEW: no key segments -> cannot patch
 
-    // Special case: included files often contain ONLY a single root element (e.g. <channel>0</channel>) // NEW
-    if (pathSegments.size() == 1) { // NEW: patch a root-only tag anywhere in the file
-      std::string tag = pathSegments.back(); // NEW: the element name to replace
-      std::regex oneTag("<" + tag + ">([\\s\\S]*?)</" + tag + ">"); // NEW: match the first occurrence of <tag>...</tag>
-      std::smatch m; // NEW: regex match object
-      if (!std::regex_search(content, m, oneTag)) return false; // NEW: if tag not found, fail
-      std::string replacement = "<" + tag + ">" + newValue + "</" + tag + ">"; // NEW: replacement text
-      content = std::regex_replace(content, oneTag, replacement, std::regex_constants::format_first_only); // NEW: patch only first match
-    } else {
-      // Keep the existing behaviour: patch the last tag within its immediate parent block // NEW (comment only; logic preserved + generalized to selected file)
-      std::string tag = pathSegments.back(); // NEW: leaf tag to patch
-      std::string parent = pathSegments[pathSegments.size() - 2]; // NEW: immediate parent tag
+  //  // Special case: included files often contain ONLY a single root element (e.g. <channel>0</channel>) // NEW
+  //  if (pathSegments.size() == 1) { // NEW: patch a root-only tag anywhere in the file
+  //    std::string tag = pathSegments.back(); // NEW: the element name to replace
+  //    std::regex oneTag("<" + tag + ">([\\s\\S]*?)</" + tag + ">"); // NEW: match the first occurrence of <tag>...</tag>
+  //    std::smatch m; // NEW: regex match object
+  //    if (!std::regex_search(content, m, oneTag)) return false; // NEW: if tag not found, fail
+  //    std::string replacement = "<" + tag + ">" + newValue + "</" + tag + ">"; // NEW: replacement text
+  //    content = std::regex_replace(content, oneTag, replacement, std::regex_constants::format_first_only); // NEW: patch only first match
+  //  } else {
+  //    // Keep the existing behaviour: patch the last tag within its immediate parent block // NEW (comment only; logic preserved + generalized to selected file)
+  //    std::string tag = pathSegments.back(); // NEW: leaf tag to patch
+  //    std::string parent = pathSegments[pathSegments.size() - 2]; // NEW: immediate parent tag
 
-      // Regex to find the parent block
-      std::regex outerTag("<" + parent + ">([\\s\\S]*?)</" + parent + ">");
-      std::smatch parentMatch;
-      if (!std::regex_search(content, parentMatch, outerTag)) return false;
+  //    // Regex to find the parent block
+  //    std::regex outerTag("<" + parent + ">([\\s\\S]*?)</" + parent + ">");
+  //    std::smatch parentMatch;
+  //    if (!std::regex_search(content, parentMatch, outerTag)) return false;
 
-      std::string parentBlock = parentMatch[0];
+  //    std::string parentBlock = parentMatch[0];
 
-      // Regex to find the target tag inside the parent block
-      std::regex innerTag("<" + tag + ">(.*?)</" + tag + ">");
-      std::smatch innerMatch;
-      if (!std::regex_search(parentBlock, innerMatch, innerTag)) return false;
+  //    // Regex to find the target tag inside the parent block
+  //    std::regex innerTag("<" + tag + ">(.*?)</" + tag + ">");
+  //    std::smatch innerMatch;
+  //    if (!std::regex_search(parentBlock, innerMatch, innerTag)) return false;
 
-      std::string oldInner = innerMatch[0];
-      std::string newInner = "<" + tag + ">" + newValue + "</" + tag + ">";
+  //    std::string oldInner = innerMatch[0];
+  //    std::string newInner = "<" + tag + ">" + newValue + "</" + tag + ">";
 
-      std::string modifiedParentBlock = std::regex_replace(
-							 parentBlock, innerTag, newInner, std::regex_constants::format_first_only);
+  //    std::string modifiedParentBlock = std::regex_replace(
+  //      						 parentBlock, innerTag, newInner, std::regex_constants::format_first_only);
 
-      // Replace the parent block in the full document
-      content.replace(parentMatch.position(0), parentBlock.length(), modifiedParentBlock);
-    }
-
-    // Save modified file
-    std::ofstream fileOut(targetPath); // NEW: write back to the selected file (main or included)
-    if (!fileOut.is_open()) return false;
-    fileOut << content;
-    fileOut.close();
-
-    return true;
-  }
+  //    // Replace the parent block in the full document
+  //    content.replace(parentMatch.position(0), parentBlock.length(), modifiedParentBlock);
+  //  }
+//
+//    // Save modified file
+//    std::ofstream fileOut(targetPath); // NEW: write back to the selected file (main or included)
+//    if (!fileOut.is_open()) return false;
+//    fileOut << content;
+//    fileOut.close();
+//
+//    return true;
+//  }
 
   // Expand <include file="..."/> directives and rebuild the key->file mapping // NEW
   void rebuildExpandedDocument() { // NEW

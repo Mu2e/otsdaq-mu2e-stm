@@ -15,7 +15,7 @@
 
     <div class="container">
 
-      <!-- ===== Logos ===== -->
+      <!--  Logos  -->
       <div class="banner">
         <img src="../images/uom.png" alt="UoM">
         <img src="../images/uol.png" alt="UoL">
@@ -24,7 +24,7 @@
 
       <h1>STM DQM</h1>
 
-      <!-- ===== UI ===== -->
+      <!--  UI  -->
       <div class="section-label">UI</div>
       <div class="ui-controls">
 
@@ -40,7 +40,7 @@
 
       </div>
 
-      <!-- ===== PORT STATUS ===== -->
+      <!--  PORT STATUS  -->
       <div class="section-label">PORT STATUS</div>
       
       <div class="status-container">
@@ -57,12 +57,12 @@
 	
       </div>
       
-      <!-- ===== DETECTORS ===== -->
+      <!--  DETECTORS  -->
       <div class="section-label">DETECTORS</div>
 
       <div class="status-container">
 
-        <!-- ===== HPGe ===== -->
+        <!--  HPGe  -->
         <div id="status_hpge" class="status-box hpge" onclick="location.href='STMHPGE.html'">
           <div class="status-header">
             <img src="../images/hpge.png" class="detector-icon">
@@ -75,7 +75,7 @@
           </div>
         </div>
 
-        <!-- ===== LaBr ===== -->
+        <!--  LaBr  -->
         <div id="status_labr" class="status-box labr" onclick="location.href='STMLABR.html'">
           <div class="status-header">
             <img src="../images/labr.png" class="detector-icon">
@@ -100,7 +100,7 @@
 
       applyTheme(localStorage.getItem("theme") || "dark");
 
-      // ===== Restore last page =====
+      //  Restore last page 
       const last = localStorage.getItem("lastPage");
       if (last && !window.location.pathname.includes("STMMain.html")) {
           window.location.href = last;
@@ -193,7 +193,7 @@
 	  box.classList.add(allUp ? "ok" : "bad");
       }
       
-      // ===== Core updater =====
+      //  Core updater 
       async function updateDetector(jsonPath, elementId, label) {
           try {
 	      const data = await fetch(jsonPath + "?_=" + Date.now())
@@ -213,7 +213,7 @@
               const run = data.run ?? "N/A";
               const subrun = data.subrun ?? "N/A";
 
-              // ===== STALE CHECK =====
+              //  STALE CHECK 
               const now = Date.now() / 1000;
               const age = now - (data.timestamp ?? 0);
               const isStale = age > 3;
@@ -228,7 +228,6 @@
                   box.classList.add("bad");
 
                   statusText.innerHTML = `
-                <i data-lucide="pause-circle"></i>
                 Run ${run}.${subrun} | STOPPED
             `;
 
@@ -236,7 +235,6 @@
                   box.classList.add("bad");
 
                   statusText.innerHTML = `
-                <i data-lucide="alert-triangle"></i>
                 Run ${run}.${subrun} | ${badKeys.join(", ")}
             `;
 
@@ -244,7 +242,6 @@
                   box.classList.add("ok");
 
                   statusText.innerHTML = `
-                <i data-lucide="check-circle"></i>
                 Run ${run}.${subrun} | OK
             `;
               }
@@ -266,7 +263,6 @@
               box.classList.add("bad");
 
               statusText.innerHTML = `
-            <i data-lucide="alert-circle"></i>
             ${label} | Data Error
         `;
 
@@ -276,14 +272,14 @@
           }
       }
 
-      // ===== Update both =====
+      //  Update both 
       function updateAll() {
           updateDetector("../json/stm_hpge.json", "status_hpge", "HPGe");
           updateDetector("../json/stm_labr.json", "status_labr", "LaBr");
 	  updatePorts();
       }
 
-      // ===== Init =====
+      //  Init 
       window.addEventListener("load", () => {
           lucide.createIcons();
           updateAll();

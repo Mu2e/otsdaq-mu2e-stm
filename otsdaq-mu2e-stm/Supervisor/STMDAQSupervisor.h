@@ -21,6 +21,8 @@ namespace ots
     virtual void transitionHalting(toolbox::Event::Reference e) override;
     virtual void transitionStopping(toolbox::Event::Reference e) override;
 
+    virtual std::vector<SupervisorInfo::SubappInfo> getSubappInfo(void) override;
+
     // Trigger a clean stop for all threads and operations
     void stopDAQ();
 

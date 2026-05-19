@@ -81,19 +81,19 @@
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
         <div class="card">
-<h3>Spectrum</h3>
+	  <h3>Spectrum</h3>
           <canvas id="spectrumChart"></canvas></div>
         <div class="card">
-<h3>Calibration Fit</h3>
+	  <h3>Calibration Fit</h3>
           <canvas id="calibChart"></canvas></div>
       </div>
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
         <div class="card">
-    <h3>Residuals vs ADC Counts</h3>  
+	  <h3>Residuals vs ADC Counts</h3>  
           <canvas id="residualChart"></canvas></div>
         <div class="card">
-    <h3>FFT of Residuals</h3>
+	  <h3>FFT of Residuals</h3>
           <canvas id="fftChart"></canvas></div>
       </div>
 
@@ -147,258 +147,257 @@
       function makeCharts() {
           const c = getColors();
 
-       chart = new Chart(document.getElementById("spectrumChart"), {
-  type: 'line',
-  data: { labels: [], datasets: [{data:[],pointRadius:0},{data:[],pointRadius:0}]},
-  options: {
-    animation:false,
-    scales:{
-      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
-      y:{title:{display:true,text:"Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
-    },
-    plugins:{ legend:{display:false} }
-  }
-});
+	  chart = new Chart(document.getElementById("spectrumChart"), {
+	      type: 'line',
+	      data: { labels: [], datasets: [{data:[],pointRadius:0},{data:[],pointRadius:0}]},
+	      options: {
+		  animation:false,
+		  scales:{
+		      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
+		      y:{title:{display:true,text:"Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
+		  },
+		  plugins:{ legend:{display:false} }
+	      }
+	  });
 
-calibChart = new Chart(document.getElementById("calibChart"), {
-  type:'scatter',
-  data:{datasets:[{data:[]},{type:'line',data:[],pointRadius:0}]},
-  options:{
-    animation:false,
-    scales:{
-      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
-      y:{title:{display:true,text:"Energy (keV)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
-    },
-    plugins:{ legend:{display:false} }
-  }
-});
+	  calibChart = new Chart(document.getElementById("calibChart"), {
+	      type:'scatter',
+	      data:{datasets:[{data:[]},{type:'line',data:[],pointRadius:0}]},
+	      options:{
+		  animation:false,
+		  scales:{
+		      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
+		      y:{title:{display:true,text:"Energy (keV)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
+		  },
+		  plugins:{ legend:{display:false} }
+	      }
+	  });
 
-residualChart = new Chart(document.getElementById("residualChart"), {
-  type:'line',
-  data:{labels:[],datasets:[{data:[],borderColor:"#00e5ff"},{data:[],borderColor:"#ffcc00"}]},
-  options:{
-    animation:false,
-    scales:{
-      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
-      y:{title:{display:true,text:"Normalized Residual (σ)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
-    },
-    plugins:{
-      legend:{display:false},
-      annotation:{
-        annotations:{
-          line0:{type:'line',yMin:0,yMax:0,borderDash:[5,5]},
-          lineUp:{type:'line',yMin:3,yMax:3,borderColor:'#ff4444'},
-          lineDown:{type:'line',yMin:-3,yMax:-3,borderColor:'#ff4444'}
-        }
+	  residualChart = new Chart(document.getElementById("residualChart"), {
+	      type:'line',
+	      data:{labels:[],datasets:[{data:[],borderColor:"#00e5ff"},{data:[],borderColor:"#ffcc00"}]},
+	      options:{
+		  animation:false,
+		  scales:{
+		      x:{title:{display:true,text:"ADC Counts",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
+		      y:{title:{display:true,text:"Normalized Residual (σ)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
+		  },
+		  plugins:{
+		      legend:{display:false},
+		      annotation:{
+			  annotations:{
+			      line0:{type:'line',yMin:0,yMax:0,borderDash:[5,5]},
+			      lineUp:{type:'line',yMin:3,yMax:3,borderColor:'#ff4444'},
+			      lineDown:{type:'line',yMin:-3,yMax:-3,borderColor:'#ff4444'}
+			  }
+		      }
+		  }
+	      }
+	  });
+
+	  fftChart = new Chart(document.getElementById("fftChart"), {
+	      type:'line',
+	      data:{labels:[],datasets:[{data:[]}]},
+	      options:{
+		  animation:false,
+		  scales:{
+		      x:{title:{display:true,text:"Frequency (1 / ADC bins)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
+		      y:{title:{display:true,text:"Power (arb. units)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
+		  },
+		  plugins:{ legend:{display:false} }
+	      }
+	  });
+
+	  resHistChart = new Chart(document.getElementById("resHistChart"), {
+	      type: 'bar',
+	      data: {
+		  labels: [],
+		  datasets: [
+		      {
+			  type: 'bar',
+			  data: [],
+			  backgroundColor: "#00e5ff"
+		      },
+		      {
+			  type: 'line',
+			  data: [],
+			  borderColor: "#ffcc00",
+			  borderWidth: 2,
+			  pointRadius: 0,
+			  fill: false
+		      }
+		  ]
+	      },
+	      options: {
+		  animation: false,
+		  scales: {
+		      x: {
+			  title: { display: true, text: "Residual (σ)", color: c.text },
+			  ticks: { color: c.text },
+			  grid: { color: c.grid }
+		      },
+		      y: {
+			  title: { display: true, text: "Counts", color: c.text },
+			  ticks: { color: c.text },
+			  grid: { color: c.grid }
+		      }
+		  },
+		  plugins: { legend: { display: false } }
+	      }
+	  });
+
+	  resChart = new Chart(document.getElementById("resChart"), {
+	      type:'scatter',
+	      data:{datasets:[{data:[]},{type:'line',data:[]}]},
+	      options:{
+		  animation:false,
+		  scales:{
+		      x:{title:{display:true,text:"Energy (keV)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
+		      y:{title:{display:true,text:"Resolution (%)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
+		  },
+		  plugins:{ legend:{display:false} }
+	      }
+	  });
       }
-    }
-  }
-});
-
-fftChart = new Chart(document.getElementById("fftChart"), {
-  type:'line',
-  data:{labels:[],datasets:[{data:[]}]},
-  options:{
-    animation:false,
-    scales:{
-      x:{title:{display:true,text:"Frequency (1 / ADC bins)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
-      y:{title:{display:true,text:"Power (arb. units)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
-    },
-    plugins:{ legend:{display:false} }
-  }
-});
-
-resHistChart = new Chart(document.getElementById("resHistChart"), {
-  type: 'bar',
-  data: {
-    labels: [],
-    datasets: [
-      {
-        type: 'bar',
-        data: [],
-        backgroundColor: "#00e5ff"
-      },
-      {
-        type: 'line',
-        data: [],
-        borderColor: "#ffcc00",
-        borderWidth: 2,
-        pointRadius: 0,
-        fill: false
-      }
-    ]
-  },
-  options: {
-    animation: false,
-    scales: {
-      x: {
-        title: { display: true, text: "Residual (σ)", color: c.text },
-        ticks: { color: c.text },
-        grid: { color: c.grid }
-      },
-      y: {
-        title: { display: true, text: "Counts", color: c.text },
-        ticks: { color: c.text },
-        grid: { color: c.grid }
-      }
-    },
-    plugins: { legend: { display: false } }
-  }
-});
-
-resChart = new Chart(document.getElementById("resChart"), {
-  type:'scatter',
-  data:{datasets:[{data:[]},{type:'line',data:[]}]},
-  options:{
-    animation:false,
-    scales:{
-      x:{title:{display:true,text:"Energy (keV)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}},
-      y:{title:{display:true,text:"Resolution (%)",color:c.text},ticks:{color:c.text},grid:{color:c.grid}}
-    },
-    plugins:{ legend:{display:false} }
-  }
-});
-}
 
 
       function gaussian(x,m,s,a){
-      return a*Math.exp(-0.5*((x-m)/s)**2);
+	  return a*Math.exp(-0.5*((x-m)/s)**2);
       }
 
       function gaussianCurve(labels, totalCounts, binWidth) {
 
-   return labels.map(x => {
-    const val = parseFloat(x);
+	  return labels.map(x => {
+	      const val = parseFloat(x);
 
-    // Standard normal PDF
-    const pdf = Math.exp(-0.5 * val * val) / Math.sqrt(2 * Math.PI);
+	      const pdf = Math.exp(-0.5 * val * val) / Math.sqrt(2 * Math.PI);
 
-    // Scale to histogram counts
-    return pdf * totalCounts * binWidth;
-  });
-}
+	      // Scale to histogram counts
+	      return pdf * totalCounts * binWidth;
+	  });
+      }
 
       function buildResidualHistogram(residuals, nbins = 60, min = -5, max = 5) {
 
-      const hist = new Array(nbins).fill(0);
-      const width = (max - min) / nbins;
+	  const hist = new Array(nbins).fill(0);
+	  const width = (max - min) / nbins;
 
-      residuals.forEach(r => {
-        if (!isFinite(r)) return;
-        if (r < min || r >= max) return;
+	  residuals.forEach(r => {
+              if (!isFinite(r)) return;
+              if (r < min || r >= max) return;
 
-          const bin = Math.floor((r - min) / width);
-          if (bin >= 0 && bin < nbins)
-				hist[bin]++;
-				});
+              const bin = Math.floor((r - min) / width);
+              if (bin >= 0 && bin < nbins)
+		  hist[bin]++;
+	  });
 
-				const labels = [];
-				for (let i = 0; i < nbins; i++) {
-						    const x = min + (i + 0.5) * width;
-                labels.push(x.toFixed(2));
-						    }
+	  const labels = [];
+	  for (let i = 0; i < nbins; i++) {
+	      const x = min + (i + 0.5) * width;
+              labels.push(x.toFixed(2));
+	  }
 
-						    return { hist, labels };
-						    }
+	  return { hist, labels };
+      }
 
-						    async function updateAll() {
+      async function updateAll() {
 
-						    const data = await fetchSTM();
-						    updateBanner(data);
+	  const data = await fetchSTM();
+	  updateBanner(data);
 
-						    const spec = data.spectrum;
-						    if (!spec) return;
+	  const spec = data.spectrum;
+	  if (!spec) return;
 
-						    const hist = spec.histogram;
-						    const bins = hist.map((_,i)=>i);
+	  const hist = spec.histogram;
+	  const bins = hist.map((_,i)=>i);
 
-				chart.data.labels = bins;
-				chart.data.datasets[0].data = hist;
+	  chart.data.labels = bins;
+	  chart.data.datasets[0].data = hist;
 
-				const fit = new Array(hist.length).fill(0);
+	  const fit = new Array(hist.length).fill(0);
 
-				spec.peaks.forEach(p=>{
-          const mean = Math.round(p.mean);
-          const amp = p.height || hist[mean] || 1;
+	  spec.peaks.forEach(p=>{
+              const mean = Math.round(p.mean);
+              const amp = p.height || hist[mean] || 1;
 
-          for(let x=mean-60;x<mean+60;x++){
-			       if(x<0||x>=hist.length) continue;
-			       fit[x]+=gaussian(x,p.mean,p.sigma,amp);
-			       }
-			       });
+              for(let x=mean-60;x<mean+60;x++){
+		  if(x<0||x>=hist.length) continue;
+		  fit[x]+=gaussian(x,p.mean,p.sigma,amp);
+	      }
+	  });
 
-			       chart.data.datasets[1].data = fit;
-			       chart.update();
+	  chart.data.datasets[1].data = fit;
+	  chart.update();
 
-			       calibChart.data.datasets[0].data =
-			       spec.peaks.map(p=>({x:p.mean,y:p.energy}));
+	  calibChart.data.datasets[0].data =
+	      spec.peaks.map(p=>({x:p.mean,y:p.energy}));
 
-            calibChart.data.datasets[1].data =
-            Array.from({length:50},(_,i)=>{
-        const x=i*50;
-        return {x,y:spec.calibration.a*x+spec.calibration.b};
-        });
+          calibChart.data.datasets[1].data =
+              Array.from({length:50},(_,i)=>{
+		  const x=i*50;
+		  return {x,y:spec.calibration.a*x+spec.calibration.b};
+              });
 
-        calibChart.update();
+          calibChart.update();
 
-        // ===== Residuals + moving average =====
-        residualChart.data.labels = bins;
-        residualChart.data.datasets[0].data = spec.residuals;
+          //  Residuals + moving average 
+          residualChart.data.labels = bins;
+          residualChart.data.datasets[0].data = spec.residuals;
 
-        const smooth = computeMovingAverage(spec.residuals, 25);
-        residualChart.data.datasets[1].data = smooth;
+          const smooth = computeMovingAverage(spec.residuals, 25);
+          residualChart.data.datasets[1].data = smooth;
 
-        residualChart.update();
+          residualChart.update();
 
-        // ===== FFT =====
-        const fftBins = spec.fft_power.map((_,i)=>i);
-        fftChart.data.labels = fftBins;
-        fftChart.data.datasets[0].data = spec.fft_power;
-        fftChart.update();
+          //  FFT 
+          const fftBins = spec.fft_power.map((_,i)=>i);
+          fftChart.data.labels = fftBins;
+          fftChart.data.datasets[0].data = spec.fft_power;
+          fftChart.update();
 
-        // ===== Standard Residuals =====
-        const h = buildResidualHistogram(spec.residuals);
+          //  Standard Residuals 
+          const h = buildResidualHistogram(spec.residuals);
 
-resHistChart.data.labels = h.labels;
-resHistChart.data.datasets[0].data = h.hist;
+	  resHistChart.data.labels = h.labels;
+	  resHistChart.data.datasets[0].data = h.hist;
 
-// ===== Gaussian overlay =====
-const total = h.hist.reduce((a,b)=>a+b,0);
-const xs = h.labels.map(x => parseFloat(x));
-const binWidth = xs[1] - xs[0];
+	  //  Gaussian overlay 
+	  const total = h.hist.reduce((a,b)=>a+b,0);
+	  const xs = h.labels.map(x => parseFloat(x));
+	  const binWidth = xs[1] - xs[0];
 
-resHistChart.data.datasets[1].data =
-    gaussianCurve(h.labels, total, binWidth);
+	  resHistChart.data.datasets[1].data =
+	      gaussianCurve(h.labels, total, binWidth);
 
-resHistChart.update();
+	  resHistChart.update();
 
-        // ===== Resolution =====
-        const pts = spec.peaks.map(p=>{
-        const a = spec.calibration.a;
-        const sigmaE = a * p.sigma;
-        const R = 2.355 * sigmaE / p.energy * 100;
-        return {x:p.energy,y:R};
-        });
+          //  Resolution 
+          const pts = spec.peaks.map(p=>{
+              const a = spec.calibration.a;
+              const sigmaE = a * p.sigma;
+              const R = 2.355 * sigmaE / p.energy * 100;
+              return {x:p.energy,y:R};
+          });
 
-        resChart.data.datasets[0].data = pts;
+          resChart.data.datasets[0].data = pts;
 
-        const A = spec.resolution?.A || 0;
-        const B = spec.resolution?.B || 0;
+          const A = spec.resolution?.A || 0;
+          const B = spec.resolution?.B || 0;
 
-        const curve=[];
-        for(let E=100;E<1500;E+=20){
-			 curve.push({x:E,y:Math.sqrt((A*A)/E + (B*B))});
-			 }
+          const curve=[];
+          for(let E=100;E<1500;E+=20){
+	      curve.push({x:E,y:Math.sqrt((A*A)/E + (B*B))});
+	  }
 
-			 resChart.data.datasets[1].data = curve;
-			 resChart.update();
+	  resChart.data.datasets[1].data = curve;
+	  resChart.update();
 
-       const chi2ndf = spec.chi2_ndf ?? spec.calibration?.chi2_ndf ?? 0;
+	  const chi2ndf = spec.chi2_ndf ?? spec.calibration?.chi2_ndf ?? 0;
 
-      document.getElementById("calibText").textContent =
-      `E = ${spec.calibration.a.toFixed(4)} * ADC + ${spec.calibration.b.toFixed(2)}   |   χ²/ndf = ${chi2ndf.toFixed(3)}`;
+	  document.getElementById("calibText").textContent =
+	      `E = ${spec.calibration.a.toFixed(4)} * ADC + ${spec.calibration.b.toFixed(2)}   |   χ²/ndf = ${chi2ndf.toFixed(3)}`;
 
-			 let html = `
+	  let html = `
 <table style="width:100%; border-collapse:collapse; text-align:center;">
   <thead>
     <tr>
@@ -412,12 +411,12 @@ resHistChart.update();
   <tbody>
 `;
 
-spec.peaks.forEach(p => {
+	  spec.peaks.forEach(p => {
 
-  const res = (2.355 * p.sigma / p.mean * 100).toFixed(2);
-  const rate = (p.rate ?? 0).toFixed(2);
+	      const res = (2.355 * p.sigma / p.mean * 100).toFixed(2);
+	      const rate = (p.rate ?? 0).toFixed(2);
 
-  html += `
+	      html += `
     <tr>
       <td><b>${p.name}</b></td>
       <td>${p.energy}</td>
@@ -426,36 +425,36 @@ spec.peaks.forEach(p => {
       <td>${rate}</td>
     </tr>
   `;
-});
+	  });
 
-html += `</tbody></table>`;
+	  html += `</tbody></table>`;
 
-document.getElementById("peakTable").innerHTML = html;
+	  document.getElementById("peakTable").innerHTML = html;
 
           updateTimestamp();
-	  }
+      }
 
-	  function toggleLog(){
+      function toggleLog(){
           const y=chart.options.scales?.y;
           if (!y) return;
           y.type = y.type==="logarithmic" ? "linear":"logarithmic";
           chart.update();
-	  }
+      }
 
-	  function toggleFFTLog(){
+      function toggleFFTLog(){
           const y=fftChart.options.scales.y;
           y.type = y.type==="logarithmic" ? "linear":"logarithmic";
           fftChart.update();
-	  }
+      }
 
-	  window.addEventListener("load",()=>{
+      window.addEventListener("load",()=>{
           lucide.createIcons();
           makeCharts();
           updateAll();
           setInterval(updateAll,2000);
-	  });
+      });
 
-    </script>
+      </script>
 
   </body>
 </html>

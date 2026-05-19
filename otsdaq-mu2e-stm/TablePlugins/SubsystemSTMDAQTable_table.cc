@@ -91,7 +91,7 @@ void SubsystemSTMDAQTable::updateXMLfiles(const ConfigurationManager* configMana
   auto& cfg = Config::getInstance(realMasterPath);
 
   // Iterate over rows
-  for(unsigned int row = 1; row < tableView.getNumberOfRows(); ++row) {
+  for(int row = 1; row < tableView.getNumberOfRows(); ++row) {
 
     std::string key;
     tableView.getValue(key, row, 2);
@@ -120,7 +120,7 @@ void SubsystemSTMDAQTable::generateOfflineTableMap(
   std::stringstream offlineTable;
   offlineTable << "PARAMETER, VALUE" << __E__;
 
-  for(unsigned int row = 1; row < tableView.getNumberOfRows(); ++row) {
+  for(int row = 1; row < tableView.getNumberOfRows(); ++row) {
 
     std::string key;
     tableView.getValue(key, row, 0);

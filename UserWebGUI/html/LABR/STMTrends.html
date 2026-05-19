@@ -117,11 +117,11 @@
 
 localStorage.setItem("lastPage", window.location.pathname + window.location.search);
 
-// ===== Config =====
+//  Config 
 const MAX_POINTS = 100;
 const UPDATE_INTERVAL_MS = 1000;
 
-// ===== Buffers =====
+//  Buffers 
 let labels = [];
 let eventData = [];
 let ewtData = [];
@@ -130,7 +130,7 @@ let adcData = [];
 let calData = [];
 let peakData = [];
 
-// ===== Reset on run change =====
+//  Reset on run change 
 function handleRunReset(run) {
     if (checkRunChange(run)) {
         labels = [];
@@ -143,7 +143,7 @@ function handleRunReset(run) {
     }
 }
 
-// ===== Theme =====
+//  Theme 
 function isLightMode() {
     return document.documentElement.classList.contains("light");
 }
@@ -177,14 +177,14 @@ function getThemeColors() {
     };
 }
 
-// ===== State → Color =====
+//  State to Color 
 function stateToColor(state, theme) {
     if (state === "bad") return theme.bad;
     if (state === "warn") return theme.warn;
     return theme.ok;
 }
 
-// ===== Titles =====
+//  Titles 
 function updatePlotTitles() {
     const seconds = Math.round((MAX_POINTS * UPDATE_INTERVAL_MS) / 1000);
     const label = seconds >= 60
@@ -197,7 +197,7 @@ function updatePlotTitles() {
     document.getElementById("adcTitle").textContent   = `ADC Jumps ${label}`;
 }
 
-// ===== Chart builder =====
+//  Chart builder 
 function makeChart(ctx) {
     const theme = getThemeColors();
 
@@ -228,7 +228,7 @@ function makeChart(ctx) {
     });
 }
 
-// ===== Charts =====
+//  Charts 
 const eventChart = makeChart(document.getElementById('eventChart'));
 const ewtChart   = makeChart(document.getElementById('ewtChart'));
 const dtcChart   = makeChart(document.getElementById('dtcChart'));
@@ -245,7 +245,7 @@ function updateChart(chart, values, color) {
     chart.update();
 }
 
-// ===== Update =====
+//  Update 
 async function update() {
     try {
         const data = await fetchSTM();
@@ -287,7 +287,7 @@ async function update() {
 
         const theme = getThemeColors();
 
-        // ===== Unified states =====
+        //  Unified states 
         let rateState = "ok";
         if (rate === 0) rateState = "bad";
         else if (rate < R.min) rateState = "warn";
@@ -296,7 +296,7 @@ async function update() {
         const dtcState = getState(dtc, T.dtc_warn, T.dtc_bad);
         const adcState = getState(adc, T.adc_warn, T.adc_bad);
 
-        // ===== Charts =====
+        //  Charts 
         updateChart(eventChart, eventData, stateToColor(rateState, theme));
         updateChart(ewtChart, ewtData, stateToColor(ewtState, theme));
         updateChart(dtcChart, dtcData, stateToColor(dtcState, theme));

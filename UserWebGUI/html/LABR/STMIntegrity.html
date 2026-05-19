@@ -128,7 +128,7 @@ async function update() {
         const dtc = data.timing?.dtc_jumps ?? 0;
         const adc = data.timing?.adc_jumps ?? 0;
 
-        // ===== Event Continuity =====
+        //  Event Continuity 
         let state = JSON.parse(localStorage.getItem("integrityState") || "{}");
 
         state.emptyCount = state.emptyCount || 0;
@@ -152,7 +152,7 @@ if (state.emptyCount > 3) {
             continuityState
         );
 
-        // ===== Timing Consistency =====
+        //  Timing Consistency 
         const timingVal = ewtSmall + ewtTrans;
 
         const timingState = getState(
@@ -166,7 +166,7 @@ if (state.emptyCount > 3) {
             timingState
         );
 
-        // ===== Clock Health =====
+        //  Clock Health 
         const dtcState = getState(dtc, T.dtc_warn, T.dtc_bad);
         const adcState = getState(adc, T.adc_warn, T.adc_bad);
 
@@ -181,7 +181,7 @@ if (state.emptyCount > 3) {
 
         setCard("clock", clockText, clockState);
 
-        // ===== Overall Integrity (composed logic) =====
+        //  Overall Integrity (composed logic) 
         const states = [continuityState, timingState, clockState];
 
         let overallState = "ok";
@@ -195,7 +195,7 @@ if (state.emptyCount > 3) {
             overallState
         );
 
-        // ===== Alarms =====
+        //  Alarms 
         renderAlarms("alarms", data.alarms, Object.keys(data.alarms));
 
         updateBanner(data);
