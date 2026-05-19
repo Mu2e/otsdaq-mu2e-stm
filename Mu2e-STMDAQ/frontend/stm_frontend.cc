@@ -10,17 +10,18 @@ STMfrontend::STMfrontend() :
   signal(std::make_shared<SignalHandler>(logger,cpu)),
   stm(std::make_shared<STMdata>(cfg,logger)){
 
+
   // If we are on the hardware control server
   if (stm->master_config.host == stm->fw_config.ctrl_srvr){
     // Initialise hardware manager
     hw = std::make_shared<HardwareManager>(logger,stm);
   }
-  
+
   // Instance of operation manager
   if (!stop::should_stop()) om = std::make_shared<OperationManager>(cfg,logger,stm,signal);
   
   // If any operations have been selected...
-  if (om->class_num() > 0){ 
+  if (om && om->class_num() > 0){ 
     
     // Create buffer pool
     if (!stop::should_stop()) pool = std::make_shared<BufferPool>(cpu,logger,stm,om);
