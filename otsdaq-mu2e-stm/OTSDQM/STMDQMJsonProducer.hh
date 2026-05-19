@@ -30,7 +30,7 @@ public:
     };
   };
 
-  // ================= SPECTRUM =================
+  // Spectrum metadata 
   struct SpectrumState {
     static const int NBINS = 2048;
     std::vector<int> hist;
@@ -69,7 +69,7 @@ public:
 private:
   Config cfg_;
 
-  // ================= CHANNEL =================
+  // Per channel meta
   struct ChannelState {
     uint64_t ewt = 0;
     uint64_t adc = 0;
@@ -85,7 +85,8 @@ private:
     int windowEvents = 0;
     uint64_t firstEWT = 0;
     uint64_t lastEWT = 0;
-
+    uint64_t totalEvents = 0;
+    
     int acc_ewt_small = 0;
     int acc_ewt_trans = 0;
     int acc_spill_trans = 0;
@@ -103,17 +104,22 @@ private:
     std::chrono::steady_clock::time_point lastWrite =
       std::chrono::steady_clock::now();
 
+    std::chrono::steady_clock::time_point lastDataTime;
+    bool stale = false;
+    int repeatedEWT = 0;
+    
     int lastRun = -1;
+    int lastLogRun = -1;
     bool initialized = false;
   };
 
-  // ================= STORAGE =================
+  // Storage for logging 
   std::unordered_map<int, ChannelState> channels_;
   std::unordered_map<int, SpectrumState> spectra_;
   std::unordered_map<int, std::deque<std::pair<double,double>>> fitWindows_;
   std::unordered_map<uint32_t, int> fragToChannel_;
 
-  // ================= HELPERS =================
+  // Helper funcs
   double sigmaFromEnergy(double E, double true_adc);
   void fitPeaks(SpectrumState &s, double dt);
   void fitResolution(SpectrumState &s);

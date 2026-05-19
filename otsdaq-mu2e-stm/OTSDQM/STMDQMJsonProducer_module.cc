@@ -16,10 +16,7 @@
 
 using namespace ots;
 
-// ============================================================
 // SpectrumState ctor
-// ============================================================
-
 STMDQMJsonProducer::SpectrumState::SpectrumState() {
   hist.resize(NBINS, 0);
   peaks = {
@@ -30,18 +27,14 @@ STMDQMJsonProducer::SpectrumState::SpectrumState() {
   };
 }
 
-// ============================================================
 // Constructor
-// ============================================================
-
 STMDQMJsonProducer::STMDQMJsonProducer(Parameters const& p)
   : art::EDAnalyzer(p), cfg_(p())
 {}
 
-// ============================================================
 // Helpers
-// ============================================================
 
+// Get sigma - FWHM
 double STMDQMJsonProducer::sigmaFromEnergy(double E, double true_adc) {
   const double A = 300.0;
   const double B = 1.5;
@@ -51,6 +44,7 @@ double STMDQMJsonProducer::sigmaFromEnergy(double E, double true_adc) {
   return sigma_E * adc_per_keV;
 }
 
+// Fit peaks with a basic model
 void STMDQMJsonProducer::fitPeaks(SpectrumState &s, double dt) {
   for (auto &p : s.peaks) {
     p.mean = p.true_adc;
@@ -60,14 +54,15 @@ void STMDQMJsonProducer::fitPeaks(SpectrumState &s, double dt) {
   }
 }
 
+// Resolution params (could probably be fcl?)
 void STMDQMJsonProducer::fitResolution(SpectrumState &s) {
   s.res_A = 300.0;
   s.res_B = 1.5;
 }
 
+// Get ADC to E calib constant
 void STMDQMJsonProducer::computeCalibration(SpectrumState &s,
-                                            double &a, double &b)
-{
+					    double &a, double &b) {
   double x1 = s.peaks[1].mean;
   double y1 = s.peaks[1].energy;
   double x2 = s.peaks[2].mean;
@@ -78,8 +73,7 @@ void STMDQMJsonProducer::computeCalibration(SpectrumState &s,
 }
 
 void STMDQMJsonProducer::buildModel(
-  const SpectrumState &s, std::vector<double> &model)
-{
+				    const SpectrumState &s, std::vector<double> &model){
   model.assign(SpectrumState::NBINS, 0.0);
 
   for (int i = 0; i < SpectrumState::NBINS; i++) {
@@ -93,11 +87,11 @@ void STMDQMJsonProducer::buildModel(
   }
 }
 
+// Get residuals between fit and data
 void STMDQMJsonProducer::computeResiduals(
-  const SpectrumState &s,
-  const std::vector<double> &model,
-  std::vector<double> &residuals)
-{
+					  const SpectrumState &s,
+					  const std::vector<double> &model,
+					  std::vector<double> &residuals) {
   residuals.resize(SpectrumState::NBINS);
 
   for (int i = 0; i < SpectrumState::NBINS; i++) {
@@ -106,10 +100,10 @@ void STMDQMJsonProducer::computeResiduals(
   }
 }
 
+// Calculate the red-chi2
 void STMDQMJsonProducer::computeChi2(
-  SpectrumState &s,
-  const std::vector<double> &model)
-{
+				     SpectrumState &s,
+				     const std::vector<double> &model){
   double chi2 = 0;
 
   for (int i = 0; i < SpectrumState::NBINS; i++) {
@@ -123,10 +117,10 @@ void STMDQMJsonProducer::computeChi2(
   s.chi2_ndf = chi2 / ndf;
 }
 
+// Get pseudo FFT of the ADC residuals
 void STMDQMJsonProducer::computeFFT(
-  const std::vector<double> &residuals,
-  std::vector<double> &power)
-{
+				    const std::vector<double> &residuals,
+				    std::vector<double> &power) {
   int N = residuals.size();
   int K = N/2;
 
@@ -145,71 +139,98 @@ void STMDQMJsonProducer::computeFFT(
   }
 }
 
+// Compute slope of EWT vs Clock 
 double STMDQMJsonProducer::computeSlope(
-  std::deque<std::pair<double,double>> const& w) const
-{
-  if (w.size() < 10) return 0.0;
+					std::deque<std::pair<double,double>> const& w) const {
+  constexpr double kEpsilon  = 1e-12;
+  constexpr double kMinPoints = 10.0;
 
-  double sumX=0, sumY=0, sumXY=0, sumX2=0;
-  size_t n = w.size();
+  double sumX  = 0.0;
+  double sumY  = 0.0;
+  double sumXY = 0.0;
+  double sumX2 = 0.0;
+  double n     = 0.0;
 
-  for (auto const& [x,y] : w) {
-    sumX += x;
-    sumY += y;
-    sumXY += x*y;
-    sumX2 += x*x;
+  for (auto const& [x, y] : w) {
+
+    // Ignore bad data
+    if (!std::isfinite(x) || !std::isfinite(y)) continue;
+
+    ++n;
+
+    sumX  += x;
+    sumY  += y;
+    sumXY += x * y;
+    sumX2 += x * x;
   }
 
-  double denom = n*sumX2 - sumX*sumX;
-  if (denom == 0) return 0.0;
+  if (n < kMinPoints) return 0.0;
 
-  return (n*sumXY - sumX*sumY) / denom;
+  // Least-squares denominator
+  double const denom = n * sumX2 - sumX * sumX;
+
+  // Prevent unstable or singular fits
+  if (!std::isfinite(denom) || std::abs(denom) < kEpsilon) return 0.0;
+
+  double const numer = n * sumXY - sumX * sumY;
+
+  if (!std::isfinite(numer)) return 0.0;
+
+  double const slope = numer / denom;
+
+  if (!std::isfinite(slope))
+    return 0.0;
+
+  return slope;
 }
 
+// Channel to detector 
 std::string detectorName(int ch) {
   if (ch == 0) return "hpge";
   if (ch == 1) return "labr";
   return "unknown";
 }
 
+// Path to read json from
 std::string STMDQMJsonProducer::makeJsonPath(int ch) const {
-  return cfg_.jsonBasePath() + "_" + detectorName(ch) + ".json";
+  return cfg_.jsonBasePath() + "stm_" + detectorName(ch) + ".json";
 }
 
+// Path to read logs from
 std::string STMDQMJsonProducer::makeLogPath(int ch, int run) const {
-  return cfg_.logBasePath() + "/logs/" +
-         detectorName(ch) + "_run_" + std::to_string(run) + ".json";
+  return cfg_.logBasePath() + "/logs/stm_alarm_log_" +
+    detectorName(ch) + "_run_" + std::to_string(run) + ".json";
 }
 
-// ============================================================
-// ANALYZE
-// ============================================================
-
-void STMDQMJsonProducer::analyze(art::Event const& event)
-{
+// Analyze
+void STMDQMJsonProducer::analyze(art::Event const& event){
   int run = event.run();
   int subrun = event.subRun();
 
-  auto handle =
-    event.getValidHandle<std::vector<artdaq::Fragment>>(cfg_.moduleTag());
+  auto handle = event.getValidHandle<std::vector<artdaq::Fragment>>(cfg_.moduleTag());
 
+  // Loop over frags
   for (const auto& frag : *handle) {
-
+    // Check they are containers
     if (frag.type() != artdaq::Fragment::ContainerFragmentType)
       continue;
 
     artdaq::ContainerFragment cont(frag);
 
+    // Loop over inner frags
     for (size_t i = 0; i < cont.block_count(); ++i) {
 
       auto inner = cont.at(i);
       mu2e::STMFragment stm(*inner);
 
       uint32_t fragId = inner->fragmentID();
-
+      uint32_t seqId = inner->sequenceID();
+      
       int ch = -1;
 
+      // Get header stuff from Raw frags
       if (stm.isRaw()) {
+	std::cout << "Now reading Fragment with SeqID= " << seqId << " and FragID= " << fragId << "\n";
         ch = stm.channel();
         fragToChannel_[fragId] = ch;
       } else {
@@ -222,13 +243,18 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
       auto &spec = spectra_[ch];
       auto &fitW = fitWindows_[ch];
 
-      // ===== MWD SPECTRUM =====
+      if (s.lastRun != run) {
+	s.totalEvents = 0;
+	s.lastRun = run;
+      }
+      
+      // Pulse height 
       if (stm.isMWD()) {
         const int16_t* data = stm.payloadBegin();
-        size_t n = stm.payloadWords();
+        size_t n = stm.payloadWords(); // Probably need this from header not here
 
         if (n % 2 != 0) n -= 1;
-
+	// Get just height for now
         for (size_t i = 1; i < n; i += 2) {
           uint16_t height = static_cast<uint16_t>(data[i]);
           if (height < SpectrumState::NBINS)
@@ -238,39 +264,73 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
 
       if (!stm.isRaw()) continue;
 
+      // Get raw header vars
       uint64_t ewt = stm.eventWindowTag();
       uint64_t dtc = stm.dtcClock();
       uint64_t adc = stm.adcClock();
 
-      bool onSpill = (ewt % 2 == 0);
+      bool onSpill = stm.spillFlag();
 
+      // Initialise
       if (!s.initialized) {
         s.prevEWT = ewt;
         s.prevDTC = dtc;
         s.prevADC = adc;
         s.prevSpill = onSpill;
+	s.lastDataTime = std::chrono::steady_clock::now();
+	s.stale = false;
+	s.repeatedEWT = 0;
         s.initialized = true;
         continue;
       }
 
       if (s.windowEvents == 0) s.firstEWT = ewt;
       s.windowEvents++;
+      s.totalEvents++;
       s.lastEWT = ewt;
 
-      if (onSpill == s.prevSpill) {
-        if (ewt != s.prevEWT + 1)
-          s.acc_ewt_small++;
+      // Check if the data is new or stale here
+      bool newData = (ewt != s.prevEWT);
+
+      if (newData) {
+	
+	s.lastDataTime = std::chrono::steady_clock::now();
+	
+	s.repeatedEWT = 0;
+	s.stale = false;
+	
       } else {
-        s.acc_spill_trans++;
-        s.acc_ewt_trans++;
+	
+	s.repeatedEWT++;
+	
+	if (s.repeatedEWT > 100)
+	  s.stale = true;
       }
 
-      if (std::llabs((long long)(dtc - s.prevDTC)) > 1000)
+      // Check EWT is incrementing 
+      bool ewt_ok = (ewt == s.prevEWT + 1);
+     
+      if (onSpill == s.prevSpill) {
+	
+	if (!ewt_ok)
+	  s.acc_ewt_small++;
+	
+      } else {
+	
+	s.acc_spill_trans++;
+	
+	if (!ewt_ok)
+	  s.acc_ewt_trans++;
+      }
+
+      // Check to see if DTC clocks have jumped 
+      if (std::llabs((long long)(dtc - s.prevDTC)) > 10000)
         s.acc_dtc_jumps++;
 
-      if (std::llabs((long long)(adc - s.prevADC)) > 1000)
+      if (std::llabs((long long)(adc - s.prevADC)) > 10000)
         s.acc_adc_jumps++;
 
+      // Check delta
       double dEWT = (double)(ewt - s.prevEWT);
       double dDTC = (double)(dtc - s.prevDTC);
 
@@ -282,12 +342,13 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
 
       double slope = computeSlope(fitW);
 
-      s.alarm_ewt_error = (s.acc_ewt_small > 20);
-      s.alarm_transition_error = (s.acc_spill_trans == 0);
+      // Set up alarms (needs tuning here for real vs dummy data)
+      s.alarm_ewt_error = (s.acc_ewt_small > 30);
+      s.alarm_transition_error = (s.acc_spill_trans == -1);
       s.alarm_clock_error =
         (s.acc_dtc_jumps > 15000 || s.acc_adc_jumps > 5000);
       s.alarm_correlation_error =
-        (slope < 4000 || slope > 7000);
+	(slope < -7000.0 || slope > 7000.0);
 
       bool current_alarm =
         s.alarm_ewt_error ||
@@ -295,7 +356,7 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
         s.alarm_clock_error ||
         s.alarm_correlation_error;
 
-      // ===== ALARM LOGGING =====
+      // Alarm logs
       if (current_alarm && !s.prev_alarm_state) {
         std::ostringstream alarm;
         alarm << "{";
@@ -331,8 +392,7 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
       s.prev_alarm_state = current_alarm;
 
       auto now = std::chrono::steady_clock::now();
-      double dt =
-        std::chrono::duration<double>(now - s.lastWrite).count();
+      double dt = std::chrono::duration<double>(now - s.lastWrite).count();
 
       fitPeaks(spec, dt);
       fitResolution(spec);
@@ -343,168 +403,176 @@ void STMDQMJsonProducer::analyze(art::Event const& event)
       computeChi2(spec, model);
       computeFFT(residuals, spec.fft_power);
 
-      // ===== WRITE JSON + LOG =====
-      if (std::chrono::duration_cast<std::chrono::milliseconds>(
-            now - s.lastWrite).count() > 500)
-      {
-        double a,b;
-        computeCalibration(spec,a,b);
+      // Check if we are idle 
+      auto idleSec = std::chrono::duration_cast<std::chrono::seconds>(now - s.lastDataTime).count();
 
-        std::string path = makeJsonPath(ch);
-        std::string tmp = path + ".tmp";
+      if (idleSec > 5) s.stale = true;
+      
+      // Write to json
+      if (!s.stale &&
+	  std::chrono::duration_cast<std::chrono::milliseconds>(now - s.lastWrite).count() > 500)
+	{
+	  double a,b;
+	  computeCalibration(spec,a,b);
 
-        std::ofstream out(tmp);
+	  std::string path = makeJsonPath(ch);
+	  std::string tmp = path + ".tmp";
 
-        out << "{\n";
-        out << "\"channel\":" << ch << ",\n";
-        out << "\"run\":" << run << ",\n";
-        out << "\"subrun\":" << subrun << ",\n";
-        out << "\"timestamp\":" << std::time(nullptr) << ",\n";
+	  std::ofstream out(tmp);
 
-        out << "\"alarms\":{\n";
-        out << "\"ewt_error\":" << (s.alarm_ewt_error?"true":"false") << ",\n";
-        out << "\"transition_error\":" << (s.alarm_transition_error?"true":"false") << ",\n";
-        out << "\"clock_error\":" << (s.alarm_clock_error?"true":"false") << ",\n";
-        out << "\"correlation_error\":" << (s.alarm_correlation_error?"true":"false") << "\n";
-        out << "},\n";
+	  out << "{\n";
+	  out << "\"channel\":" << ch << ",\n";
+	  out << "\"run\":" << run << ",\n";
+	  out << "\"subrun\":" << subrun << ",\n";
+	  out << "\"timestamp\":" << std::time(nullptr) << ",\n";
+	  out << "\"total_events\":" << s.totalEvents << ",\n";
+	
+	  out << "\"alarms\":{\n";
+	  out << "\"ewt_error\":" << (s.alarm_ewt_error?"true":"false") << ",\n";
+	  out << "\"transition_error\":" << (s.alarm_transition_error?"true":"false") << ",\n";
+	  out << "\"clock_error\":" << (s.alarm_clock_error?"true":"false") << ",\n";
+	  out << "\"correlation_error\":" << (s.alarm_correlation_error?"true":"false") << "\n";
+	  out << "},\n";
 
-        out << "\"window\":{\n";
-        out << "\"events\":" << s.windowEvents << ",\n";
-        out << "\"first_ewt\":" << s.firstEWT << ",\n";
-        out << "\"last_ewt\":" << s.lastEWT << "\n";
-        out << "},\n";
+	  out << "\"window\":{\n";
+	  out << "\"events\":" << s.windowEvents << ",\n";
+	  out << "\"first_ewt\":" << s.firstEWT << ",\n";
+	  out << "\"last_ewt\":" << s.lastEWT << "\n";
+	  out << "},\n";
 
-        out << "\"timing\":{\n";
-        out << "\"ewt_small_jumps\":" << s.acc_ewt_small << ",\n";
-        out << "\"ewt_transition_issues\":" << s.acc_ewt_trans << ",\n";
-        out << "\"dtc_jumps\":" << s.acc_dtc_jumps << ",\n";
-        out << "\"adc_jumps\":" << s.acc_adc_jumps << ",\n";
-        out << "\"spill_transitions\":" << s.acc_spill_trans << "\n";
-        out << "},\n";
+	  out << "\"timing\":{\n";
+	  out << "\"ewt_small_jumps\":" << s.acc_ewt_small << ",\n";
+	  out << "\"ewt_transition_issues\":" << s.acc_ewt_trans << ",\n";
+	  out << "\"dtc_jumps\":" << s.acc_dtc_jumps << ",\n";
+	  out << "\"adc_jumps\":" << s.acc_adc_jumps << ",\n";
+	  out << "\"spill_transitions\":" << s.acc_spill_trans << "\n";
+	  out << "},\n";
 
-        out << "\"spill\":{\n";
-        out << "\"end\":" << (onSpill?"true":"false") << "\n";
-        out << "},\n";
+	  out << "\"spill\":{\n";
+	  out << "\"end\":" << (onSpill?"true":"false") << "\n";
+	  out << "},\n";
 
-        out << "\"spectrum\":{\n";
+	  out << "\"spectrum\":{\n";
 
-        out << "\"calibration\":{\"a\":" << a << ",\"b\":" << b << "},\n";
-        out << "\"resolution\":{\"A\":" << spec.res_A << ",\"B\":" << spec.res_B << "},\n";
-        out << "\"chi2\":" << spec.chi2 << ",\n";
-        out << "\"chi2_ndf\":" << spec.chi2_ndf << ",\n";
+	  out << "\"calibration\":{\"a\":" << a << ",\"b\":" << b << "},\n";
+	  out << "\"resolution\":{\"A\":" << spec.res_A << ",\"B\":" << spec.res_B << "},\n";
+	  out << "\"chi2\":" << spec.chi2 << ",\n";
+	  out << "\"chi2_ndf\":" << spec.chi2_ndf << ",\n";
 
-        out << "\"histogram\":[";
-        for (int i=0;i<SpectrumState::NBINS;i++){
-          out << spec.hist[i];
-          if(i!=SpectrumState::NBINS-1) out<<",";
-        }
-        out << "],\n";
+	  out << "\"histogram\":[";
+	  for (int i=0;i<SpectrumState::NBINS;i++){
+	    out << spec.hist[i];
+	    if(i!=SpectrumState::NBINS-1) out<<",";
+	  }
+	  out << "],\n";
 
-        out << "\"residuals\":[";
-        for (int i=0;i<SpectrumState::NBINS;i++){
-          out << residuals[i];
-          if(i!=SpectrumState::NBINS-1) out<<",";
-        }
-        out << "],\n";
+	  out << "\"residuals\":[";
+	  for (int i=0;i<SpectrumState::NBINS;i++){
+	    out << residuals[i];
+	    if(i!=SpectrumState::NBINS-1) out<<",";
+	  }
+	  out << "],\n";
 
-        out << "\"fft_power\":[";
-        for (size_t i=0;i<spec.fft_power.size();i++){
-          out << spec.fft_power[i];
-          if(i!=spec.fft_power.size()-1) out<<",";
-        }
-        out << "],\n";
+	  out << "\"fft_power\":[";
+	  for (size_t i=0;i<spec.fft_power.size();i++){
+	    out << spec.fft_power[i];
+	    if(i!=spec.fft_power.size()-1) out<<",";
+	  }
+	  out << "],\n";
 
-        out << "\"peaks\":[";
-        for (size_t i=0;i<spec.peaks.size();i++){
-          auto &p = spec.peaks[i];
-          int bin = std::max(0,std::min((int)p.mean,SpectrumState::NBINS-1));
+	  out << "\"peaks\":[";
+	  for (size_t i=0;i<spec.peaks.size();i++){
+	    auto &p = spec.peaks[i];
+	    int bin = std::max(0,std::min((int)p.mean,SpectrumState::NBINS-1));
 
-          out << "{";
-          out << "\"name\":\""<<p.name<<"\",";
-          out << "\"energy\":"<<p.energy<<",";
-          out << "\"mean\":"<<p.mean<<",";
-          out << "\"sigma\":"<<p.fitted_sigma<<",";
-          out << "\"rate\":"<<p.rate<<",";
-          out << "\"height\":"<<spec.hist[bin];
-          out << "}";
+	    out << "{";
+	    out << "\"name\":\""<<p.name<<"\",";
+	    out << "\"energy\":"<<p.energy<<",";
+	    out << "\"mean\":"<<p.mean<<",";
+	    out << "\"sigma\":"<<p.fitted_sigma<<",";
+	    out << "\"rate\":"<<p.rate<<",";
+	    out << "\"height\":"<<spec.hist[bin];
+	    out << "}";
 
-          if(i!=spec.peaks.size()-1) out<<",";
-        }
-        out << "]\n";
+	    if(i!=spec.peaks.size()-1) out<<",";
+	  }
+	  out << "]\n";
 
-        out << "}\n";
-        out << "}\n";
+	  out << "}\n";
+	  out << "}\n";
 
-        out.close();
-        std::rename(tmp.c_str(), path.c_str());
+	  out.close();
+	  std::rename(tmp.c_str(), path.c_str());
 
-        // ===== LOG FILE =====
-        std::string logPath = makeLogPath(ch, run);
+	  // Log file 
+	  std::string logPath = makeLogPath(ch, run);
 
-        if (s.lastRun != run) {
-          std::remove(logPath.c_str());
-          s.lastRun = run;
-        }
+	  if (s.lastLogRun != run) {	  
+	    std::remove(logPath.c_str());
+	    s.lastLogRun = run;
+	  }
 
-        std::vector<std::string> entries;
-        std::ifstream in(logPath);
+	  std::vector<std::string> entries;
+	  std::ifstream in(logPath);
 
-        if (in.good()) {
-          std::stringstream buffer;
-          buffer << in.rdbuf();
-          std::string content = buffer.str();
+	  if (in.good()) {
+	    std::stringstream buffer;
+	    buffer << in.rdbuf();
+	    std::string content = buffer.str();
 
-          size_t pos = 0;
-          while ((pos = content.find('{', pos)) != std::string::npos) {
+	    size_t pos = 0;
+	    while ((pos = content.find('{', pos)) != std::string::npos) {
 
-            int depth = 0;
-            size_t start = pos;
+	      int depth = 0;
+	      size_t start = pos;
 
-            for (size_t i = pos; i < content.size(); ++i) {
-              if (content[i] == '{') depth++;
-              if (content[i] == '}') depth--;
+	      for (size_t i = pos; i < content.size(); ++i) {
+		if (content[i] == '{') depth++;
+		if (content[i] == '}') depth--;
 
-              if (depth == 0) {
-                entries.push_back(content.substr(start, i - start + 1));
-                pos = i + 1;
-                break;
-              }
-            }
-          }
-        }
+		if (depth == 0) {
+		  entries.push_back(content.substr(start, i - start + 1));
+		  pos = i + 1;
+		  break;
+		}
+	      }
+	    }
+	  }
 
-        entries.insert(entries.end(),
-                       s.alarmBuffer.begin(),
-                       s.alarmBuffer.end());
+	  entries.insert(entries.end(),
+			 s.alarmBuffer.begin(),
+			 s.alarmBuffer.end());
 
-        std::string tmpLog = logPath + ".tmp";
-        std::ofstream log(tmpLog);
+	  std::string tmpLog = logPath + ".tmp";
+	  std::ofstream log(tmpLog);
 
-        log << "[\n";
-        for (size_t i = 0; i < entries.size(); ++i) {
-          log << entries[i];
-          if (i != entries.size() - 1) log << ",";
-          log << "\n";
-        }
-        log << "]\n";
+	  // Messy logging here
+	  log << "[\n";
+	  for (size_t i = 0; i < entries.size(); ++i) {
+	    log << entries[i];
+	    if (i != entries.size() - 1) log << ",";
+	    log << "\n";
+	  }
+	  log << "]\n";
+	
+	  log.close();
+	  std::rename(tmpLog.c_str(), logPath.c_str());
 
-        log.close();
-        std::rename(tmpLog.c_str(), logPath.c_str());
+	  // Clear buffers
+	  s.alarmBuffer.clear();
 
-        s.alarmBuffer.clear();
+	  // Reset
+	  s.windowEvents = 0;
+	  s.firstEWT = ewt;
+	  s.lastEWT = ewt;
 
-        // RESET WINDOW + ACCUMULATORS
-        s.windowEvents = 0;
-        s.firstEWT = ewt;
-        s.lastEWT = ewt;
+	  s.acc_ewt_small = 0;
+	  s.acc_ewt_trans = 0;
+	  s.acc_dtc_jumps = 0;
+	  s.acc_adc_jumps = 0;
 
-        s.acc_ewt_small = 0;
-        s.acc_ewt_trans = 0;
-        s.acc_dtc_jumps = 0;
-        s.acc_adc_jumps = 0;
-
-        s.lastWrite = now;
-      }
+	  s.lastWrite = now;
+	}
 
       s.prevEWT = ewt;
       s.prevDTC = dtc;

@@ -51,14 +51,31 @@ const DQM_THRESHOLDS = {
 
 };
 
-// ===== Data freshness (GLOBAL) =====
+// ===== Data status (GLOBAL) =====
 function getDataAgeSeconds(data) {
     if (!data || !data.timestamp) return Infinity;
     return Date.now() / 1000 - data.timestamp;
 }
 
-function isSystemStopped(data, timeoutSec = 3) {
-    return getDataAgeSeconds(data) > timeoutSec;
+let stoppedSince = null;
+
+function isSystemStopped(data, timeoutSec = 45, refSec = 60) {
+
+    const age = getDataAgeSeconds(data);
+
+    if (age <= timeoutSec) {
+        stoppedSince = null;
+        return false;
+    }
+
+    if (stoppedSince === null) {
+        stoppedSince = Date.now();
+        return false;
+    }
+
+    const staleFor = (Date.now() - stoppedSince) / 1000;
+
+    return staleFor > refSec;
 }
 
 function getSystemState(data) {
@@ -372,11 +389,9 @@ function renderAlarms(containerId, alarms, keys) {
     for (const key of keys) {
         const val = alarms[key];
         const cls = val ? getAlarmSeverity(key) : "ok";
-        const icon = val ? "alert-triangle" : "check-circle";
 
         html += `
             <div class="${cls}">
-                <i data-lucide="${icon}"></i>
                 ${formatAlarm(key)}: ${val}
             </div>
         `;
@@ -387,7 +402,7 @@ function renderAlarms(containerId, alarms, keys) {
     lucide.createIcons();
 }
 
-// ===== Banner updater (UPDATED) =====
+// ===== Banner updater =====
 function updateBanner(data) {
     const banner = document.getElementById("banner");
     if (!banner) return;
@@ -399,7 +414,6 @@ function updateBanner(data) {
         banner.classList.add("warn");
 
         banner.innerHTML = `
-            <i data-lucide="pause-circle"></i>
             DATA STOPPED | Last update ${Math.floor(getDataAgeSeconds(data))}s ago
         `;
 
@@ -429,7 +443,6 @@ function updateBanner(data) {
         banner.classList.add("bad");
 
         banner.innerHTML = `
-            <i data-lucide="alert-triangle"></i>
             Run ${run}.${subrun} | <span class="${spillClass}">${spillText}</span> | ${badKeys.map(formatAlarm).join(" | ")}
             <span class="time">(${time})</span>
         `;
@@ -439,7 +452,6 @@ function updateBanner(data) {
         banner.classList.add("ok");
 
         banner.innerHTML = `
-            <i data-lucide="check-circle"></i>
             Run ${run}.${subrun} | <span class="${spillClass}">${spillText}</span> | System OK
             <span class="time">(${time})</span>
         `;

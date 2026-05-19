@@ -1,178 +1,178 @@
 <!DOCTYPE HTML>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>STM DQM - HPGe Correlation</title>
+  <head>
+    <meta charset="UTF-8">
+    <title>STM DQM - HPGe Correlation</title>
 
-  <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
-  <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
 
-  <link href="../../css/stm_layout.css" rel="stylesheet">
-  <link href="../../css/stm_dqm.css" rel="stylesheet">
-  
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="../../js/stm_dqm.js"></script> 
-
-  <script>
-  (function() {
-    const theme = localStorage.getItem("theme") || "dark";
-    if (theme === "light") {
-      document.documentElement.classList.add("light");
-    }
-  })();
-</script>
-
-</head>
-
-<body>
-
-<div id="banner" class="banner ok">System OK</div>
-
-<div class="sidebar">
-  <h2>HPGe DQM</h2>
-
-  <div class="nav">
-
-    <div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
-      <i id="themeIcon" data-lucide="moon"></i>
-      <span id="themeText">Dark Mode</span>
-    </div>
+    <link href="../../css/stm_layout.css" rel="stylesheet">
+    <link href="../../css/stm_dqm.css" rel="stylesheet">
     
-    <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
-      <i id="soundIcon" data-lucide="volume-2"></i>
-      <span id="soundText">Sound ON</span>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/stm_dqm.js"></script> 
+
+    <script>
+      (function() {
+	  const theme = localStorage.getItem("theme") || "dark";
+	  if (theme === "light") {
+	      document.documentElement.classList.add("light");
+	  }
+      })();
+    </script>
+
+  </head>
+
+  <body>
+
+    <div id="banner" class="banner ok">System OK</div>
+
+    <div class="sidebar">
+      <h2>HPGe DQM</h2>
+
+      <div class="nav">
+
+	<div id="themeToggle" class="theme-toggle" onclick="toggleTheme()">
+	  <i id="themeIcon" data-lucide="moon"></i>
+	  <span id="themeText">Dark Mode</span>
+	</div>
+	
+	<div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
+	  <i id="soundIcon" data-lucide="volume-2"></i>
+	  <span id="soundText">Sound ON</span>
+	</div>
+
+	<a class="home-link" href="../STMMain.html">
+	  <i data-lucide="home"></i> Home
+	</a>
+
+	<a href="../STMLABR.html">
+	  <i data-lucide="repeat"></i> Switch to LaBr
+	</a>
+
+	<a href="STMOverview.html">Overview</a>
+	<a href="STMTrends.html">Trends</a>
+	<a href="STMTiming.html">Timing</a>
+	<a class="active" href="STMCorrelation.html">Correlation</a>
+	<a href="STMIntegrity.html">Integrity</a>
+	<a href="STMAlarms.html">Alarms</a>
+
+	<div class="sec-label">SPECTRA</div>
+
+	<a href="STMSpectra.html">
+	  <i data-lucide="activity"></i> Spectrum
+	</a>
+
+      </div>
+
     </div>
 
-    <a class="home-link" href="../STMMain.html">
-      <i data-lucide="home"></i> Home
-    </a>
+    <div class="main">
 
-    <a href="../STMLABR.html">
-      <i data-lucide="repeat"></i> Switch to LaBr
-    </a>
+      <h1>Correlation</h1>
 
-    <a href="STMOverview.html">Overview</a>
-    <a href="STMTrends.html">Trends</a>
-    <a href="STMTiming.html">Timing</a>
-    <a class="active" href="STMCorrelation.html">Correlation</a>
-    <a href="STMIntegrity.html">Integrity</a>
-    <a href="STMAlarms.html">Alarms</a>
+      <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
+	Updating...
+      </div>
 
-    <div class="sec-label">SPECTRA</div>
+      <div class="grid">
 
-    <a href="STMSpectra.html">
-      <i data-lucide="activity"></i> Spectrum
-    </a>
+	<div class="card">
+	  <h3>ΔDTC / ΔEWT (Slope)</h3>
+	  <div class="value" id="slope">--</div>
+	</div>
 
-  </div>
+	<div class="card">
+	  <h3>Slope Stability (σ)</h3>
+	  <div class="value" id="stability">--</div>
+	</div>
 
-</div>
+	<div class="card">
+	  <h3>Window Size (Events)</h3>
+	  <div class="value" id="window">--</div>
+	</div>
 
-<div class="main">
+      </div>
 
-  <h1>Correlation</h1>
+      <div class="alarm-box">
+	<h3>Correlation Alarms</h3>
+	<div id="alarms">Loading...</div>
+      </div>
 
-  <div id="lastUpdate" style="opacity:0.6; font-size:12px; margin-bottom:15px;">
-    Updating...
-  </div>
-
-  <div class="grid">
-
-    <div class="card">
-      <h3>ΔDTC / ΔEWT (Slope)</h3>
-      <div class="value" id="slope">--</div>
     </div>
 
-    <div class="card">
-      <h3>Slope Stability (σ)</h3>
-      <div class="value" id="stability">--</div>
-    </div>
+    <script>
 
-    <div class="card">
-      <h3>Window Size (Events)</h3>
-      <div class="value" id="window">--</div>
-    </div>
+      localStorage.setItem("lastPage", window.location.pathname + window.location.search);
 
-  </div>
+      //  Buffer 
+      const slopeBuffer = [];
+      const MAX_POINTS = 20;
 
-  <div class="alarm-box">
-    <h3>Correlation Alarms</h3>
-    <div id="alarms">Loading...</div>
-  </div>
+      async function update() {
+	  try {
+              const data = await fetchSTM();
 
-</div>
+              const events = data.window?.events ?? 0;
+              const dtc    = data.timing?.dtc_jumps ?? 0;
 
-<script>
+              //  Instant slope 
+              let slope = 0;
+              if (events > 0) slope = dtc / events;
 
-localStorage.setItem("lastPage", window.location.pathname + window.location.search);
+              //  Buffer 
+              slopeBuffer.push(slope);
+              if (slopeBuffer.length > MAX_POINTS) slopeBuffer.shift();
 
-// ===== Buffer =====
-const slopeBuffer = [];
-const MAX_POINTS = 20;
+              //  Mean + stability 
+              const mean = slopeBuffer.reduce((a,b)=>a+b,0) / slopeBuffer.length;
 
-async function update() {
-    try {
-        const data = await fetchSTM();
+              const variance = slopeBuffer.reduce((a,b)=>a+(b-mean)*(b-mean),0) / slopeBuffer.length;
+              const sigma = Math.sqrt(variance);
 
-        const events = data.window?.events ?? 0;
-        const dtc    = data.timing?.dtc_jumps ?? 0;
+              //  State 
+              let slopeState = "ok";
 
-        // ===== Instant slope =====
-        let slope = 0;
-        if (events > 0) slope = dtc / events;
+              if (mean < 0 || mean > 7000) slopeState = "bad";
+              if (events === 0) slopeState = "warn";
 
-        // ===== Buffer =====
-        slopeBuffer.push(slope);
-        if (slopeBuffer.length > MAX_POINTS) slopeBuffer.shift();
+              let stabilityState = sigma > 500 ? "warn" : "ok";
 
-        // ===== Mean + stability =====
-        const mean = slopeBuffer.reduce((a,b)=>a+b,0) / slopeBuffer.length;
+              //  Cards 
+              setCard("slope", mean.toFixed(2), slopeState);
+              setCard("stability", sigma.toFixed(2), stabilityState);
+              setCard("window", events, events === 0 ? "warn" : "ok");
 
-        const variance = slopeBuffer.reduce((a,b)=>a+(b-mean)*(b-mean),0) / slopeBuffer.length;
-        const sigma = Math.sqrt(variance);
+              //  Alarms 
+              renderAlarms("alarms", data.alarms, [
+		  "correlation_error"
+              ]);
 
-        // ===== State =====
-        let slopeState = "ok";
+              updateBanner(data);
 
-        if (mean < 4000 || mean > 7000) slopeState = "bad";
-        if (events === 0) slopeState = "warn";
+              document.getElementById("lastUpdate").textContent =
+		  `Run ${data.run} | Subrun ${data.subrun} | ` +
+		  new Date(data.timestamp * 1000).toLocaleTimeString();
 
-        let stabilityState = sigma > 500 ? "warn" : "ok";
+	  } catch (err) {
+              console.error(err);
 
-        // ===== Cards =====
-        setCard("slope", mean.toFixed(2), slopeState);
-        setCard("stability", sigma.toFixed(2), stabilityState);
-        setCard("window", events, events === 0 ? "warn" : "ok");
+              const banner = document.getElementById("banner");
+              banner.classList.remove("ok");
+              banner.classList.add("bad");
+              banner.textContent = "DATA ERROR";
+	  }
+      }
 
-        // ===== Alarms =====
-        renderAlarms("alarms", data.alarms, [
-            "correlation_error"
-        ]);
+      window.addEventListener("load", () => {
+	  lucide.createIcons();
+      });
 
-        updateBanner(data);
+      setInterval(update, 1000);
+      update();
 
-        document.getElementById("lastUpdate").textContent =
-          `Run ${data.run} | Subrun ${data.subrun} | ` +
-          new Date(data.timestamp * 1000).toLocaleTimeString();
+    </script>
 
-    } catch (err) {
-        console.error(err);
-
-        const banner = document.getElementById("banner");
-        banner.classList.remove("ok");
-        banner.classList.add("bad");
-        banner.textContent = "DATA ERROR";
-    }
-}
-
-window.addEventListener("load", () => {
-    lucide.createIcons();
-});
-
-setInterval(update, 1000);
-update();
-
-</script>
-
-</body>
+  </body>
 </html>

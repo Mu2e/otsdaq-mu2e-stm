@@ -116,13 +116,13 @@
       let autoRefresh = true;
       let fullData = [];
 
-     // ===== Alarm JSON path (auto depth-safe) =====
-function getAlarmPath(run) {
-    if (!run) return null;
+      //  Alarm JSON path
+      function getAlarmPath(run) {
+	  if (!run) return null;
 
-    const detector = getDetector();
-    return `../../json/logs/stm_alarm_log_${detector}_run_${run}.json`;
-}
+	  const detector = getDetector();
+	  return `../../json/logs/stm_alarm_log_${detector}_run_${run}.json`;
+      }
 
       function updateLiveUI() {
           const status = document.getElementById("liveStatus");
@@ -154,41 +154,41 @@ function getAlarmPath(run) {
       }
 
       async function loadData(run) {
-    if (!run) return;
+	  if (!run) return;
 
-    const url = getAlarmPath(run) + "?_=" + Date.now();
+	  const url = getAlarmPath(run) + "?_=" + Date.now();
 
-    console.log("==== LOAD DATA ====");
-    console.log("Run:", run);
-    console.log("URL:", url);
+	  console.log("==== LOAD DATA ====");
+	  console.log("Run:", run);
+	  console.log("URL:", url);
 
-    try {
-        const res = await fetch(url);
+	  try {
+              const res = await fetch(url);
 
-        console.log("Fetch response:", res);
-        console.log("Status:", res.status, res.statusText);
-        console.log("OK?:", res.ok);
+              console.log("Fetch response:", res);
+              console.log("Status:", res.status, res.statusText);
+              console.log("OK?:", res.ok);
 
-        const text = await res.text();
-        console.log("Raw response text:", text.slice(0, 500)); // first 500 chars
+              const text = await res.text();
+              console.log("Raw response text:", text.slice(0, 500)); // first 500 chars
 
-        const data = JSON.parse(text);
+              const data = JSON.parse(text);
 
-        console.log("Parsed JSON:", data);
+              console.log("Parsed JSON:", data);
 
-        fullData = Array.isArray(data) ? data : [];
+              fullData = Array.isArray(data) ? data : [];
 
-        populateAlarmTypes();
-        applyFilters();
+              populateAlarmTypes();
+              applyFilters();
 
-    } catch (err) {
-        console.error("🚨 LOAD FAILED:", err);
-        console.error("URL was:", url);
+	  } catch (err) {
+              console.error("🚨 LOAD FAILED:", err);
+              console.error("URL was:", url);
 
-        fullData = [];
-        applyFilters();
-    }
-}
+              fullData = [];
+              applyFilters();
+	  }
+      }
 
       function extractAlarms(entry) {
           if (entry.cleared) return ["cleared"];
@@ -217,71 +217,71 @@ function getAlarmPath(run) {
 
       function applyFilters() {
 
-        const runF = document.getElementById("runFilter").value;
-        const subF = document.getElementById("subrunFilter").value;
-        const alarmF = document.getElementById("alarmFilter").value;
-        const timeF = parseInt(document.getElementById("timeFilter").value);
+          const runF = document.getElementById("runFilter").value;
+          const subF = document.getElementById("subrunFilter").value;
+          const alarmF = document.getElementById("alarmFilter").value;
+          const timeF = parseInt(document.getElementById("timeFilter").value);
 
-        const now = Date.now() / 1000;
-        const table = document.querySelector("#alarmTable tbody");
-        table.innerHTML = "";
+          const now = Date.now() / 1000;
+          const table = document.querySelector("#alarmTable tbody");
+          table.innerHTML = "";
 
-        const groups = {};
+          const groups = {};
 
-        fullData.forEach(entry => {
+          fullData.forEach(entry => {
 
-            const ts = entry.timestamp || 0;
-            const run = entry.run ?? "-";
-            const subrun = entry.subrun ?? "-";
-            const ewt = entry.ewt ?? "-";
-            const spill = entry.on_spill ?? false;
+              const ts = entry.timestamp || 0;
+              const run = entry.run ?? "-";
+              const subrun = entry.subrun ?? "-";
+              const ewt = entry.ewt ?? "-";
+              const spill = entry.on_spill ?? false;
 
-            if (runF && String(run) !== runF) return;
-            if (subF && String(subrun) !== subF) return;
-            if (timeF > 0 && (now - ts) > timeF) return;
+              if (runF && String(run) !== runF) return;
+              if (subF && String(subrun) !== subF) return;
+              if (timeF > 0 && (now - ts) > timeF) return;
 
-            const alarms = extractAlarms(entry);
+              const alarms = extractAlarms(entry);
 
-            alarms.forEach(alarm => {
+              alarms.forEach(alarm => {
 
-                if (alarmF && alarm !== alarmF) return;
+                  if (alarmF && alarm !== alarmF) return;
 
-                const key = `${alarm}_${run}_${subrun}`;
+                  const key = `${alarm}_${run}_${subrun}`;
 
-                if (!groups[key]) {
-                    groups[key] = {
-                        alarm,
-                        run,
-                        subrun,
-                        count: 0,
-                        lastTime: ts,
-                        lastEWT: ewt,
-                        lastSpill: spill
-                    };
-                }
+                  if (!groups[key]) {
+                      groups[key] = {
+                          alarm,
+                          run,
+                          subrun,
+                          count: 0,
+                          lastTime: ts,
+                          lastEWT: ewt,
+                          lastSpill: spill
+                      };
+                  }
 
-                const g = groups[key];
-                g.count++;
+                  const g = groups[key];
+                  g.count++;
 
-                if (ts > g.lastTime) {
-                    g.lastTime = ts;
-                    g.lastEWT = ewt;
-                    g.lastSpill = spill;
-                }
-            });
-        });
+                  if (ts > g.lastTime) {
+                      g.lastTime = ts;
+                      g.lastEWT = ewt;
+                      g.lastSpill = spill;
+                  }
+              });
+          });
 
-        const sorted = Object.values(groups).sort((a, b) => b.lastTime - a.lastTime);
+          const sorted = Object.values(groups).sort((a, b) => b.lastTime - a.lastTime);
 
-        sorted.forEach(g => {
+          sorted.forEach(g => {
 
-            const row = document.createElement("tr");
-            row.classList.add(getAlarmSeverity(g.alarm));
+              const row = document.createElement("tr");
+              row.classList.add(getAlarmSeverity(g.alarm));
 
-            const ageSec = Math.floor(now - g.lastTime);
-            const ageText = ageSec > 60 ? `${Math.floor(ageSec/60)}m ago` : `${ageSec}s ago`;
+              const ageSec = Math.floor(now - g.lastTime);
+              const ageText = ageSec > 60 ? `${Math.floor(ageSec/60)}m ago` : `${ageSec}s ago`;
 
-            row.innerHTML = `
+              row.innerHTML = `
                 <td>
                     ${new Date(g.lastTime * 1000).toLocaleTimeString()}<br>
                     <span style="opacity:0.6; font-size:11px;">(${ageText})</span>
@@ -296,8 +296,8 @@ function getAlarmPath(run) {
                 </td>
             `;
 
-            table.appendChild(row);
-        });
+              table.appendChild(row);
+          });
       }
 
       async function update() {

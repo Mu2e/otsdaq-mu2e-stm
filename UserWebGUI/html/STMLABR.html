@@ -25,7 +25,7 @@
 
     <div class="container">
 
-      <!-- ===== Top Nav ===== -->
+      <!--  Top Nav  -->
       <div class="menu">
 
         <div class="ui-btn" onclick="location.href='STMMain.html'">
@@ -40,22 +40,21 @@
 
       </div>
 
-      <!-- ===== Title ===== -->
+      <!--  Title  -->
       <h1>LaBr Detector</h1>
 
-      <!-- ===== DQM PORT ===== -->
+      <!--  DQM PORT  -->
       <div id="dqmBox" class="status-box">
-        <i data-lucide="activity"></i>
         <span id="dqmText">Checking DQM...</span>
       </div>
 
-      <!-- ===== Status ===== -->
+      <!--  Status  -->
       <div id="statusBox" class="status-box ok">
         <i data-lucide="check-circle"></i>
         <span>Loading...</span>
       </div>
 
-      <!-- ===== UI ===== -->
+      <!--  UI  -->
       <div class="section-label">UI</div>
       <div class="ui-controls">
 
@@ -71,7 +70,7 @@
 
       </div>
 
-      <!-- ===== Monitoring ===== -->
+      <!--  Monitoring  -->
       <div class="section-label">MONITORING</div>
       <div class="menu">
         <a class="btn" href="LABR/STMOverview.html?det=labr">Overview</a>
@@ -82,7 +81,7 @@
         <a class="btn" href="LABR/STMAlarms.html?det=labr">Alarms</a>
       </div>
 
-      <!-- ===== Spectra ===== -->
+      <!--  Spectra  -->
       <div class="section-label">SPECTRA</div>
       <div class="menu">
         <a class="btn" href="LABR/STMSpectra.html">
@@ -102,7 +101,7 @@
       const BASE_PATH = window.location.pathname.includes("/labr/") ? "../../" : "../";
       const JSON_PATH = `${BASE_PATH}json/stm_${DETECTOR}.json`;
 
-      // ===== Status updater =====
+      //  Status updater 
       async function updateStatus() {
           try {
               const data = await fetch(JSON_PATH + "?_=" + Date.now())
@@ -130,7 +129,6 @@
                   statusBox.classList.add("warn");
 
                   statusBox.innerHTML = `
-                      <i data-lucide="pause-circle"></i>
                       <span>Run ${run}.${subrun} | DATA STOPPED</span>
                       <span class="time">(${spill} | ${time})</span>
                   `;
@@ -139,7 +137,6 @@
                   statusBox.classList.add("bad");
 
                   statusBox.innerHTML = `
-                      <i data-lucide="alert-triangle"></i>
                       <span>Run ${run}.${subrun} | ${badKeys.join(", ")}</span>
                       <span class="time">(${spill} | ${time})</span>
                   `;
@@ -148,7 +145,6 @@
                   statusBox.classList.add("ok");
 
                   statusBox.innerHTML = `
-                      <i data-lucide="check-circle"></i>
                       <span>Run ${run}.${subrun} | OK</span>
                       <span class="time">(${spill} | ${time})</span>
                   `;
@@ -165,7 +161,6 @@
               statusBox.classList.add("bad");
 
               statusBox.innerHTML = `
-                  <i data-lucide="alert-circle"></i>
                   <span>Data Error</span>
               `;
 
@@ -173,7 +168,7 @@
           }
       }
 
-      // ===== DQM updater =====
+      //  DQM updater 
       async function updateDQM() {
           try {
               const res = await fetch("http://127.0.0.1:8060/status");
@@ -202,7 +197,7 @@
           }
       }
 
-      // ===== Init =====
+      //  Init 
       window.addEventListener("load", () => {
           lucide.createIcons();
           updateStatus();
