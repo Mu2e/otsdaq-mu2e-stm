@@ -29,6 +29,9 @@ namespace ots
   private:
     // Core DAQ objects
     std::shared_ptr<STMfrontend> stmFE_;
+
+    // Bool for first daq config read
+    bool configured_ = false;
   };
 
 }  // namespace ots
