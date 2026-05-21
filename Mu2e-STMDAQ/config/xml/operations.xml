@@ -26,7 +26,11 @@
    <averaging>1</averaging>
    <find_peaks>1</find_peaks>
   </MWD> 
-  <Prescale>0 <!-- Prescale class -->
+  <PulseHeight>1 <!-- Pulse Height class -->
+  <detectPulseCandidates>1</detectPulseCandidates>
+  <processPulseCandidates>1</processPulseCandidates>
+  </PulseHeight>
+  <Prescale>1 <!-- Prescale class -->
    <prescale_data>1</prescale_data>
   </Prescale>
   <TemplateClass>0 <!-- Template class -->
@@ -35,9 +39,9 @@
   </TemplateClass>
   <WriteManager>0 <!-- Write Manager class -->
    <write_events>1</write_events>
-   <write_raw>0</write_raw>
-   <write_zs>0</write_zs>
-   <write_ph>0</write_ph>
+   <write_raw>1</write_raw>
+   <write_zs>1</write_zs>
+   <write_ph>1</write_ph>
   </WriteManager>
   <TCP>1 <!-- TCP class -->
    <send_data>1</send_data> 

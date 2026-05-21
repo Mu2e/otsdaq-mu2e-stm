@@ -31,6 +31,8 @@
   <include file="zs.xml"/>
   <!-- MWD -->
   <include file="mwd.xml"/> 
+  <!-- Pulse height -->
+  <include file="ph.xml"/> 
   <!-- Prescale -->
   <include file="prescale.xml"/>
   <!-- TCP Parameters -->

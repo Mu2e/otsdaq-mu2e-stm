@@ -11,6 +11,7 @@ set(PROCESSING_SOURCES
   zero_suppress.cc
   noise.cc
   mwd.cc
+  pulse_height.cc
   prescale.cc
   event_builder.cc
   write_manager.cc
