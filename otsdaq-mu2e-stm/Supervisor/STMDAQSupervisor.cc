@@ -48,18 +48,22 @@ void STMDAQSupervisor::transitionConfiguring(toolbox::Event::Reference e)
 
   stop::reset_stops();
 
+  if (configured_) {
+    Config::getInstance().reinit();
+  }
+  configured_ = true;
+
   stmFE_ = std::make_shared<STMfrontend>();
 
   // Get the channel for DQM log file labelling
   int currentChannel = stmFE_->return_channel();
-
   //HPGe DQM start
   if (currentChannel == 0){
-    std::string commandResponse = StringMacros::exec("nohup python /home/mu2eshift/ots_ops_stm/srcs/otsdaq-mu2e-stm/Mu2e-STMDAQ/dqm/app.py > /home/mu2eshift/ots_ops_stm/Data_stm/Logs/DQMlogs/dqmout_HPGe.log 2>&1 &");
+    std::string commandResponse = StringMacros::exec("nohup python $STM_DQM > $STM_DQM_LOG/dqmout_LaBr.log 2>&1 &");
   }
   //LaBr DQM start
   else{
-    std::string commandResponse = StringMacros::exec("nohup python /home/mu2eshift/ots_ops_stm/srcs/otsdaq-mu2e-stm/Mu2e-STMDAQ/dqm/app.py > /home/mu2eshift/ots_ops_stm/Data_stm/Logs/DQMlogs/dqmout_LaBr.log 2>&1 &");
+    std::string commandResponse = StringMacros::exec("nohup python $STM_DQM > $STM_DQM_LOG/dqmout_HPGe.log 2>&1 &");
   }
 
   CoreSupervisorBase::transitionConfiguring(e);
