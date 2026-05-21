@@ -15,6 +15,7 @@ STMdata::STMdata(Config& cfg_,
   buffer_config(cfg,logger,fw_config,mu2e_config,zs_config,MAX_PACKET_SIZE), // buffer config
   baseline_config(cfg,logger,fw_config,buffer_config,MAX_PACKET_LEN - pHdr_Len - fw_eHdr_len), // adc baseline config
   mwd_config(cfg,logger,fw_config,baseline_config), // mwd config  
+  pulseheight_config(cfg,logger,fw_config,baseline_config), // pulse height config
   tcp_config(cfg,logger,master_config), // tcp config  
   dqm_config(cfg,logger,fw_config) // dqm config
 {}

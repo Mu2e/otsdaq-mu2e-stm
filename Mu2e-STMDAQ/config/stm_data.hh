@@ -20,6 +20,7 @@
 #include "Mu2e-STMDAQ/config/include/buffer_config.hh" // buffers
 #include "Mu2e-STMDAQ/config/include/baseline_config.hh" // adc baseline
 #include "Mu2e-STMDAQ/config/include/mwd_config.hh" // moving window algorithm
+#include "Mu2e-STMDAQ/config/include/pulseheight_config.hh" // labr pulse-height algorithm
 #include "Mu2e-STMDAQ/config/include/dqm_config.hh" // dqm
 #include "Mu2e-STMDAQ/config/include/tcp_config.hh" // tcp
 
@@ -257,6 +258,9 @@ public:
 
   // MWD configuration
   const mwd_info mwd_config;
+
+  // Pulse height configuration
+  const pulseheight_info pulseheight_config;
 
   // TCP configuration
   const tcp_cfg_info tcp_config;

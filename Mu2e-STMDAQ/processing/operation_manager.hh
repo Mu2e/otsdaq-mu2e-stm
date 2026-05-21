@@ -22,6 +22,8 @@
 #include "Mu2e-STMDAQ/processing/noise.hh" 
 // MWD header
 #include "Mu2e-STMDAQ/processing/mwd.hh"
+// Pulse height header
+#include "Mu2e-STMDAQ/processing/pulse_height.hh"
 // Prescale header
 #include "Mu2e-STMDAQ/processing/prescale.hh"
 // Template module header
@@ -87,6 +89,9 @@ private:
     {"ZeroSuppress",
      { [this]() { return std::make_shared<ZeroSuppress>(cfg,logger,stm, signal);},
        {"prep_data", "find_peaks", "suppress_data"} }},
+    {"PulseHeight",
+     { [this]() { return std::make_shared<PulseHeight>(cfg, logger, stm);},
+       {"detectPulseCandidates", "processPulseCandidates"} }},
     {"Noise",
      { [this]() { return std::make_shared<Noise>(cfg, logger, stm);},
        {"get_noise_data", "check_noise", "noise_fft"} }},

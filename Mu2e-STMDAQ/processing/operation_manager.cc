@@ -14,6 +14,9 @@ OperationManager::OperationManager(Config& cfg_,
   // Boolean to signal form events is off
   bool form_events = false;
 
+  // Channel number
+  int ch_num = stm->master_config.ch_num;
+
   // Loop over all class names in config file
   for (const auto& class_ : class_names) {
     // Check if class name is valid
@@ -42,7 +45,7 @@ OperationManager::OperationManager(Config& cfg_,
     // Signal if FormEvents is on
     if (class_.first == "FormEvents") form_events = true;
     // If ZeroSuppress or MWD are on and FormEvents is off, switch them off
-    if ((class_.first == "ZeroSuppress" || class_.first == "MWD") && !form_events) {
+    if ((class_.first == "ZeroSuppress" || class_.first == "MWD" || class_.first == "PulseHeight") && !form_events) {
       // Log class is off and continue
       logger->log("WARNING: " + class_.first +
                   " ON when FormEvents OFF. Switching off " + class_.first + ".", 2);
@@ -62,6 +65,23 @@ OperationManager::OperationManager(Config& cfg_,
       logger->log(class_.first + " is OFF.", 1);
       continue;
     }
+
+    // Check correct PH finder for each channel
+    if (ch_num == 1 && class_.first == "MWD") {
+      logger->log("WARNING: " + class_.first +
+                  " ON for " + stm->master_config.ch_name + ", use PulseHeight instead" +
+		  ". Switching off " + class_.first + ".",2);
+      logger->log(class_.first + " is OFF.", 1);
+      continue;
+    }
+    else if (ch_num == 0 && class_.first == "PulseHeight") {
+      logger->log("WARNING: " + class_.first +
+                  " ON for " + stm->master_config.ch_name + ", use MWD instead" +
+		  ". Switching off " + class_.first + ".",2);
+      logger->log(class_.first + " is OFF.", 1);
+      continue;
+    }
+
 
     // Log class is on
     logger->log(class_.first + " class is ON.", 1);

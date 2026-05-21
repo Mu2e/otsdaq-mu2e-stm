@@ -1,0 +1,41 @@
+<!-- Pulse Height -->
+<ph>
+
+  <!-- Length of SPSC queue for pulses -->
+  <queue_len>1024</queue_len>
+
+  <!-- Baseline calculation -->
+  <baselineWindow>20</baselineWindow>
+  <baselineLookback>50</baselineLookback>
+
+  <!-- Pulse trigger -->
+  <threshold>120</threshold>
+
+  <!-- Slope trigger -->
+  <slopeWindow>3</slopeWindow>
+  <slopeThreshold>20.0</slopeThreshold>
+
+  <!-- Noise / adaptive search -->
+  <noiseTolerance>10.0</noiseTolerance>
+
+  <!-- Recalculate baseline every N samples -->
+  <minBaselineCheck>200</minBaselineCheck>
+
+  <!-- Consecutive decreasing samples -->
+  <Nsharp>5</Nsharp>
+
+  <!-- Maximum local minimum search region -->
+  <localWindowMax>50</localWindowMax>
+
+  <!-- SG filter coefficients (window=7, poly order=2) -->
+  <sg7>
+    <c0>-0.0952380952</c0>
+    <c1>0.1428571429</c1>
+    <c2>0.2857142857</c2>
+    <c3>0.3333333333</c3>
+    <c4>0.2857142857</c4>
+    <c5>0.1428571429</c5>
+    <c6>-0.0952380952</c6>
+  </sg7>
+
+</ph>
