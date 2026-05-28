@@ -13,11 +13,10 @@ def layout():
     return html.Div([
 
         # Track URL so we can poll only when on this page
-        dcc.Location(id="url", refresh=False),
+        dcc.Location(id="baseline-url", refresh=False),
 
         # Title and status message
         html.Div([
-            html.H2("Baseline and noise", style={"margin": 0}),
             html.Div([
                 html.Span("Status: ", style={"color": "black", "fontWeight": "bold"}),
                 html.Span(id="baseline-status-message")
@@ -67,7 +66,7 @@ def layout():
     Output('noise-graph', "figure"),
     Output('noise-fft', "figure"),
     Output("baseline-history", "data", allow_duplicate=True),
-    Input("url", "pathname"),
+    Input("baseline-url", "pathname"),
     Input("baseline-interval-component", "n_intervals"),
     State("baseline-history", "data"),
     prevent_initial_call=True

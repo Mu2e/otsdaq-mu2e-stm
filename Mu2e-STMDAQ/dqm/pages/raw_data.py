@@ -16,12 +16,11 @@ def layout():
 
         # Title and status message
         html.Div([
-            html.H2("Raw data", style={"margin": 0}),
             html.Div([
                 html.Span("Status: ", style={"color": "black", "fontWeight": "bold"}),
                 html.Span(id="raw-status-message")
             ], style={"marginLeft": "auto", "display": "flex", "alignItems": "center", "gap": "5px"})
-        ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "0 20px", "marginBottom": "10px"}),
+        ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "0 5px", "marginBottom": "10px"}),
         
         # Main graph showing raw data evolution
         html.Div(
