@@ -1,10 +1,11 @@
 # Import required modules from Dash and standard libraries
 import dash                                  # Dash core module
-from dash import html, dcc, page_container   # HTML and component container tools
+from dash import html, dcc, page_container, callback, Output, Input  # HTML and component container tools
 import dash_mantine_components as dmc      # For alerts
 import psutil                                # Used to pin process to CPU core
 import os                                    # For environment variable access
 import xml.etree.ElementTree as ET           # For parsing XML configuration files
+
 from utils.config import get_xml_node_value
 from worker_manager import manager
 from workers import worker_raw_data, worker_baseline, worker_peaks, worker_cpu, worker_alarms
@@ -64,8 +65,9 @@ topbar = html.Div([
 
     # Right section: absolutely positioned container for logos 2 and 3
     html.Div([
-        html.Img(src="/assets/mcr.png", className="logo-right"),
-        html.Img(src="/assets/ucl.png", className="logo-right")
+        html.Img(src="/assets/mcr_new.png", className="logo-right"),
+        html.Img(src="/assets/ucl_new.png", className="logo-right"),
+        html.Img(src="/assets/uol.png", className="logo-right")
     ], className="topbar-right")
   ], className="topbar",
    style={
@@ -80,9 +82,9 @@ navbar = html.Div([
     dcc.Link("Baseline and noise", href="/adc-baseline", className="nav-link"),
     dcc.Link("Peak data", href="/peak-data", className="nav-link"),
     dcc.Link("DAQ info", href="/daq-info", className="nav-link"),
+    dcc.Link("Logs", href="/logs", className="nav-link"),
     # html.Button("Clear Histos", id="clear-button", className="nav-button")
-], className="navbar")
-
+], className="navbar", id="navbar")
 
 # App layout
 app.layout = dmc.MantineProvider(
@@ -134,6 +136,8 @@ app.layout = dmc.MantineProvider(
         dcc.Store(id="latest-alarm-time", data={"latest_alarm_time":0}),
         dcc.Interval(id="alarm-interval", interval=2000, n_intervals=0),
 
+        dcc.Location(id="url", refresh=False),
+
         # Persistent store holding time history of baseline values
         # accessible in overview and baseline page
         dcc.Store(id="baseline-history", data={
@@ -156,6 +160,28 @@ app.layout = dmc.MantineProvider(
 
     ]
 )
+
+@callback(
+    Output("navbar", "children"),
+    Input("url", "pathname")
+)
+def update_active_nav(pathname):
+    links = [
+        ("Overview",            "/"),
+        ("Raw data",            "/raw-data"),
+        ("Baseline and noise",  "/adc-baseline"),
+        ("Peak data",           "/peak-data"),
+        ("DAQ info",            "/daq-info"),
+        ("Logs",                "/logs"),
+    ]
+    return [
+        dcc.Link(
+            label,
+            href=href,
+            className="nav-link active" if pathname == href else "nav-link"
+        )
+        for label, href in links
+    ]
 
 #atexit.register(shutdown)
 

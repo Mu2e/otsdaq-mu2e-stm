@@ -16,12 +16,11 @@ def layout():
 
         # Title and status message
         html.Div([
-            html.H2("Overview", style={"margin": 0}),
             html.Div([
                 html.Span("Status: ", style={"color": "black", "fontWeight": "bold"}),
                 html.Span(id="status-message")
             ], style={"marginLeft": "auto", "display": "flex", "alignItems": "center", "gap": "5px"})
-        ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "0 20px", "marginBottom": "10px"}),
+        ], style={"display": "flex", "justifyContent": "space-between", "alignItems": "center", "padding": "0 5px", "marginBottom": "10px"}),
         
         # Baseline and peak plot
         html.Div([
@@ -62,7 +61,7 @@ def layout():
         dcc.Store(id="status", data={}),
 
         # Timer to trigger polling shared memory
-        dcc.Interval(id="overview-interval-component", interval=1000, n_intervals=0),
+        dcc.Interval(id="overview-interval-component", interval=1500, n_intervals=0),
 
     ])
 
