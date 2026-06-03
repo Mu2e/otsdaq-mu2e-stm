@@ -126,7 +126,7 @@ void ThreadManager::worker_thread(const size_t thrd_idx,
 	// If there is prev buffer, push it
         if (prev_buffer) push_buffer(thrd_idx, outq, prev_buffer);
 	// If null hb detected, buffers not concurrent so push current
-	if (buffer->has_null_hb) {
+	if (buffer->has_null_hb || buffer->has_idle_timeout) {
 	  push_buffer(thrd_idx,outq,buffer);
 	  prev_buffer =  nullptr;
 	}
