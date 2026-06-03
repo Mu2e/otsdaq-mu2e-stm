@@ -49,6 +49,9 @@ private:
 
   // The current event data to copy
   std::vector<int16_t> event_to_copy;
+
+  // Max number of events in a buffer
+  size_t max_event_num;
   
 public:
 
@@ -75,6 +78,9 @@ public:
   
   // Store complete event
   int store_event(std::shared_ptr<DataStruct>& buffer, size_t& adc_count);
+
+  // Insert header for missing EWTs
+  void insert_missing_ewts(std::shared_ptr<DataStruct>& buffer);
   
 };
 

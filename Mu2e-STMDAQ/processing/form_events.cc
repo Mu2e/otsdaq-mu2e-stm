@@ -5,7 +5,8 @@
 FormEvents::FormEvents(const std::shared_ptr<AsyncLogger>& logger_,
                        const std::shared_ptr<STMdata>& stm_) :
   logger(logger_), stm(stm_),
-  event_to_copy(fw_eHdr_len+stm->mu2e_config.max_event_len,0){
+  event_to_copy(fw_eHdr_len+stm->mu2e_config.max_event_len,0),
+  max_event_num(stm->buffer_config.max_event_num){
 
   // Register operations for OperationManager
   register_operation("get_events", [this](auto& b){ get_events(b); });
@@ -47,12 +48,12 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
 
       // Get header start index location
       size_t hdr_start_loc = packet_start + MAX_PACKET_LEN - leftInPacket;
-      
+
       // Get event in packet length index location
       size_t data_len_loc = hdr_start_loc + fw_eHdr.EvInPacket;
     
       // Get event length
-      size_t data_len = data_ptr[data_len_loc];      
+      size_t data_len = static_cast<uint16_t>(data_ptr[data_len_loc]);      
     
       // Get total event length
       size_t event_len = static_cast<uint16_t>(data_ptr[hdr_start_loc + fw_eHdr.EvLen]);      
@@ -71,8 +72,7 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
 
         // Notify user of null hb
         logger->log("FormEvents::get_events: Null heartbeat detected after event " +
-                    std::to_string(current_EWT) +
-                    ".",2);
+                    std::to_string(current_EWT) + ".",2);
         
         // Check rest of packet for deadbeef
         leftInPacket = stm->check_dead_beef(data_ptr,packet_start,leftInPacket-fw_eHdr_len);
@@ -91,6 +91,23 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
     	
       }
             
+      // If DEAD BEEF padding after timeout event 
+      if (static_cast<uint16_t>(data_ptr[hdr_start_loc])     == BEEF &&
+        static_cast<uint16_t>(data_ptr[hdr_start_loc + 1]) == DEAD) {
+        logger->log("FormEvents::get_events: DEADBEEFs after firmware timeout event " +
+		    std::to_string(current_EWT) +
+		    ".",2);
+
+	// Store last event
+	if (store_event(buffer, adc_count) != 0) return;
+
+	// Set first event is true for more data
+	first_event = true;
+
+	// Exit packet loop
+        break;
+      }
+
       // If this is the first event of the data run, set first event
       if (first_event){
 	
@@ -115,6 +132,15 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
         new_event(data_ptr,hdr_start_loc,EWT,event_len);
         
       } // End if !EWT != current_EWT
+
+
+      // Check the data length is not longer than the packet
+      if (data_len > leftInPacket) {
+        logger->log("FormEvents: Warning! Data length to copy = " + std::to_string(data_len) +
+                ", which exceeds the length left in the packet = " + std::to_string(leftInPacket) +
+                ". At EWT = " + std::to_string(current_EWT) + ", skipping packet", 2);
+        break; // advance to next packet
+      }
             
       // Check the event is not larger than the single event buffer
       if (current_event_count+data_len > buffer->zs.size()){
@@ -148,6 +174,9 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
   
   // Update the raw buffer data size
   buffer->raw_len = adc_count;
+
+  // Insert header for any EWTs lost to dropped packets
+  insert_missing_ewts(buffer);
 
   // Check the data total and EWTs data total match  
   EWT_info& last = buffer->EWTs[buffer->EWT_count-1];
@@ -253,4 +282,72 @@ int FormEvents::store_event(std::shared_ptr<DataStruct>& buffer, size_t& adc_cou
 
   return 0;
 
+}
+
+void FormEvents::insert_missing_ewts(std::shared_ptr<DataStruct>& buffer) {
+    
+    size_t lost_EWT_count = buffer->lost_EWT_count;
+    if (lost_EWT_count == 0) return;
+
+    size_t event_slots_available = max_event_num - buffer->EWT_count;
+    if (lost_EWT_count > event_slots_available) {
+	logger->log("FormEvents:insert_missing_ewts: Error! Number of EWTs "
+		    "lost for buffer " + std::to_string(lost_EWT_count) + 
+		    "exceeds events space left of " + std::to_string(event_slots_available), 0);
+	return;
+    }
+
+    EWTinfo& EWTs = buffer->EWTs;
+
+    for (size_t g = 0; g < buffer->lost_EWTs.size(); ++g) {
+
+        uint64_t first_missing = buffer->lost_EWTs[g].first;
+        uint64_t last_missing  = buffer->lost_EWTs[g].second;
+
+        for (uint64_t missing = first_missing; missing <= last_missing; ++missing) {
+
+            if (buffer->EWT_count >= max_event_num) {
+                logger->log("FormEvents:insert_missing_ewts: EWT vector full, "
+                            "cannot insert stub for EWT=" +
+                            std::to_string(missing), 2);
+                return;
+            }
+
+            EWT_info& stub = EWTs[buffer->EWT_count];
+
+            // Identity and bad-data flag
+            stub.EWT      = missing;
+            stub.bad_data = true;
+
+            // Zero-length raw data — points to current end of real data
+            stub.raw.start    = buffer->raw_len; //temp
+            stub.raw.len      = 0;
+            stub.raw.prescale = false;
+
+            // Build header using existing overload: EWT set, everything else zero
+            stub.hdr = stm->create_sw_eHdr(missing, 0, 0, 0);
+            stub.hdr[sw_eHdr.RAW_LEN]   = 0;
+
+            ++buffer->EWT_count;
+            ++EWT_count;
+        }
+    }
+
+    // Re-sort so downstream sees EWTs in ascending order
+    std::sort(EWTs.begin(), EWTs.begin() + buffer->EWT_count,
+              [](const EWT_info& a, const EWT_info& b){
+                  return a.EWT < b.EWT;
+              });
+
+    size_t running_end = 0;
+    for (size_t i = 0; i < buffer->EWT_count; ++i) {
+        EWT_info& ewt = EWTs[i];
+        if (ewt.bad_data) {
+            // Place stub at current running end with zero length
+            ewt.raw.start = running_end;
+        } else {
+            // Real event - update running end
+            running_end = ewt.raw.start + ewt.raw.len;
+        }
+    }
 }
