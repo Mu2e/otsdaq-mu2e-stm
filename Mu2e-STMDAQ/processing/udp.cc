@@ -12,7 +12,8 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>& logger_,
   port((stm->master_config.ch_num) ? stm->udp_config.rcv_port : stm->udp_config.snd_port), // Port
   max_packet_num(stm->buffer_config.max_packet_num),
   wait_time(0.0), // Time waiting with no packets received
-  idle_timeout_ms(stm->udp_config.idle_timeout_ms)
+  idle_timeout_ms(stm->udp_config.idle_timeout_ms),
+  last_recv_time(std::chrono::steady_clock::now())
 
 {
   
@@ -275,6 +276,12 @@ void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
       // Update number of packets received
       packets_this_call += retval;
 
+      // If packets update last receive time for idle timeout
+      if (retval > 0) {
+        last_recv_time = std::chrono::steady_clock::now();
+        idle_timeout_logged = false;
+      }
+
       // Update size of received data in DataStruct
       buffer->zs_len += retval * MAX_PACKET_LEN;
       buffer->orig_len = buffer->zs_len;
@@ -326,7 +333,9 @@ void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
          if (idle_ms > idle_timeout_ms) {
              idle_timeout_logged = true;
              logger->log("UDP: Idle timeout after " + std::to_string(idle_ms) +
-                        "ms, releasing buffer", 2);
+                        "ms, releasing buffer. Packets this call = " +
+			std::to_string(packets_this_call) + ".", 2);
+	     buffer->has_idle_timeout = true;
              return;
          }
       }
@@ -353,133 +362,6 @@ void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
   
 }
 
-// // Receive data from UDP server
-// void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
-  
-//   // Initialise waited duration to zero
-//   //  wait_time = std::chrono::duration<double>::zero();
-
-//   //  bool receiving = false;
-  
-//   // Set up iovec structures to point directly into DataStruct
-//   for (size_t i = 0; i < max_packet_num; ++i) {
-//     iovecs[i].iov_base = buffer->raw.data() + (i * MAX_PACKET_LEN);
-//     messages[i].msg_hdr.msg_iov = &iovecs[i];
-//   }
-
-//   // Ensure buffer is zero before call
-//   buffer->raw_len = 0;
-//   buffer->orig_len = 0;
-  
-//   // While no stop signal
-//   while (!stop::should_stop()) {
-        
-//     // Packet counter
-//     int packets_this_call = 0;
-    
-//     // Loop until max_packet_num messages are
-//     // received or stop signal is triggered 
-//     while (packets_this_call < max_packet_num && !stop::should_stop()) {
-      
-//       // Poll for available data
-//       int poll_ret = poll(&pfd, 1, stm->udp_config.poll_timeout_ms);
-      
-//       // If poll failed
-//       if (poll_ret < 0) {
-//         if (logger) logger->log("UDP: UDP::receive_data - poll failed!",0);
-//         break;
-//       }
-
-//       // If data is available
-//       else if (poll_ret > 0) {
-	
-//         if(waiting_for_data){
-//           // Store waiting end time
-//           end_wait = std::chrono::high_resolution_clock::now();
-//           // ... and add to wait time counter
-//           wait_time += end_wait - start_wait;
-//           //          receiving = true;
-//         }
-        
-//         // Receive data from socket
-//         int retval = recvmmsg(socket_fd, &messages[packets_this_call], 
-//                               max_packet_num - packets_this_call, MSG_DONTWAIT, &timeout);
-	
-//         // If recvmmsg error
-//         if (retval < 0) {
-//           if (logger) logger->log("UDP: UDP::receive_data - recvmmsg failed",2);
-//         }
-	
-//         // Update number of packets received
-//         packets_this_call += retval;
-
-//         // Update size of received data in DataStruct
-//         buffer->raw_len += retval * MAX_PACKET_LEN;
-//         buffer->orig_len = buffer->raw_len;
-
-//         // Update number of packets received
-//         total_packets_received += retval;
-                
-//         // If first data of call
-//         if (!has_received_data) has_received_data = true;
-	
-//         // Tell user we're receiving data
-//         if (logger && waiting_for_data) logger->log("UDP: Receiving data...",1);
-
-//         // Signal we're not waiting for data
-//         waiting_for_data = false;
-
-//       }
-
-//       // Else, if no data available
-//       else{
-
-//         if (!waiting_for_data){
-//           // Start new waiting time
-//           start_wait = std::chrono::high_resolution_clock::now();	    
-//           //          receiving = false;
-//         }
-        
-//         // If we were previously receiving data
-//         if (!waiting_for_data){
-//           // If we've not still received the first data yet
-//           if (!has_received_data){
-//             if (logger) logger->log("UDP: Waiting for data from STM firmware...",1);
-//           }
-//           else{
-//             // Warn user
-//             if (logger) logger->log("UDP: Stopped receiving from STM firmware. Waiting for data...",2);
-//           }
-//         }		
-	
-//         // Signal we're waiting for data
-//         waiting_for_data = true;
-
-//         // If there data already waiting in the buffer, push to queue
-//         if (packets_this_call > 0) break;
-	
-//       }
-      
-//     } // End while (packets_this_call < max_packet_num)
-        
-//     // Succesful pull, so return
-//     if (packets_this_call == max_packet_num
-//         or packets_this_call > 0 && waiting_for_data) return;
-    
-//   } // End while (!stop::should_stop())
-
-//   // If a signal has been caught and we've been waiting for data
-//   if (waiting_for_data){
-//     // Get waiting end time
-//     end_wait = std::chrono::high_resolution_clock::now();
-//     // ... and add to wait time counter
-//     wait_time += end_wait - start_wait;
-//   }
-  
-//   return;
-
-  
-// }
 
 // Function to send a single UDP packet
 void UDP::send_packet(const std::vector<int16_t>& data_vec) {

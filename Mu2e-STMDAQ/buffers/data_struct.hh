@@ -93,6 +93,7 @@ struct DataStruct {
   size_t packet_count = 0;
   size_t dropped_packet_count = 0;
   std::vector<std::pair<uint32_t,uint32_t>> dropped_packets;
+  bool has_idle_timeout;
 
   // EWT info
   size_t EWT_count = 0;
@@ -173,6 +174,7 @@ struct DataStruct {
     packet_count = 0;
     dropped_packet_count = 0;
     dropped_packets.resize(0);
+    has_idle_timeout = false;
     EWT_count = 0;
     lost_EWT_count = 0;
     lost_EWTs.resize(0);
@@ -185,6 +187,7 @@ struct DataStruct {
       e.zs.zs_regions.clear();
       e.zs.prescale = false;
       e.ph.clear();
+      e.bad_data = false;
     }
     zs_overflow_num = 0;
     peak_index.resize(0);
