@@ -263,8 +263,8 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer,
     // Peak finding only starts after M samples
     for (size_t i = 0; i < n; ++i){
 
-      // If we've reached the end of the EWT
-      if (i == new_EWT_loc){
+      // If we've reached the end of the EWT and skip missing
+      while (i == new_EWT_loc && EWT_count < buffer->EWT_count - 1){
         ++EWT_count; // Increment the EWT counter (in buffer)
         this_EWT = &EWTs[EWT_count];
         EWT_start = this_EWT->raw.start;
