@@ -9,7 +9,7 @@
   <!-- Use software sim sata source? -->
   <use_sw_sim>0</use_sw_sim> <!-- 0=Firmware,1=Software -->
   <!-- Starting CPU core ID (for CPU utils) -->
-  <starting_core_id>18</starting_core_id> <!-- Core ID will wrap around from max -->
+  <starting_core_id>2</starting_core_id> <!-- Core ID will wrap around from max -->
   <!---->
   <!-- Seperate Modules -->
   <!---->
