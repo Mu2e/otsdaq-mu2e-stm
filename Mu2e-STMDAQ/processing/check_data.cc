@@ -62,6 +62,8 @@ void CheckData::check_packets(std::shared_ptr<DataStruct>& buffer){
     }
     // Signal no longer null hb
     is_null_hb = false;
+    ewt_offset_known = false;   // re-detect after reset/null HB
+    ewt_is_evnum_minus_one = false;
   }
 
   // Counter for all elements
@@ -279,13 +281,41 @@ uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr
 		".",2);    
   }
   
-  // Check the EvNum and EWT are identical
-  if (EvNum != EWT && !is_null_hb){
-    logger->log("CheckData: ERROR! Event number "
-		+ std::to_string(EvNum)
-		+ " does not match Event Window Tag "
-		+ std::to_string(EWT),0);
-    return 0;
+  // Check the EvNum and EWT are as expected
+  //if ((EvNum != EWT && EvNum != EWT+1) && !is_null_hb){
+  if (!is_null_hb){
+    if (!ewt_offset_known) {
+      // Determine the offset
+      if (EWT == EvNum) {
+          ewt_is_evnum_minus_one = false;
+          ewt_offset_known = true;
+          logger->log("CheckData: EWT offset mode = EWT == EventNum (offset 0)", 1);
+      } 
+      else if (EWT == EvNum - 1) {
+        ewt_is_evnum_minus_one = true;
+        ewt_offset_known = true;
+        logger->log("CheckData: EWT offset mode = EWT == EventNum - 1 (offset -1)", 1);
+      } 
+      else {
+        logger->log("CheckData: ERROR! First event EWT = " +
+                     std::to_string(EWT) + " EventNum = " +
+                     std::to_string(EvNum) +
+                     " — unexpected offset, cannot determine mode.", 0);
+	return 0;
+      }
+    } 
+    else {
+      uint64_t expected_EWT = ewt_is_evnum_minus_one
+			? static_cast<uint64_t>(EvNum) - 1
+			: static_cast<uint64_t>(EvNum);
+      if (EWT != expected_EWT) {
+        logger->log("CheckData: ERROR! Event number "
+	  	  + std::to_string(EvNum) + " does not match EWT "
+	  	  + std::to_string(EWT) + ". Expected EWT " 
+		  + std::to_string(expected_EWT), 0);
+	return 0;
+      }
+    }
   }
 
   // Find the difference between this EWT and the last

@@ -47,6 +47,10 @@ private:
 
   // Boolean to signal null heartbeat (when event mode = 0)
   bool is_null_hb = false;
+
+  // Allow for EWT starting from 0
+  bool ewt_offset_known = false;
+  bool ewt_is_evnum_minus_one = false;
   
 public:
 
