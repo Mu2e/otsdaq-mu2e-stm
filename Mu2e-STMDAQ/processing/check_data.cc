@@ -323,7 +323,7 @@ uint64_t CheckData::check_eHdr(std::shared_ptr<DataStruct>& buffer, uint64_t hdr
 
   // Check if the difference between packets is negative
   if (diff < 0 && !is_null_hb){
-    logger->log("CheckData: EWT mismatch! Previous EWT = "
+    logger->log("CheckData: ERROR - EWT mismatch! Previous EWT = "
 		+ std::to_string(last_EWT)
 		+ ", new EWT = "
 		+ std::to_string(EWT),0);
