@@ -333,8 +333,7 @@ void UDP::receive_data(std::shared_ptr<DataStruct>& buffer){
          if (idle_ms > idle_timeout_ms) {
              idle_timeout_logged = true;
              logger->log("UDP: Idle timeout after " + std::to_string(idle_ms) +
-                        "ms, releasing buffer. Packets this call = " +
-			std::to_string(packets_this_call) + ".", 2);
+                        "ms, releasing buffer.", 2);
 	     buffer->has_idle_timeout = true;
              return;
          }

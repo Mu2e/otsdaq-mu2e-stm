@@ -117,7 +117,8 @@ struct fw_eHdr_info{
 static constexpr fw_eHdr_info fw_eHdr;
 
 // Software event header size in bytes
-static constexpr uint16_t sw_eHdr_size = 42;
+//static constexpr uint16_t sw_eHdr_size = 42;
+static constexpr uint16_t sw_eHdr_size = 44;
 // Software event header length
 static constexpr uint16_t sw_eHdr_len = sw_eHdr_size/sizeof(int16_t);
 
@@ -154,7 +155,9 @@ struct sw_eHdr_info{
   static constexpr uint16_t ZS_REGIONS = 17; // Number of ZS data regions
   static constexpr uint16_t ZS_LEN = 18; // ZS Data Len
   static constexpr uint16_t PH_NUM = 19; // Number of pulse height values
-  static constexpr uint16_t anchor_end = 20; // 0xCAFE
+  static constexpr uint16_t DATA_FLAGS = 20; // EWT data bad (dropped packets) + EWT missing
+  //static constexpr uint16_t anchor_end = 20; // 0xCAFE
+  static constexpr uint16_t anchor_end = 21; // 0xCAFE
 };
 
 // Static instance of the software event header info
