@@ -8,7 +8,8 @@
 constexpr size_t LENGTH_PREFIX_WORDS = 3;
 constexpr size_t LENGTH_PREFIX_BYTES = 3 * sizeof(uint16_t);
 
-constexpr size_t EVENT_HEADER_WORDS = 21;
+//constexpr size_t EVENT_HEADER_WORDS = 21;
+constexpr size_t EVENT_HEADER_WORDS = 22;
 constexpr size_t EVENT_HEADER_BYTES = EVENT_HEADER_WORDS * sizeof(uint16_t);
 
 // ---- Anchor ----
@@ -42,7 +43,10 @@ constexpr uint16_t ZS_REGIONS = 17;
 constexpr uint16_t ZS_LEN = 18;
 constexpr uint16_t PH_NUM = 19;
 
-constexpr uint16_t anchor_end = 20;
+constexpr uint16_t DATA_FLAGS = 20;
+
+//constexpr uint16_t anchor_end = 20;
+constexpr uint16_t anchor_end = 21;
 
 static_assert(anchor_end + 1 == EVENT_HEADER_WORDS,
               "Event header size mismatch");
