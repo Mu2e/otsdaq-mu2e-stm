@@ -100,6 +100,7 @@
 	   <node id="hb_received_count" address="0xB"/>
 	   <node id="evm_processed_count_0" address="0xC"/>
 	   <node id="evm_processed_count_1" address="0xD"/>
+	   <node id="ps_mem_0_wready" address="0xE"/>
        </node>
        
     </node> 
