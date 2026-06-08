@@ -1,7 +1,7 @@
 <!-- Parameters for file writing -->
 <write_data>
   <logfile>/stmdaq</logfile> <!-- Log file directory -->
-  <write_dir>/data/alexkesh</write_dir> <!-- Binary file data write directory -->
+  <write_dir>/scratch/mu2e/daq_out</write_dir> <!-- Binary file data write directory -->
   <filename_prefix>mu2estm</filename_prefix> <!-- The filename prefix  -->
   <max_file_size>2</max_file_size> <!-- Maximum file size for each stream (GB)  -->
   <file_buffer>3</file_buffer> <!-- Number of buffered files -->

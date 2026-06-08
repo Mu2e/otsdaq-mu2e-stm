@@ -23,7 +23,12 @@ struct pulseheight_info {
   const int minBaselineCheck;
   const int Nsharp;
   const int localWindowMax;
-
+  const int persistenceWindow;
+  const float persistenceFraction;
+  const int persistenceCount;
+  const float curvature_threshold;
+  const float contaminatedBaselineStd;
+  
   // Smoothing / Savitzky-Golay
   const std::array<float,7> sg7_coeffs;
 
@@ -48,6 +53,11 @@ struct pulseheight_info {
     minBaselineCheck(cfg.getValue<int>("stm.ph.minBaselineCheck")),
     Nsharp(cfg.getValue<int>("stm.ph.Nsharp")),
     localWindowMax(cfg.getValue<int>("stm.ph.localWindowMax")),
+    persistenceWindow(cfg.getValue<int>("stm.ph.persistenceWindow")),
+    persistenceFraction(cfg.getValue<float>("stm.ph.persistenceFraction")),
+    persistenceCount(cfg.getValue<int>("stm.ph.persistenceCount")),
+    curvature_threshold(cfg.getValue<float>("stm.ph.curvature_threshold")),
+    contaminatedBaselineStd(cfg.getValue<float>("stm.ph.contaminatedBaselineStd")),
 
     // SG coefficients
     sg7_coeffs({
@@ -86,6 +96,19 @@ struct pulseheight_info {
                   std::to_string(Nsharp) +
                   "; localWindowMax = " +
                   std::to_string(localWindowMax) + ".", 1);
+
+      logger->log("Config:pulseheight_info: persistence window = " +
+                  std::to_string(persistenceWindow) +
+                  "; persistence fraction = " +
+                  std::to_string(persistenceFraction) +
+                  "; persistence count = " +
+                  std::to_string(persistenceCount) + ".", 1);
+
+      logger->log("Config:pulseheight_info: curvature_threshold = " +
+                  std::to_string(curvature_threshold) + ".", 1);
+
+      logger->log("Config:pulseheight_info: contaminatedBaselineStd = " +
+                  std::to_string(contaminatedBaselineStd) + ".", 1);
 
       // Validate sg7_coeffs length
       if (sg7_coeffs.size() != 7) {

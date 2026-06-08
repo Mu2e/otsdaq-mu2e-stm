@@ -9,7 +9,7 @@
   <baselineLookback>50</baselineLookback>
 
   <!-- Pulse trigger -->
-  <threshold>120</threshold>
+  <threshold>80</threshold>
 
   <!-- Slope trigger -->
   <slopeWindow>3</slopeWindow>
@@ -22,10 +22,21 @@
   <minBaselineCheck>200</minBaselineCheck>
 
   <!-- Consecutive decreasing samples -->
-  <Nsharp>5</Nsharp>
+  <Nsharp>3</Nsharp>
 
   <!-- Maximum local minimum search region -->
   <localWindowMax>50</localWindowMax>
+
+  <!-- Persistence parameters -->
+  <persistenceWindow>5</persistenceWindow>
+  <persistenceFraction>0.5</persistenceFraction>
+  <persistenceCount>3</persistenceCount>
+  
+  <!-- Parabola fit goodness threshold -->
+  <curvature_threshold>0.01</curvature_threshold>
+
+  <!-- Check for contaminated baseline in pileup pulses -->
+  <contaminatedBaselineStd>100.0</contaminatedBaselineStd>
 
   <!-- SG filter coefficients (window=7, poly order=2) -->
   <sg7>

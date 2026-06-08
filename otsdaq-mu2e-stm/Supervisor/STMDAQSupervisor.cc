@@ -46,6 +46,7 @@ void STMDAQSupervisor::transitionConfiguring(toolbox::Event::Reference e)
 
   CoreSupervisorBase::configureInit();
 
+  failureReported_ = false;
   stop::reset_stops();
 
   if (configured_) {
@@ -137,11 +138,13 @@ std::vector<SupervisorInfo::SubappInfo> STMDAQSupervisor::getSubappInfo(void)
 
   if (stop::should_critical_stop()){
     info.status = RunControlStateMachine::FAILED_STATE_NAME;
-    theStateMachine_.setErrorMessage("argh!");
-    theStateMachine_.execTransition("fail");
-
-//    throw toolbox::fsm::exception::Exception(
-//        "STMDAQ is dead! Please go back to halted to restart.","","",1,""); 
+    if (!failureReported_) {
+      failureReported_ = true;
+      __SUP_SS__ << "STMDAQ critical stop detected. Please go back to halted to restart." << __E__;
+      __SUP_COUT_ERR__ << ss.str();
+      theStateMachine_.setErrorMessage(ss.str());
+      sendAsyncExceptionToGateway(ss.str(), false, false);
+    }
   }
   
   else info.status = theStateMachine_.getCurrentStateName();
