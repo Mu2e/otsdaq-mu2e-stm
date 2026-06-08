@@ -32,6 +32,7 @@ namespace ots
 
     // Bool for first daq config read
     bool configured_ = false;
+    bool failureReported_ = false;
   };
 
 }  // namespace ots
