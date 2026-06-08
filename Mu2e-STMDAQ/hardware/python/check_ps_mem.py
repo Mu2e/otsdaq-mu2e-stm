@@ -15,8 +15,14 @@ hw = manager.getDevice(sys.argv[1])
 
 success = True
 
-psmem=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
+psmem0=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_0_wready").read()
 hw.dispatch()
-if (psmem == 0): success = False
-print("PS Memory Ready =",bool(psmem))
+if (psmem0 == 0): success = False
+
+psmem1=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
+hw.dispatch()
+if (psmem1 == 0): success = False
+
+print("PS Memory Ready =", bool(psmem0), "and", bool(psmem1))
+#print("PS Memory Ready =", success)
 time.sleep(0.5)
