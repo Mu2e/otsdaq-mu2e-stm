@@ -5,7 +5,7 @@
 STMfrontend::STMfrontend() :
   xml_config_path(EnvVars::expand("${STM_XML}")),
   cfg(Config::getInstance(xml_config_path)),
-  cpu(cpu_utils::getInstance(cfg)),
+  cpu(cpu_utils::getInstance(cfg,CpuRole::Standalone)),
   logger(std::make_shared<AsyncLogger>(cfg,cpu)),
   signal(std::make_shared<SignalHandler>(logger,cpu)),
   stm(std::make_shared<STMdata>(cfg,logger)){
@@ -55,6 +55,16 @@ void STMfrontend::close_threads(){
   if (om) om.reset();
 
   return;
+}
+
+// Timed thread shutdown for error recovery
+void STMfrontend::shutdown_threads(std::chrono::seconds timeout){
+  if (tm) {
+    tm->shutdown(timeout);
+    tm.reset();
+  }
+  if (pool) pool.reset();
+  if (om) om.reset();
 }
 
 // Function so ots can call readout reset

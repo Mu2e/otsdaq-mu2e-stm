@@ -3,6 +3,7 @@
 
 #include "otsdaq/CoreSupervisors/CoreSupervisorBase.h"
 #include "Mu2e-STMDAQ/frontend/stm_frontend.hh"
+#include <thread>
 
 namespace ots
 {

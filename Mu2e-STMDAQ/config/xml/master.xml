@@ -8,8 +8,12 @@
   <ch1_host>mu2e-stm-02.fnal.gov</ch1_host> <!-- 1=LaBr -->
   <!-- Use software sim sata source? -->
   <use_sw_sim>0</use_sw_sim> <!-- 0=Firmware,1=Software -->
-  <!-- Starting CPU core ID (for CPU utils) -->
-  <starting_core_id>2</starting_core_id> <!-- Core ID will wrap around from max -->
+  <!-- Starting STMDAQ CPU core ID (for CPU utils) -->
+  <stmdaq_starting_core>18</stmdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <stmdaq_cpu_socket>0</stmdaq_cpu_socket> <!-- Lock to NUMA node 0 -->
+  <!-- Starting ARTDAQ CPU core ID (for CPU utils) -->
+  <artdaq_starting_core>0</artdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <artdaq_cpu_socket>1</artdaq_cpu_socket> <!-- Lock to NUMA node 1 -->
   <!---->
   <!-- Seperate Modules -->
   <!---->

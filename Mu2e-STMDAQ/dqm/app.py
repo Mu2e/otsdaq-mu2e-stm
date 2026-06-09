@@ -18,8 +18,8 @@ app = dash.Dash(__name__,
                 prevent_initial_callbacks=True,
                 )
 
- # Attempt to extract the value of <stm><starting_core_id>
-core_id = int(get_xml_node_value("starting_core_id"))
+ # Attempt to extract the value of <stm><stmdaq_starting_core>
+core_id = int(get_xml_node_value("stmdaq_starting_core"))
 dqm_core_id = core_id+15
 
 # Get channel for port number setting

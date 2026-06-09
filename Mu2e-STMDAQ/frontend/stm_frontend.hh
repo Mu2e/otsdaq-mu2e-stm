@@ -76,6 +76,9 @@ public:
 
   void close_threads();
 
+  // Timed thread shutdown for error recovery — detaches stuck threads
+  void shutdown_threads(std::chrono::seconds timeout);
+
   void run_reset_readout();
 
   //Get 0 or 1 to know what channel we are on
