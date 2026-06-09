@@ -76,6 +76,11 @@ namespace mu2e {
 
     // Create ring buffer
     ring_ = std::make_unique<EventRingBuffer>(1024ULL * 1024 * 1024); // 1GB
+
+    // Get cpu_utils for thread-pinning
+    std::string xml_config_path = EnvVars::expand("${STM_XML}");
+    ::Config& cfg = ::Config::getInstance(xml_config_path);
+    cpu_ = cpu_utils::getInstance(cfg, CpuRole::ArtDAQ);
     
   }
 
@@ -124,17 +129,10 @@ namespace mu2e {
 
     // Start receiver thread (handles accept + recv)
     receiver_thread_ = std::thread(&STMTCPReceiver::receiverThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(receiver_thread_, "[STM_BR][RECEIVER]");
-    else pin_thread_to_core(receiver_thread_, recv_core_, "[STM_BR][RECEIVER]");
     // Start parser thread
     parser_thread_ = std::thread(&STMTCPReceiver::parserThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(parser_thread_, "[STM_BR][PARSER]");
-    else pin_thread_to_core(parser_thread_, parser_core_, "[STM_BR][PARSER]");
-
     // Start batcher thread
     builder_thread_ = std::thread(&STMTCPReceiver::builderThread_, this);
-    if (pin_threads_) pin_thread_to_least_busy_core(builder_thread_, "[STM_BR][BUILDER]");
-    else pin_thread_to_core(builder_thread_, builder_core_, "[STM_BR][BUILDER]");
   }
 
   // =====================================================================================
@@ -142,6 +140,9 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::receiverThread_()
   {
+    // Pin thread to core
+    if(pin_threads_) cpu_->get_next_core("[STM_BR][RECEIVER]");
+    
     TLOG(TLVL_INFO) << "[STM_BR][RECEIVER] Receiver thread started";
 
     std::vector<uint8_t> byte_buffer(recv_buffer_size_);
@@ -384,6 +385,10 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::parserThread_()
   {
+
+    // Pin thread to core
+    if(pin_threads_) cpu_->get_next_core("[STM_BR][PARSER]");
+
     TLOG(TLVL_INFO) << "[STM_BR][PARSER] Parser+Batcher thread started";
 
     auto make_new_batch = [&] {
@@ -683,6 +688,10 @@ namespace mu2e {
   // =====================================================================================
   void mu2e::STMTCPReceiver::builderThread_()
   {
+
+    // Pin thread to core
+    if(pin_threads_) cpu_->get_next_core("[STM_BR][BUILDER]");
+
     TLOG(TLVL_INFO) << "[STM_BR][BUILDER] Builder thread started";
 
     EventBatch batch;

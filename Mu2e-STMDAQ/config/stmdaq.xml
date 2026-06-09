@@ -2,8 +2,12 @@
 <stm>
   <!-- The data channel -->
   <channel>0</channel> <!-- 0=HPGe,1=LaBr -->
-  <!-- Starting CPU core ID (for CPU utils) -->
-  <starting_core_id>18</starting_core_id> <!-- Core ID will wrap around from max -->
+  <!-- Starting STMDAQ CPU core ID (for CPU utils) -->
+  <stmdaq_starting_core>18</stmdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <stmdaq_cpu_socket>0</stmdaq_cpu_socket> <!-- Lock to NUMA node 0 -->
+  <!-- Starting ARTDAQ CPU core ID (for CPU utils) -->
+  <artdaq_starting_core>18</artdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <artdaq_cpu_socket>1</artdaq_cpu_socket> <!-- Lock to NUMA node 1 -->
   <!-- Firmware register parameters -->
   <fw>
     <fADC>300</fADC> <!-- ADC sampling frequency (MHz) -->

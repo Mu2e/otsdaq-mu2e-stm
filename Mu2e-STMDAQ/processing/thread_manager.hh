@@ -8,8 +8,8 @@
 #include <thread>
 #include <atomic>
 #include <memory>
-#include <chrono>  
-#include <iomanip> 
+#include <chrono>
+#include <iomanip>
 
 // Include CPU utils header                                                                       
 #include "Mu2e-STMDAQ/utils/cpu_utils.hh"
@@ -94,16 +94,42 @@ public:
   // Get UDP wait time
   std::chrono::duration<double> wait() const { return udp->get_wait(); }
 
+  // Emergency shutdown: signal stop and wait briefly, then detach stuck threads
+  void shutdown(std::chrono::seconds timeout) {
+    stop_requested.store(true);
+
+    // Wait up to timeout for threads to set their finished flags
+    auto deadline = std::chrono::steady_clock::now() + timeout;
+    bool all_done = false;
+    while (std::chrono::steady_clock::now() < deadline) {
+      all_done = true;
+      for (size_t i = 0; i < finished.size(); ++i) {
+        if (!finished[i].load()) { all_done = false; break; }
+      }
+      if (all_done) break;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    for (size_t i = 0; i < threads.size(); ++i) {
+      if (!threads[i].joinable()) continue;
+      if (finished[i].load()) {
+        threads[i].join();
+      } else {
+        logger->log("ThreadManager::shutdown: detaching stuck thread " + std::to_string(i), 2);
+        threads[i].detach();
+      }
+    }
+    logger->log("ThreadManager timed shutdown complete", 1);
+  }
+
   // Destructor
   ~ThreadManager() {
-    // Complete worker threads
     for (auto& thread : threads) {
       if (thread.joinable()) {
         thread.join();
       }
     }
-    //std::cout << "ThreadManager destructor called.\n";    
-    logger->log("ThreadManager destructor called",1);
+    logger->log("ThreadManager destructor called", 1);
   }
   
   // General worker thread function 

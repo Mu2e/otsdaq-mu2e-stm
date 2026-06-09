@@ -99,10 +99,18 @@ void STMDAQSupervisor::transitionHalting(toolbox::Event::Reference e)
 {
     __SUP_COUT__ << "transitionHalting" << __E__;
 
-    // Trigger a clean stop
-    stopDAQ();
+    if (stop::should_critical_stop() && stmFE_) {
+      __SUP_COUT__ << "Critical stop — deferring cleanup to background" << __E__;
+      stop::trigger_user_stop();
+      auto fe = std::move(stmFE_);
+      std::thread([fe]() mutable {
+        fe->shutdown_threads(std::chrono::seconds(30));
+        fe.reset();
+      }).detach();
+    } else {
+      stopDAQ();
+    }
 
-    // Stop DQM processes on halt, otherwise keep them going in case of new run
     std::string commandResponse = StringMacros::exec("pgrep -f app.py | xargs kill -9");
 
     CoreSupervisorBase::transitionHalting(e);
@@ -137,10 +145,10 @@ std::vector<SupervisorInfo::SubappInfo> STMDAQSupervisor::getSubappInfo(void)
   info.class_name = "STMDAQ ";
 
   if (stop::should_critical_stop()){
-    info.status = RunControlStateMachine::FAILED_STATE_NAME;
+    info.status = RunControlStateMachine::HALTED_STATE_NAME;
     if (!failureReported_) {
       failureReported_ = true;
-      __SUP_SS__ << "STMDAQ critical stop detected. Please go back to halted to restart." << __E__;
+      __SUP_SS__ << "STMDAQ critical stop detected. Please go to halted -> configured to restart." << __E__;
       __SUP_COUT_ERR__ << ss.str();
       theStateMachine_.setErrorMessage(ss.str());
       sendAsyncExceptionToGateway(ss.str(), false, false);

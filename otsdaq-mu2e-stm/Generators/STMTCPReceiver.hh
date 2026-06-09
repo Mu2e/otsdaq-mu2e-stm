@@ -46,6 +46,10 @@
 // =====================================================================================
 #include "sys_utils.hh"   // Sys utils ( e.g. pin_thread_to_least_busy_core(std::thread&, const char*) )
 #include "tcp_utils.hh"   // General utils ( e.g. variable definitions )
+// Include cpu_utils from STMDAQ
+#include "Mu2e-STMDAQ/config/config.hh"
+#include "Mu2e-STMDAQ/utils/cpu_utils.hh"
+#include "Mu2e-STMDAQ/utils/EnvVars.hh"
 
 // =====================================================================================
 // Generator
@@ -68,7 +72,8 @@ namespace mu2e {
     void stop() override;
 
     FragmentType fragment_type_{FragmentType::STM};  // Type of fragment (see FragmentType.hh)
-
+    std::shared_ptr<cpu_utils> cpu_;
+    
     // ----------------- Config -----------------
     int chan_;                               // Data channel (0=HPGE, 1=LaBr3)
     std::string host_;                       // I.P. host of TCP socket
