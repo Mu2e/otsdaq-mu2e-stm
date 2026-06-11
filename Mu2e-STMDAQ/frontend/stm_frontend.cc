@@ -10,6 +10,8 @@ STMfrontend::STMfrontend() :
   signal(std::make_shared<SignalHandler>(logger,cpu)),
   stm(std::make_shared<STMdata>(cfg,logger)){
 
+  // Give cpu logger
+  cpu->set_logger(logger);
 
   // If we are on the hardware control server
   if (stm->master_config.host == stm->fw_config.ctrl_srvr){
