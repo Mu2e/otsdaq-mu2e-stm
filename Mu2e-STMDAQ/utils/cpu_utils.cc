@@ -2,6 +2,7 @@
 
 // Include CPU utils header
 #include "Mu2e-STMDAQ/utils/cpu_utils.hh"
+#include "Mu2e-STMDAQ/utils/async_logger.hh"
 
 // Define static members for singleton management
 std::shared_ptr<cpu_utils> cpu_utils::instance = nullptr;
@@ -23,6 +24,18 @@ const std::vector<int> cpu_utils::socket1_cores =
   40, 41, 42, 43, 44, 45, 46, 47
 };
 
+// Allow cpu to log once logger exists
+void cpu_utils::log(const std::string& msg, int level) {
+  if (logger) logger->log(msg, level);
+  else pending_logs.emplace_back(msg, level);
+}
+
+void cpu_utils::set_logger(std::shared_ptr<AsyncLogger> l) {
+  logger = l;
+  for (const auto& [msg, level] : pending_logs) logger->log(msg, level);
+  pending_logs.clear();
+}
+
 // Returns the singleton instance; initializes on first call
 std::shared_ptr<cpu_utils> cpu_utils::getInstance(const Config& cfg, CpuRole role) {
   
@@ -42,34 +55,27 @@ cpu_utils::cpu_utils(const Config& cfg_, CpuRole role_)
   max_cores = std::thread::hardware_concurrency();
 
   // Fallback if detection fails
-  if(max_cores == 0){
-    max_cores = 1;
-  }
+  if(max_cores == 0) max_cores = 1;
 
   // Set to NUMA node socket
   if(role == CpuRole::Standalone){
+    socket_id = EnvVars::expand("${HOSTNAME}") == cfg.getValue<std::string>("stm.ch0_host") ? 1 : 0;
     starting_core_id = cfg.getValue<int>("stm.stmdaq_starting_core");
-    socket_id = static_cast<Socket>(cfg.getValue<int>("stm.stmdaq_cpu_socket"));
   }
   else {
+    socket_id = EnvVars::expand("${HOSTNAME}") == cfg.getValue<std::string>("stm.ch0_host") ? 0 : 1;
     starting_core_id = cfg.getValue<int>("stm.artdaq_starting_core");
-    socket_id = static_cast<Socket>(cfg.getValue<int>("stm.artdaq_cpu_socket"));
   }
 
-  allowed_cores = get_socket_cores(socket_id);
+  allowed_cores = socket_id == 0? socket0_cores : socket1_cores;
+  //allowed_cores = get_socket_cores(socket_id);
 
   // Log initialization summary
-  std::cout
-    << "CPU Utils initialised\n"
-    << "  role           : "
-    << (role == CpuRole::Standalone ? "Standalone" : "ArtDAQ")
-    << "\n  socket         : "
-    << (socket_id == Socket::Socket0 ? 0 : 1)
-    << "\n  starting core  : "
-    << starting_core_id
-    << "\n  managed cores  : "
-    << allowed_cores.size()
-    << std::endl;
+  std::string role_name = role == CpuRole::Standalone ? "Standalone" : "ArtDAQ";
+  log("CPU utils initialised: Role: " + role_name 
+    + ", Socket: " + std::to_string(socket_id)
+    + ", Starting core offset: " + std::to_string(starting_core_id)
+    + ",  Managed cores: " + std::to_string(allowed_cores.size()),1);
 }
 
 // Main interface: assigns a core to the calling thread and returns the core ID
@@ -86,11 +92,8 @@ size_t cpu_utils::get_next_core(const std::string& name) {
 
     // Warn if this core has already been used
     if(used_cores.find(core_id) != used_cores.end()){
-      std::cerr
-        << "Warning: Core "
-        << core_id
-        << " has already been assigned."
-        << std::endl;
+      log("CPU utils: Warning! Core "+ std::to_string(core_id) +
+	"has already been assigned.",2);
     }
     else {
       used_cores.insert(core_id);
@@ -98,10 +101,7 @@ size_t cpu_utils::get_next_core(const std::string& name) {
 
     // Warn if we've assigned more threads than available cores
     if(used_cores.size() > allowed_cores.size()){
-      std::cerr 
-      << "Warning: Thread count exceeds "
-      << "available cores on socket."
-      << std::endl;
+      log("CPU utils: Warning! Thread count exceeds available cores on socket.",2);
     }
   }
 
@@ -126,22 +126,10 @@ void cpu_utils::pin_thread_to_core(size_t core_id, const std::string& name) {
 
   // Log result to user
   if(result != 0){
-    std::cerr
-      << "Failed to pin "
-      << name
-      << " thread to core "
-      << core_id
-      << " (error code "
-      << result
-      << ")"
-      << std::endl;
+    log("CPU utils: Error! Failed to pin " + name + " to core " + std::to_string(core_id) +
+        " (errno " + std::to_string(result) + ")",0);
   }
   else {
-    std::cout
-      << "Pinned "
-      << name
-      << " thread to core "
-      << core_id
-      << std::endl;
+    log("CPU utils: Pinned " + name + " to core " + std::to_string(core_id),1);
   }
 }

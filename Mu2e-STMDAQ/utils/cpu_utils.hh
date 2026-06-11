@@ -15,6 +15,9 @@
 // Config code
 #include "Mu2e-STMDAQ/config/config.hh"
 
+// Forward declaration
+class AsyncLogger;
+
 // NUMA socket identifier
 enum class Socket {
   Socket0,
@@ -44,7 +47,7 @@ private:
   // Application type (Standalone or ArtDAQ) Used to determine which CPU affinity settings should be loaded from the XML configuration
   CpuRole role;
 
-  // First logical core to assign from within the configured socket (loaded from config)
+  // First logical core to assign from within the configured socket
   size_t starting_core_id;
 
   // Total number of available hardware cores reported by the operating system
@@ -60,10 +63,15 @@ private:
   std::unordered_set<size_t> used_cores;
 
   // NUMA socket assigned to this application
-  Socket socket_id;
+  //Socket socket_id;
+  int socket_id;
 
   // Physical CPU IDs available to the configured NUMA socket
   std::vector<int> allowed_cores;
+
+  // Get logger
+  std::shared_ptr<AsyncLogger> logger;
+  std::vector<std::pair<std::string,int>> pending_logs;
 
   // Singleton instance pointer
   static std::shared_ptr<cpu_utils> instance;
@@ -77,10 +85,7 @@ private:
   // Verified physical CPU mappings for NUMA socket 1
   static const std::vector<int> socket1_cores;
 
-  // Returns the physical CPU mapping corresponding to the requested NUMA socket
-  static const std::vector<int>& get_socket_cores(Socket socket) {
-    return (socket == Socket::Socket0) ? socket0_cores : socket1_cores;
-  }
+  void log(const std::string& msg, int level);
 
 public:
 
@@ -96,18 +101,18 @@ public:
   // Assigns the calling thread to the next available CPU core within the configured NUMA socket and returns the physical CPU core ID
   size_t get_next_core(const std::string& name);
 
+  void set_logger(std::shared_ptr<AsyncLogger> l);
+
   // Destructor
   ~cpu_utils() {
-    std::cout
-      << "cpu_utils shutting down...\n"
-      << "Final core index assigned: "
-      << next_core_id.load()
-      << ". Unique cores used: "
-      << used_cores.size()
-      << std::endl;
+    log("CPU utils shutting down. Cores assigned: " +
+        std::to_string(next_core_id.load()) +
+        ", unique cores used: " +
+        std::to_string(used_cores.size()),1);
 
-    std::cout << "cpu_utils destructor called.\n";
+    //std::cout << "cpu_utils destructor called.\n";
   }
+
 };
 
 #endif // CPU_UTILS_HH
