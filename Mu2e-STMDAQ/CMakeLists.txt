@@ -117,6 +117,9 @@ add_library(stmdaq_common_deps INTERFACE)
 find_package(Threads REQUIRED)
 target_link_libraries(stmdaq_common_deps INTERFACE Threads::Threads)
 
+find_library(NUMA_LIBRARY numa)
+target_link_libraries(stmdaq_common_deps INTERFACE ${NUMA_LIBRARY})
+
 # librt (your Makefiles link -lrt often; keep it conditional)
 find_library(RT_LIB rt)
 if(RT_LIB)

@@ -69,7 +69,8 @@ private:
   // Physical CPU IDs available to the configured NUMA socket
   std::vector<int> allowed_cores;
 
-  // Get logger
+  // Get logger with mutex to protect setting/appending
+  std::mutex log_mutex;
   std::shared_ptr<AsyncLogger> logger;
   std::vector<std::pair<std::string,int>> pending_logs;
 

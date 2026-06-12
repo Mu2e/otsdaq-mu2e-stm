@@ -6,6 +6,8 @@
 #include <memory>
 #include <thread>
 #include <atomic>
+#include <numa.h>
+#include <numaif.h>
 
 // Async Logger code
 #include "Mu2e-STMDAQ/utils/async_logger.hh"
