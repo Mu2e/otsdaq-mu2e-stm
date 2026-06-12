@@ -26,11 +26,13 @@ const std::vector<int> cpu_utils::socket1_cores =
 
 // Allow cpu to log once logger exists
 void cpu_utils::log(const std::string& msg, int level) {
+  std::lock_guard<std::mutex> lock(log_mutex);
   if (logger) logger->log(msg, level);
   else pending_logs.emplace_back(msg, level);
 }
 
 void cpu_utils::set_logger(std::shared_ptr<AsyncLogger> l) {
+  std::lock_guard<std::mutex> lock(log_mutex);
   logger = l;
   for (const auto& [msg, level] : pending_logs) logger->log(msg, level);
   pending_logs.clear();

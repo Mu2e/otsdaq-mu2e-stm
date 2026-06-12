@@ -97,7 +97,15 @@ BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
   const std::vector<std::pair<std::string, op_any>>& selectedOperations = om->getUseOps();
   std::vector<std::string> op_names(thread_num);
   for (int i = 0; i < thread_num; i++) op_names[i] = selectedOperations[i].first;
-  
+ 
+  // Set numa preference 
+  int target_sock = stm->master_config.numa_sock;
+  if (numa_available() != -1) {
+    numa_set_preferred(target_sock);
+    logger->log("BufferPool: Binding buffer allocations to NUMA node " 
+                 + std::to_string(target_sock), 1);
+  }
+
   // Create pool of data struct buffers
   for (size_t i = 0; i < buffer_pool_total; ++i){
     pool->push(std::make_shared<DataStruct>(stm, // STM data class
@@ -108,6 +116,9 @@ BufferPool::BufferPool(const std::shared_ptr<cpu_utils>& cpu_,
   // Start the reset buffer thread
   resetThread = std::thread(&BufferPool::resetWorker, this);
   
+  // Restore default policy
+  if (numa_available() != -1) numa_set_preferred(-1);
+
 }
 
 

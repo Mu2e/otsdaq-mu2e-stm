@@ -19,6 +19,8 @@ struct master_info{
   const int ch_num;
   // The channel name
   const std::string ch_name;
+  // Numa node
+  const int numa_sock;
 
   // Use software simulation as data source
   const bool use_sw_sim;
@@ -40,6 +42,10 @@ struct master_info{
   {
     return (ch_num == 0) ? "HPGe" : "Labr";
   }
+
+  static int get_daq_socket(int ch_num) {
+    return (ch_num == 0) ? 1 : 0;
+  }
   
   // Constructor
   master_info(Config& cfg, const std::shared_ptr<AsyncLogger> logger) :
@@ -48,13 +54,15 @@ struct master_info{
     ch1_host(cfg.getValue<std::string>("stm.ch1_host")), // Channel 1 host name 
     ch_num(compute_ch_num(host, ch0_host, ch1_host)), // Channel number
     ch_name(compute_ch_name(ch_num)), // Channel name
+    numa_sock(get_daq_socket(ch_num)),
     use_sw_sim(cfg.getValue<int>("stm.use_sw_sim")) // Use software simulation
   {
     
     // Notify user
     if (logger){
       logger->log("Config:master_info: HOST = " +
-                  host,1);      
+                  host + ", NUMA socket = " + 
+		  std::to_string(numa_sock),1);      
       logger->log("Config:master_info: Channel = " +
                   std::to_string(ch_num) +
                   " (" + ch_name + ")",1);
