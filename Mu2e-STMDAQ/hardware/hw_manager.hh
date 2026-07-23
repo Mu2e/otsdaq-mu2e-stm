@@ -64,6 +64,9 @@ public:
   // Check ADC temperature
   double read_adc_temp();
 
+  // Send ADC temperature
+  void send_adc_temp();
+
   
 };
 

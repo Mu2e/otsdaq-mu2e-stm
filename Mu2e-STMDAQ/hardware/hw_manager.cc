@@ -6,6 +6,12 @@
 #include <chrono>
 #include <sys/wait.h>  // WIFEXITED, WEXITSTATUS, WIFSIGNALED, WTERMSIG
 
+#include <cstdlib>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
 // Hardware manager code
 #include "Mu2e-STMDAQ/hardware/hw_manager.hh"
 
@@ -441,6 +447,39 @@ double HardwareManager::read_adc_temp() {
   // Return ADC temperature
   return temp;
 }
+
+// Read and send ADC temperature over TCP
+void HardwareManager::send_adc_temp() {
+
+  // Get python script name
+  std::string script = stm->fw_config.python.adc_temp.first+".py";
+  // Get python script return variable name
+  std::string retvar = stm->fw_config.python.adc_temp.second;
+
+ py::object out = impl->call_script_get(script,// Script
+                                         impl->device, // Device  
+                                         retvar // Variable to return
+                                         );
+  // Get returned result
+  double temp = out.cast<double>();
+
+  const char* server_ip = "127.0.0.10";
+  int port = 10020;
+
+  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  sockaddr_in server_addr{};
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(port);
+  inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
+
+  
+  ssize_t n = send(sockfd, &temp,sizeof(double) , 0);
+        
+  return;
+}
+
+
+
 
 // Destructor
 HardwareManager::~HardwareManager() = default;
