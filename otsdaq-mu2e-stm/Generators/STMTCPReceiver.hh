@@ -96,7 +96,7 @@ namespace mu2e {
     bool     use_spill_condition_;           // Condition for batching on spill flags
     uint64_t eos_stream_id_;		     // End of subrun marker fragment id
     uint64_t rollover_subrun_interval_;	     // EWTs per subrun
-    uint64_t subrun_number_{0};		     // Subrun number tracker
+    uint64_t subrun_number_{1};		     // Subrun number tracker
     
     // ----------------- Runtime -----------------
     std::atomic<size_t> event_count_{0}; // Number of events processed
