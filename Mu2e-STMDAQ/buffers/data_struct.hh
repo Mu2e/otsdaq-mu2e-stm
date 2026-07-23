@@ -132,6 +132,25 @@ struct DataStruct {
   // MWD output
   size_t peak_count = 0;
 
+  // PH Candidates
+    struct PulseCandidate {
+
+    uint32_t ewtIndex = 0;
+    uint64_t ewtStart = 0;
+
+    int pulseStart;
+    int64_t pulseStartGlobal;
+    int searchEnd;
+
+    float adaptiveThreshold;
+    float baselineMean;
+    float baselineStd;
+
+    bool stitchedCandidate = false;
+  };
+
+  std::vector<PulseCandidate> pulseCandidates;
+  
   // CPU performace/efficiency metrics
   std::vector<std::pair<const std::string, double>> cpu_performance;
   
@@ -150,6 +169,7 @@ struct DataStruct {
       hist_counts_window(stm->baseline_config.hist_bin_num),
       hist_counts_all(stm->baseline_config.hist_bin_num),
       noise_data(),
+      pulseCandidates(),
       cpu_performance([&]{
         std::vector<std::pair<const std::string,double>> v;
         v.reserve(op_names.size());
@@ -160,6 +180,7 @@ struct DataStruct {
       }())
   {
     noise_data.reserve(stm->buffer_config.baseline_len);
+    pulseCandidates.reserve(stm->buffer_config.ph_len/2);
     reset();  // Ensure clean state on creation
   }
 
@@ -201,6 +222,7 @@ struct DataStruct {
     baseline_window.reset();
     baseline_all.reset();
     noise_data.clear();
+    pulseCandidates.clear();
     std::fill(raw_ps_bool.begin(), raw_ps_bool.end(), 0);
     peak_count = 0;
     //    peaks.resize(0);
