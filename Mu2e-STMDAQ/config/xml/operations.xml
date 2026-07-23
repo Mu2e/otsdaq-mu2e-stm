@@ -9,7 +9,7 @@
   <FormEvents>1 <!-- FormEvents class -->
    <get_events>1</get_events>
   </FormEvents>
-  <Baseline>0 <!-- Baseline class -->
+  <Baseline>1 <!-- Baseline class -->
    <calc_baseline>1</calc_baseline>
   </Baseline>
   <ZeroSuppress>1 <!-- ZeroSuppress class -->
