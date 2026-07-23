@@ -72,15 +72,15 @@ void STMDQMJsonProducer::computeCalibration(SpectrumState &s,
   b = y1 - a * x1;
 }
 
-void STMDQMJsonProducer::buildModel(
-				    const SpectrumState &s, std::vector<double> &model){
+void STMDQMJsonProducer::buildModel(const SpectrumState &s, std::vector<double> &model){
   model.assign(SpectrumState::NBINS, 0.0);
-
   for (int i = 0; i < SpectrumState::NBINS; i++) {
     double val = s.bg_C * std::exp(-i / s.bg_tau);
-
     for (const auto &p : s.peaks) {
-      double arg = (i - p.mean) / p.fitted_sigma;
+      const double meanBin = p.mean / SpectrumState::ADC_PER_BIN;
+      const double sigmaBin = p.fitted_sigma / SpectrumState::ADC_PER_BIN;
+      if (sigmaBin <= 0.0) continue;
+      const double arg = (i - meanBin) / sigmaBin;
       val += std::exp(-0.5 * arg * arg);
     }
     model[i] = val;
@@ -88,8 +88,7 @@ void STMDQMJsonProducer::buildModel(
 }
 
 // Get residuals between fit and data
-void STMDQMJsonProducer::computeResiduals(
-					  const SpectrumState &s,
+void STMDQMJsonProducer::computeResiduals(const SpectrumState &s,
 					  const std::vector<double> &model,
 					  std::vector<double> &residuals) {
   residuals.resize(SpectrumState::NBINS);
@@ -101,8 +100,7 @@ void STMDQMJsonProducer::computeResiduals(
 }
 
 // Calculate the red-chi2
-void STMDQMJsonProducer::computeChi2(
-				     SpectrumState &s,
+void STMDQMJsonProducer::computeChi2(SpectrumState &s,
 				     const std::vector<double> &model){
   double chi2 = 0;
 
@@ -118,8 +116,7 @@ void STMDQMJsonProducer::computeChi2(
 }
 
 // Get pseudo FFT of the ADC residuals
-void STMDQMJsonProducer::computeFFT(
-				    const std::vector<double> &residuals,
+void STMDQMJsonProducer::computeFFT(const std::vector<double> &residuals,
 				    std::vector<double> &power) {
   int N = residuals.size();
   int K = N/2;
@@ -140,8 +137,7 @@ void STMDQMJsonProducer::computeFFT(
 }
 
 // Compute slope of EWT vs Clock 
-double STMDQMJsonProducer::computeSlope(
-					std::deque<std::pair<double,double>> const& w) const {
+double STMDQMJsonProducer::computeSlope(std::deque<std::pair<double,double>> const& w) const {
   constexpr double kEpsilon  = 1e-12;
   constexpr double kMinPoints = 10.0;
 
@@ -208,7 +204,7 @@ void STMDQMJsonProducer::analyze(art::Event const& event){
   int subrun = event.subRun();
 
   auto handle = event.getValidHandle<std::vector<artdaq::Fragment>>(cfg_.moduleTag());
-
+  
   // Loop over frags
   for (const auto& frag : *handle) {
     // Check they are containers
@@ -217,26 +213,24 @@ void STMDQMJsonProducer::analyze(art::Event const& event){
 
     artdaq::ContainerFragment cont(frag);
 
+    uint16_t phNum = 0;
+    bool havePHNum = false;
+    
     // Loop over inner frags
     for (size_t i = 0; i < cont.block_count(); ++i) {
 
       auto inner = cont.at(i);
       mu2e::STMFragment stm(*inner);
 
-      uint32_t fragId = inner->fragmentID();
-      uint32_t seqId = inner->sequenceID();
-      
       int ch = -1;
-
+      
       // Get header stuff from Raw frags
+      if(stm.isHPGe()) ch = 0;
+      if(stm.isLaBr()) ch = 1;
+
       if (stm.isRaw()) {
-	std::cout << "Now reading Fragment with SeqID= " << seqId << " and FragID= " << fragId << "\n";
-        ch = stm.channel();
-        fragToChannel_[fragId] = ch;
-      } else {
-        auto it = fragToChannel_.find(fragId);
-        if (it == fragToChannel_.end()) continue;
-        ch = it->second;
+	phNum = stm.phCount();
+	havePHNum = true;
       }
 
       auto &s = channels_[ch];
@@ -249,16 +243,29 @@ void STMDQMJsonProducer::analyze(art::Event const& event){
       }
       
       // Pulse height 
-      if (stm.isMWD()) {
-        const int16_t* data = stm.payloadBegin();
-        size_t n = stm.payloadWords(); // Probably need this from header not here
+      if (stm.isPH()) {	
 
-        if (n % 2 != 0) n -= 1;
+	const int16_t* data = stm.payloadBegin();
+	size_t n = 2 * phNum;
+
+	if (!havePHNum) continue;
+	
 	// Get just height for now
         for (size_t i = 1; i < n; i += 2) {
-          uint16_t height = static_cast<uint16_t>(data[i]);
-          if (height < SpectrumState::NBINS)
-            spec.hist[height]++;
+	  
+	  int16_t height = data[i];
+
+	  if (height > 0)
+	    continue;
+	  
+	  const size_t adc = static_cast<size_t>(-height);
+	  size_t bin = adc / SpectrumState::ADC_PER_BIN;
+	  
+	  if (bin >= SpectrumState::NBINS)
+	    bin = SpectrumState::NBINS - 1;
+
+	  spec.hist[bin]++;
+	  
         }
       }
 
@@ -458,7 +465,10 @@ void STMDQMJsonProducer::analyze(art::Event const& event){
 	  out << "\"resolution\":{\"A\":" << spec.res_A << ",\"B\":" << spec.res_B << "},\n";
 	  out << "\"chi2\":" << spec.chi2 << ",\n";
 	  out << "\"chi2_ndf\":" << spec.chi2_ndf << ",\n";
-
+	  out << "\"adc_max\":" << SpectrumState::ADC_MAX << ",\n";
+	  out << "\"adc_per_bin\":" << SpectrumState::ADC_PER_BIN << ",\n";
+	  out << "\"nbins\":" << SpectrumState::NBINS << ",\n";
+	  
 	  out << "\"histogram\":[";
 	  for (int i=0;i<SpectrumState::NBINS;i++){
 	    out << spec.hist[i];
@@ -483,7 +493,7 @@ void STMDQMJsonProducer::analyze(art::Event const& event){
 	  out << "\"peaks\":[";
 	  for (size_t i=0;i<spec.peaks.size();i++){
 	    auto &p = spec.peaks[i];
-	    int bin = std::max(0,std::min((int)p.mean,SpectrumState::NBINS-1));
+	    int bin = std::max(0,std::min((int)(p.mean / SpectrumState::ADC_PER_BIN),(int)SpectrumState::NBINS - 1));
 
 	    out << "{";
 	    out << "\"name\":\""<<p.name<<"\",";
