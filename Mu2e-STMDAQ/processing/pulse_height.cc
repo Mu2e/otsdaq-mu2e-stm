@@ -17,10 +17,6 @@ PulseHeight::PulseHeight(Config& cfg_,
   pulse_num = 0;
   global_sample_offset = 0;
 
-  // allocate SPSC queue with size from config
-  size_t queue_len = stm->pulseheight_config.queue_len;
-  indexQueue = std::make_unique<boost::lockfree::spsc_queue<PulseCandidate>>(queue_len);
-
   // Reserve space in stitched vector
   size_t stitched_len = stm->pulseheight_config.localWindowMax * 2;
   stitched.reserve(stitched_len);
@@ -201,6 +197,34 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 
   const std::vector<int16_t>& ADC = currentBuffer->raw;
   const int size = static_cast<int>(ADC.size());
+  // Clear candidates
+  currentBuffer->pulseCandidates.clear();
+  
+  // Temp logging
+  static bool firstDump = true;
+
+  if (firstDump && !ADC.empty()) {
+
+    auto [minIt,maxIt] =
+      std::minmax_element(ADC.begin(),ADC.end());
+
+    logger->log(
+		"RAW BUFFER:"
+		" size=" + std::to_string(size) +
+		" min=" + std::to_string(*minIt) +
+		" max=" + std::to_string(*maxIt),
+		1);
+
+    for (int i = 0; i < std::min(50,size); ++i) {
+      logger->log(
+		  "ADC[" + std::to_string(i) + "]=" +
+		  std::to_string(ADC[i]),
+		  1);
+    }
+
+    firstDump = false;
+  }
+  // Temp logging
 
   if (size <= 0) return;
 
@@ -239,7 +263,7 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 
 	const int searchEnd = localWindowDynamic;
 
-	PulseCandidate candidate;
+	DataStruct::PulseCandidate candidate;
 	candidate.pulseStart = 0; 
 	candidate.pulseStartGlobal = state.globalProcessedSamples;
 	candidate.searchEnd = searchEnd;
@@ -248,10 +272,8 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 	candidate.baselineStd = baselineStd;
 	candidate.stitchedCandidate = true;
 
-	if (!indexQueue->push(candidate)) {
-	  std::this_thread::yield();
-	}
-
+	currentBuffer->pulseCandidates.push_back(candidate);
+  
 	lastConfirmedPulseEnd = state.globalProcessedSamples + searchEnd;
 	pos = searchEnd + 1;
       }
@@ -260,17 +282,17 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 
   // Main streaming detector
   while (pos + cfg.slopeWindow < size) {
-    
+
     const int current = ADC[pos];
     const int future = ADC[pos + cfg.slopeWindow];
     const float trigThreshold = cfg.threshold + baselineMod;
 
-    // Fast coarse rejection
+    // Fast rejection
     if (!(future < -trigThreshold)) {
       ++pos;
       continue;
     }
-
+    
     // Edge gradient
     const float grad = static_cast<float>(current - future) / cfg.slopeWindow;
 
@@ -291,7 +313,7 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
       ++pos;
       continue;
     }
-
+    
     const int pulseStart = pos;
     const int64_t pulseStartGlobal = state.globalProcessedSamples + pulseStart;
 
@@ -319,7 +341,7 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
     lastConfirmedPulseEnd = state.globalProcessedSamples + searchEnd;
 
     // Build candidate
-    PulseCandidate candidate;
+    DataStruct::PulseCandidate candidate;
     candidate.pulseStart = pulseStart;
     candidate.pulseStartGlobal = pulseStartGlobal;
     candidate.searchEnd = searchEnd;
@@ -328,10 +350,7 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
     candidate.baselineStd = baselineStd;
     candidate.stitchedCandidate = false;
 
-    // Push candidate
-    if (!indexQueue->push(candidate)) {
-      std::this_thread::yield();
-    }
+    currentBuffer->pulseCandidates.push_back(candidate);
 
     // streaming advancement
     pos = searchEnd + 1;
@@ -342,6 +361,7 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 
   // Global continuity
   state.globalProcessedSamples += size;
+  
 }
 
 // -------------------- Process pulse candidates --------------------
@@ -351,7 +371,7 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
 
   const std::vector<int16_t>& ADC = currentBuffer->raw;
   const auto& cfg = stm->pulseheight_config;
-
+  
   if (currentBuffer->EWTs.empty()) return;
 
   // Reset counters
@@ -367,9 +387,7 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
   int64_t EWT_len = this_EWT->raw.len;
   int64_t new_EWT_loc = EWT_start + EWT_len;
 
-  PulseCandidate candidate;
-
-  while (indexQueue->pop(candidate)) {
+  for (const auto& candidate : currentBuffer->pulseCandidates) {
 
     int minima_index;
     float t_min_idx;
@@ -427,7 +445,7 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
                        amp,
 		       raw_min_val);
 
-      int64_t abs_pos = candidate.pulseStartGlobal - candidate.pulseStart + static_cast<int64_t>(t_min_idx);
+      int64_t abs_pos = static_cast<int64_t>(t_min_idx);
 
       while (abs_pos >= new_EWT_loc) {
 
@@ -444,7 +462,18 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
         new_EWT_loc = EWT_start + EWT_len;
       }
 
-      if (!this_EWT) break;
+      if (!this_EWT) {
+        logger->log(
+                    "NULL EWT:"
+                    " buffer=" + std::to_string(currentBuffer->buffer_num) +
+                    " abs_pos=" + std::to_string(abs_pos) +
+                    " EWT_count=" + std::to_string(EWT_count) +
+                    " EWT_vector_size=" + std::to_string(currentBuffer->EWTs.size()) +
+                    " pulseStartGlobal=" + std::to_string(candidate.pulseStartGlobal),
+                    1);
+        continue;
+      }
+      
     }
 
     const bool contaminatedBaseline = candidate.baselineStd > stm->pulseheight_config.contaminatedBaselineStd;
@@ -465,7 +494,7 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
       amp = shoulder - fitted_min;
     }
 
-    int64_t abs_in_original = candidate.pulseStartGlobal - candidate.pulseStart + static_cast<int64_t>(t_min_idx);
+    int64_t abs_in_original = static_cast<int64_t>(t_min_idx);
     if (stitchedPulse) {
       abs_in_original -= overlap;
     }
@@ -501,45 +530,17 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
     else {
       double* data_ptr = currentBuffer->ph.data();      
 
-      logger->log("PulseHeight ACCEPT: "
-		  "peak_time_from_ewt=" +
-		  std::to_string(peak_time_from_ewt) +
-		  " amp=" +
-		  std::to_string(amp) +
-		  " peak_count=" +
-		  std::to_string(peak_count) +
-		  " current_ph_len=" +
-		  std::to_string(currentBuffer->ph_len) +
-		  " current_peak_count=" +
-		  std::to_string(currentBuffer->peak_count) +
-		  " EWT_start=" +
-		  std::to_string(EWT_start) +
-		  " EWT_len=" +
-		  std::to_string(EWT_len) +
-		  " minima_index=" +
-		  std::to_string(minima_index) +
-		  " t_min_idx=" +
-		  std::to_string(t_min_idx),
-		  1);
-      
       data_ptr[2 * peak_count] = static_cast<double>(peak_time_from_ewt);
       data_ptr[2 * peak_count + 1] = static_cast<double>(amp);
 
-      logger->log("PulseHeight WRITE: "
-		  "stored_time=" +
-		  std::to_string(data_ptr[2 * peak_count]) +
-		  " stored_amp=" +
-		  std::to_string(data_ptr[2 * peak_count + 1]) +
-		  " updated_peak_count=" +
-		  std::to_string(peak_count + 1),
-		  1);
-      
       ++peak_count;
     }
 
+    // DAQ convention: pulse heights are stored as negative-going
+    // quantities to match MWD and downstream DQM expectations.
+    this_EWT->ph.emplace_back(time16, -amp16);
+    ++this_EWT->hdr[sw_eHdr.PH_NUM];
     
-    this_EWT->ph.emplace_back(time16, amp16);
-
     ++pulse_num;
 
   }

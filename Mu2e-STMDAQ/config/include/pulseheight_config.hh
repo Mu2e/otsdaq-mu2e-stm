@@ -8,9 +8,6 @@
 // Pulse height configurable variables
 struct pulseheight_info {
 
-  // Length of queue
-  const size_t queue_len;
-
   // Baseline
   const int baselineWindow;
   const int baselineLookback;
@@ -37,9 +34,6 @@ struct pulseheight_info {
                    const std::shared_ptr<AsyncLogger> logger,
                    fw_info fw_config,
                    baseline_info baseline_config) :
-
-    // Queue length
-    queue_len(static_cast<size_t>(cfg.getValue<int>("stm.ph.queue_len"))),
 
     // Baseline
     baselineWindow(cfg.getValue<int>("stm.ph.baselineWindow")),
@@ -71,9 +65,6 @@ struct pulseheight_info {
     })
   {
     if (logger) {
-
-      logger->log("Config:pulseheight_info: Queue len = " +
-                  std::to_string(queue_len) + ".", 1);
 
       logger->log("Config:pulseheight_info: baselineWindow = " +
                   std::to_string(baselineWindow) +

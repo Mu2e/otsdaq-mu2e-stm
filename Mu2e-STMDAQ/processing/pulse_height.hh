@@ -3,6 +3,7 @@
 
 #include "Mu2e-STMDAQ/utils/async_logger.hh"
 #include "Mu2e-STMDAQ/config/stm_data.hh"
+#include "Mu2e-STMDAQ/buffers/data_struct.hh"
 #include "Mu2e-STMDAQ/processing/operations_base.hh"
 
 #include <numeric>
@@ -19,17 +20,7 @@
 class PulseHeight : public OperationBase {
 
 private:
-
-  struct PulseCandidate {
-    int pulseStart;
-    int64_t pulseStartGlobal;
-    int searchEnd;
-    float adaptiveThreshold;
-    float baselineMean;
-    float baselineStd;
-    bool stitchedCandidate = false;
-  };
-
+    
   struct FinderState {
     bool firstPulse = true;
     int64_t lastConfirmedPulseEnd = -200;
@@ -54,8 +45,6 @@ private:
   
   std::unordered_map<std::string,std::function<void(std::shared_ptr<DataStruct>&,std::shared_ptr<DataStruct>&)>> functionMap;
 
-  // queue for passing pulse indices between threads
-  std::unique_ptr<boost::lockfree::spsc_queue<PulseCandidate>> indexQueue;
   // vector for reuse
   std::vector<int16_t> stitched;
 
