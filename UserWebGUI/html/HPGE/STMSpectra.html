@@ -309,20 +309,25 @@
 	  if (!spec) return;
 
 	  const hist = spec.histogram;
-	  const bins = hist.map((_,i)=>i);
+	  const adcPerBin = spec.adc_per_bin;
+
+	  const bins = hist.map(
+	      (_, i) => i * adcPerBin
+	  ); 
 
 	  chart.data.labels = bins;
 	  chart.data.datasets[0].data = hist;
 
 	  const fit = new Array(hist.length).fill(0);
-
-	  spec.peaks.forEach(p=>{
-              const mean = Math.round(p.mean);
-              const amp = p.height || hist[mean] || 1;
-
-              for(let x=mean-60;x<mean+60;x++){
-		  if(x<0||x>=hist.length) continue;
-		  fit[x]+=gaussian(x,p.mean,p.sigma,amp);
+	  spec.peaks.forEach(p => {
+	      const meanBin = p.mean / spec.adc_per_bin;
+	      const sigmaBin = p.sigma / spec.adc_per_bin;
+	      const amp = p.height || hist[Math.round(meanBin)] || 1;
+	      for (let x = Math.round(meanBin - 60);
+		   x < Math.round(meanBin + 60);
+		   ++x) {		  
+		  if (x < 0 || x >= hist.length) continue;
+		  fit[x] += gaussian(x, meanBin, sigmaBin, amp);
 	      }
 	  });
 
@@ -332,11 +337,11 @@
 	  calibChart.data.datasets[0].data =
 	      spec.peaks.map(p=>({x:p.mean,y:p.energy}));
 
-          calibChart.data.datasets[1].data =
-              Array.from({length:50},(_,i)=>{
-		  const x=i*50;
-		  return {x,y:spec.calibration.a*x+spec.calibration.b};
-              });
+	  const calibMax = spec.adc_max;
+	  calibChart.data.datasets[1].data = Array.from({length:201}, (_,i) => {
+              const x = i * calibMax / 200;
+              return {x,y: spec.calibration.a * x + spec.calibration.b};
+	  });
 
           calibChart.update();
 

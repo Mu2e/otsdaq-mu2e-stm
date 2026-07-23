@@ -32,7 +32,9 @@ public:
 
   // Spectrum metadata 
   struct SpectrumState {
-    static const int NBINS = 2048;
+    static constexpr int ADC_MAX = 10000;
+    static constexpr int NBINS   = 1000;
+    static constexpr int ADC_PER_BIN = 10;
     std::vector<int> hist;
 
     struct Peak {
