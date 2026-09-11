@@ -97,6 +97,7 @@ namespace mu2e {
     uint64_t eos_stream_id_;		     // End of subrun marker fragment id
     uint64_t rollover_subrun_interval_;	     // EWTs per subrun
     uint64_t subrun_number_{1};		     // Subrun number tracker
+    std::optional<uint8_t> prev_flag_;	     // Previous subrun flag
     
     // ----------------- Runtime -----------------
     std::atomic<size_t> event_count_{0}; // Number of events processed
@@ -387,6 +388,14 @@ namespace mu2e {
     }
 
     // -------------------------------------------
+    // Check if we need a new subrun
+    // -------------------------------------------
+    bool update_subrun(uint8_t current_flag)
+    {
+        bool transition = prev_flag_.has_value() && (*prev_flag_ != current_flag);
+        prev_flag_ = current_flag;
+        return transition;
+    }
     
   };
 } // namespace mu2e
