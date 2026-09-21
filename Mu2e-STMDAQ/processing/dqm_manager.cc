@@ -132,27 +132,10 @@ void DQM::update_dqm(std::shared_ptr<DataStruct>& buffer) {
 
 void DQM::alarm_info(std::shared_ptr<DataStruct>& buffer) {
 
-  // Check for dropped packets
+  // Check for dropped packets (want to check all buffers)
   if (buffer->dropped_packet_count > 0) {
     num_dropped_packets += buffer->dropped_packet_count;
   }
-
-  // Check for slow processes ?
-  //for (size_t i = 0; i < buffer->cpu_performance.size(); ++i) {
-
-    // Get operation name - DQM speed not updated as running
-    //const auto& name = buffer->cpu_performance[i].first;
-    //if (name.find("DQM") != std::string::npos)
-    //  continue;
-
-    // Get CPU speed
-    //double perf = buffer->cpu_performance[i].second;
-
-    //double input_speed = 6;
-    //if (perf < input_speed * 1.05) {
-    //  alarms->slow_ops = true;
-    //}
-  //}
 
 }
 
