@@ -25,7 +25,7 @@ def layout():
         # Baseline and peak plot
         html.Div([
             html.Div(
-                dcc.Graph(id="baseline-graph",
+                dcc.Graph(id="peak-graph",
                     responsive=True,
                     style={"height": "100%", "width": "100%"}
                     ),
@@ -33,7 +33,7 @@ def layout():
             ),
 
             html.Div(
-                dcc.Graph(id="peak-graph",
+                dcc.Graph(id="baseline-graph",
                     responsive=True,
                     style={"height": "100%", "width": "100%"}
                     ),
