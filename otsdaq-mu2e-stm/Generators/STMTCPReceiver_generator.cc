@@ -760,7 +760,7 @@ namespace mu2e {
       artdaq::Fragments batch_frags;
       batch_frags.reserve(batch.events.size() * 3);
 
-      // Lambda functino to flush container
+      // Lambda function to flush container
       auto flush_container = [&] {
         // Don't send empty container
         if (batch_frags.empty()) {
@@ -776,8 +776,6 @@ namespace mu2e {
 
       for (const auto& e : batch.events) {
 
-        event_count_.fetch_add(1, std::memory_order_relaxed);
-
 	// Check for sub-run transition
 	const bool hw_subrun_trigger = update_subrun(e.subrun_flag);
 	const bool sw_subrun_trigger = (rollover_subrun_interval_ > 0) && (event_count_.load() % rollover_subrun_interval_ == 0);
@@ -785,16 +783,13 @@ namespace mu2e {
 	{
 	  const auto next_subrun = ++subrun_number_;
 	  if (debug_level_ > 0) {
-	    TLOG(TLVL_INFO) << "Subrun transition "
+	    TLOG(TLVL_INFO) << "[BUILDER] Subrun transition "
 	      		      "(hw=" << hw_subrun_trigger
 	      		      << "(sw=" << sw_subrun_trigger
 	      		      << ") at Event number =" << event_count_.load()
 	      		      << ") at EWT=" << e.event_num
 	      		      << " -> subrun " << next_subrun;
 	  }
-
-	  metricMan->sendMetric("SubrunNumber", next_subrun, "subrun", 1,
-                                artdaq::MetricMode::LastPoint | artdaq::MetricMode::Persist);
 
 	  // Send container to getNext as is
 	  flush_container();
@@ -806,7 +801,7 @@ namespace mu2e {
 	  if (chan_ == 0) {
 	    // Make and push EOS fragment
             std::unique_ptr<artdaq::Fragment> eos_frag =
-              artdaq::MetadataFragment::CreateEndOfSubrunFragment(my_rank, e.event_num, next_subrun, eos_frag_id);
+              artdaq::MetadataFragment::CreateEndOfSubrunFragment(my_rank, e.event_num-1, next_subrun, eos_frag_id);
 
             if (eos_frag) {
 	      artdaq::Fragment* eos_raw = eos_frag.release();
@@ -868,6 +863,7 @@ namespace mu2e {
         process(e.zs,  zs_stream_id_,  zs_frag_count_);
         process(e.ph,  ph_stream_id_,  ph_frag_count_);
 
+        event_count_.fetch_add(1, std::memory_order_relaxed);
       }
 
       // Send to getNext
