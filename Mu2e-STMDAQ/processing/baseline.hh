@@ -102,7 +102,7 @@ public:
       // Log to user
       logger->log("Baseline: ADC baseline for run determined to be " + std::to_string(mu0_all) +
                   " ± " + std::to_string(sigma0_all) + ". Value written to" +
-                  cfg.getXMLpath() + ",.",1);
+                  cfg.getXMLpath() + ".",1);
     }
     std::cout << "Baseline destructor called.\n";
   }
