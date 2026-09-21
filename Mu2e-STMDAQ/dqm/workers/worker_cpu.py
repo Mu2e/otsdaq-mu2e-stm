@@ -17,7 +17,7 @@ HEADER_FORMAT = f"<Q Q Q d Q"
 # Shared memory block reader for ADC baseline
 reader = SharedMemoryReader("/dqm_daq_data", HEADER_FORMAT)
 
-req_speed = 6
+req_speed = 4
 
 def run_worker(task_queue, result_queue, core_id):
     # Pin worker to CPU core
