@@ -92,6 +92,9 @@ void MWD::deconvolution(std::shared_ptr<DataStruct>& buffer) {
   // Define a pointer to the pulse height data buffer
   double* ph_ptr = buffer->ph.data();
 
+  double ps = prev_sample;
+  double pa = prev_a;
+
   // Loop over all data
   for (size_t i = 0; i < n; ++i) {
     
@@ -99,19 +102,23 @@ void MWD::deconvolution(std::shared_ptr<DataStruct>& buffer) {
     const double data_i = static_cast<double>(ph_ptr[i]);
     
     // Deconvolution: ai = data[i] - (1 - (T0/tau)) * data[i-1] + a[i-1]
-    const double ai = data_i - tau_norm * prev_sample + prev_a;
+    const double ai = data_i - tau_norm * ps + pa;
 
     // Store deconvolved sample into ph (temporary workspace)
     ph_ptr[i] = ai;
         
     // Prepare for next sample
-    prev_sample = data_i;
-    prev_a = ai;
+    ps = data_i;
+    pa = ai;
 
   }
 
   // Save mwd length
   buffer->ph_len = n;
+
+  // Write final
+  prev_sample = ps;
+  prev_a = pa;
 
 }
 
