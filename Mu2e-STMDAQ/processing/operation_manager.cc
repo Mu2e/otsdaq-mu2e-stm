@@ -82,6 +82,14 @@ OperationManager::OperationManager(Config& cfg_,
       continue;
     }
 
+    // Turn off baseline for LaBr while we work on convergence
+    if (ch_num == 1 && class_.first == "Baseline") {
+      logger->log("WARNING: Switching off " + class_.first + 
+		  " for " + stm->master_config.ch_name + ".",2);
+      logger->log(class_.first + " is OFF.", 1);
+      continue;
+    }
+
 
     // Log class is on
     logger->log(class_.first + " class is ON.", 1);
