@@ -45,7 +45,7 @@ public:
  
   // Destructor stops and joins background thread
   ~DQM(){
-    std::cout << "DQM destructor called." << std::endl;
+    logger->log("DQM destructor called.",1);
 
   };     
 
