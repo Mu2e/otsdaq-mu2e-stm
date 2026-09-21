@@ -76,6 +76,11 @@ public:
   
   // Estimate percentile position from histogram 
   double hist_percentile(double p01);
+
+  // Estimate fraction of mode position from histogram
+  double mode_fraction(const std::vector<uint64_t>& hist_counts,
+                         const uint64_t mode_bin,
+                         const double frac);
   
 };
 
