@@ -1,0 +1,39 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<stm>
+    <!-- Parameters for binary file writing -->
+    <max_binary_file_size> 2000 </max_binary_file_size> <!-- in Mb and needs to be less than 2000 -->
+    <sim_binary_filename> ./data/stm_hzdr_sim_ </sim_binary_filename>
+    <raw_binary_filename> ./data/stm_hzdr_raw_ </raw_binary_filename>
+    <mwd_binary_filename> ./data/stm_hzdr_mwd_ </mwd_binary_filename>
+    <test_float_value> 99.99 </test_float_value>
+    <raw_filesize_header_type> 1 </raw_filesize_header_type> <!-- 1: new header, 0: old -->
+    <!-- Parameters for MWD -->
+    <mwd_l_parameter> 500 </mwd_l_parameter>
+    <mwd_m_parameter>1000 </mwd_m_parameter>
+    <mwd_tau_parameter> 50000 </mwd_tau_parameter>
+    <mwd_nsigma_cut_parameter> 1.0 </mwd_nsigma_cut_parameter>
+    <mwd_fixed_cut_parameter> -100.0 </mwd_fixed_cut_parameter>
+    <mwd_cut_mode> 2 </mwd_cut_mode> <!-- 1 is using sigma, 2 is using fixed cut -->
+    <mwd_gradient_parameter> -0.5 </mwd_gradient_parameter>
+    <!--- Experimental setup -->
+    <trigger_time_clock> 13 </trigger_time_clock> <!-- in MHz -->
+    <macropulse_width> 36 </macropulse_width> <!-- in ms -->    
+    <macropulse_freq> 1 </macropulse_freq> <!-- in Hz -->    
+    <!--- ADC clock frequencies -->
+    <adc_offset_time_clock> 125 </adc_offset_time_clock> <!-- in MHz -->
+    <adc_time_clock> 320.0520833313 </adc_time_clock> <!-- in MHz -->
+    <!-- ADC registers -->
+    <fmc144_prescale> 0 </fmc144_prescale> 
+    <fmc144_ext_ADC_offset> 0x68 </fmc144_ext_ADC_offset> <!--32 bits: the offset in time to wait after an external trigger to record ADC data Multiples of 8 ns -->
+<!--    <fmc144_ext_slice_length> 0x10 </fmc144_ext_slice_length> -->
+    <fmc144_ext_slice_length> 0x400 </fmc144_ext_slice_length> <!--32 bits: The sampling slice time s to record external data. Multiples of number of samples (2 Bytes each). Should be a multiple of 16 samples (256 bits)-->
+   <!--  <fmc144_ext_slice_num> 0x1 </fmc144_ext_slice_num> -->
+   <fmc144_ext_slice_num> 0x1000 </fmc144_ext_slice_num> <!--16 bits: The number N of external slices to record.Should be a power of 2-->
+   <fmc144_ext_trig_timeout> 0x5285d </fmc144_ext_trig_timeout> <!--32 bits: The time T to wait after a macropulse because switching to internal mode.Multiples of ~ 77 ns (1/13 MHz)-->
+   <fmc144_ext_int_delay> 0xFDE8 </fmc144_ext_int_delay> <!--32 bits: The offset in time to wait after external mode before sending the first internal trigger.Multiples of ~ 77 ns (1/13 MHz)-->
+   <fmc144_int_trig_num> 0x1 </fmc144_int_trig_num> <!--16 bits: the number of internal triggers to generate. Currently support for 1-->
+   <fmc144_int_ADC_offset> 0x2 </fmc144_int_ADC_offset> <!--32 bits: The offset in time to wait after an internal trigger to record ADC data. Multiples of 8 ns-->
+   <fmc144_int_slice_length> 0x400 </fmc144_int_slice_length>  <!--32 bits: The sampling slice time s to record external data. Multiples of number of samples (2 Bytes each). Should be a multiple of 16 samples (256 bits)-->
+   <fmc144_int_slice_num> 0x800 </fmc144_int_slice_num>  <!--16 bits: The number N of external slices to record. Should be a power of 2-->
+   <fmc144_teng_interpacket_pause> 0x460 </fmc144_teng_interpacket_pause>  <!--16 bits: The number N of external slices to record. Should be a power of 2-->
+</stm>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+
+        <style>
+      
+            body {
+              width: 500px;
+              margin: 0 auto;
+              background-color: white;
+            }
+      
+          </style>
+    </head>
+
+<body>
+
+    <h2>ELBE Testbeam DQM</h2>
+    <canvas id="line-chart" width="800" height="450"></canvas>
+    <p id="ratePerUpdate">Rate:-1</p>
+    <p id="socketEfficiency">Socket efficiency:0%</p>
+
+<script>
+
+    const plotRefreshTime = 100; // milliseconds
+    const ADCSamplingRate = 320e6; //samples per second
+    const displayTime = 10; //seconds
+    const DQMSamplingRate = 25440; //Hz. This is the display rate of data.
+    const displayingSamples = displayTime * DQMSamplingRate; //Amount of data to display
+
+    const timeData = Array.from({length: displayingSamples}, (_, i)=>((displayingSamples-i)/DQMSamplingRate));//units seconds.
+    const startData = Array.from({length: displayingSamples}, (_, i)=>(0));//units seconds.
+
+    var plot = new Chart(document.getElementById("line-chart"), {
+        type: 'line',
+        data: {
+            labels: timeData,
+            datasets: [{ 
+                data: startData,
+                label: "ADC amplitude (mV)",
+                borderColor: "#c45851",
+                fill: false,
+                tension: 0
+            }
+            ]
+        },
+        options: {
+            animation: {
+                duration: 0
+            },
+            scales: {
+                yAxes: [{
+                    display: true,
+                    stacked: true,
+                    ticks:{
+                        min: 0,
+                        max: 30000
+                    },
+                    title: {
+                        display: true,
+                        text: "yAxisTitle"
+                    }
+                }],
+                xAxes: [{ 
+                    display: true,
+                    stacked: true,
+                    ticks:{
+                        max: 0,
+                        min: -10,
+                        stepSize: -1
+                    },
+                    title: { 
+                        display: true, 
+                        text: 'seconds' 
+                    }
+                }]
+            },
+            title: {
+                display: true,
+                text: 'ELBE STM ADC Stream'
+            },
+            plugins:{   
+                legend: {
+                    display: false
+                }
+            },
+            responsive: false,
+            animations: false
+        }
+    });
+
+
+
+
+
+
+    const lastElementIndex = plot.data.datasets.length-1
+    const update = function (){
+        fetch("http://localhost:2050/call")
+        .then(res => {
+            if (!res.ok) {console.log("Failed");throw new Error(`HTTP error: ${res.status}`);}
+            return res.json();//this is an array.
+        })
+        .then(importData => {
+            if (importData.length >= plot.data.datasets[lastElementIndex].length){
+                plot.data.datasets[lastElementIndex] = importData;
+            }
+            else {
+                plot.data.datasets[lastElementIndex].data.splice(0, importData.length);
+                plot.data.datasets[lastElementIndex].data.push(...importData)
+            }
+            plot.update();
+            })
+        .catch(error => console.log(error))
+    }
+
+    const averageRate = function(){
+    fetch("http://localhost:2050/average")
+        .then(res => {
+            if (!res.ok) {console.log("Failed");throw new Error(`HTTP error: ${res.status}`);}
+            return res.json()
+        })
+        .then(stuff => {
+            document.getElementById("ratePerUpdate").innerHTML="Rate:"+stuff+" per plot update";
+            document.getElementById("socketEfficiency").innerHTML="Efficiency:"+(parseInt(stuff)*2/25440).toFixed(1)+"% per plot update";
+        })
+        .catch(error => console.log(error));
+        
+    };
+
+    var intervalId = setInterval(function() {
+        update();
+        averageRate();
+    }, 1000);
+
+</script>
+
+</body>
+</html> 

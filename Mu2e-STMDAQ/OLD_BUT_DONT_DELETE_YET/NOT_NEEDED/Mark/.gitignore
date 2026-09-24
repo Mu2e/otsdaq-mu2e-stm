@@ -1,0 +1,7 @@
+*.exe
+*.bin
+*.o
+*.*~
+data/*
+__pycache__/*
+*.png

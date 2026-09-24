@@ -1,0 +1,51 @@
+<!-- Pulse Height -->
+<ph>
+
+  <!-- Baseline calculation -->
+  <baselineWindow>20</baselineWindow>
+  <baselineLookback>50</baselineLookback>
+
+  <!-- Pulse trigger -->
+  <threshold>80</threshold>
+
+  <!-- Slope trigger -->
+  <slopeWindow>3</slopeWindow>
+  <slopeThreshold>20.0</slopeThreshold>
+
+  <!-- Noise / adaptive search -->
+  <noiseTolerance>10.0</noiseTolerance>
+
+  <!-- Recalculate baseline every N samples -->
+  <minBaselineCheck>200</minBaselineCheck>
+
+  <!-- Consecutive decreasing samples -->
+  <Nsharp>3</Nsharp>
+
+  <!-- Maximum local minimum search region -->
+  <localWindowMax>32</localWindowMax>
+
+  <!-- Persistence parameters -->
+  <persistenceWindow>8</persistenceWindow>
+  <persistenceFraction>0.35</persistenceFraction>
+  <persistenceCount>3</persistenceCount>
+  
+  <!-- Parabola fit goodness threshold -->
+  <curvature_threshold>0.01</curvature_threshold>
+
+  <!-- Check for contaminated baseline in pileup pulses -->
+  <contaminatedBaselineStd>100.0</contaminatedBaselineStd>
+
+  <!-- SG filter coefficients (window=7, poly order=2) -->
+  <sg7>
+    <c0>-0.0952380952</c0>
+    <c1>0.1428571429</c1>
+    <c2>0.2857142857</c2>
+    <c3>0.3333333333</c3>
+    <c4>0.2857142857</c4>
+    <c5>0.1428571429</c5>
+    <c6>-0.0952380952</c6>
+  </sg7>
+
+  <queue_len>10</queue_len>
+
+</ph>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+	<ROOT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="TableInfo.xsd">
+		<TABLE Name="TriggerPathTable">
+			<VIEW Name="TRIGGER_PATH_TABLE" Type="File,Database,DatabaseTest" Description="No%20description.">
+				<COLUMN Type="UID" 	 Name="UID" 	 StorageName="UID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="GroupID-Trig" 	 Name="PathGroup" 	 StorageName="PATH_GROUP" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="FixedChoiceData" 	 Name="TriggerName" 	 StorageName="TRIGGER_NAME" 		DataType="STRING" 		DataChoices="arbitraryBool=1,tprSeedDeM,tprSeedDeP,cprSeedDeM,cprSeedDeP,tprHelixIPADeM,unbiased,caloMVACE"/>
+				<COLUMN Type="FixedChoiceData" 	 Name="TriggerType" 	 StorageName="TRIGGER_TYPE" 		DataType="STRING" 		DataChoices="arbitraryBool=0,TrackSeed,Helix,Unbiased,DigiCount,CaloMVA,CaloMVACE"/>
+				<COLUMN Type="Data" 	 Name="PathID" 	 StorageName="PATH_ID" 		DataType="NUMBER" 		DefaultValue="100" 		DataChoices=""/>
+				<COLUMN Type="Data" 	 Name="PrescaleFactor" 	 StorageName="PRESCALE_FACTOR" 		DataType="NUMBER" 		DefaultValue="1" 		DataChoices=""/>
+				<COLUMN Type="OnOff" 	 Name="Status" 	 StorageName="STATUS" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="ChildLink-0" 	 Name="LinkToTriggerTable" 	 StorageName="LINK_TO_TRIGGER_TABLE" 		DataType="STRING" 		DataChoices="arbitraryBool=0,TrackSeedFilterTable,HelixFilterTable,DigiFilterTable,UnbiasedFilterTable,CaloMVAFilterTable"/>
+				<COLUMN Type="ChildLinkUID-0" 	 Name="LinkToTriggerTableUID" 	 StorageName="LINK_TO_TRIGGER_TABLE_UID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Comment" 	 Name="CommentDescription" 	 StorageName="COMMENT_DESCRIPTION" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Author" 	 Name="Author" 	 StorageName="AUTHOR" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Timestamp" 	 Name="RecordInsertionTime" 	 StorageName="RECORD_INSERTION_TIME" 		DataType="TIMESTAMP WITH TIMEZONE" 		DataChoices=""/>
+			</VIEW>
+		</TABLE>
+	</ROOT>

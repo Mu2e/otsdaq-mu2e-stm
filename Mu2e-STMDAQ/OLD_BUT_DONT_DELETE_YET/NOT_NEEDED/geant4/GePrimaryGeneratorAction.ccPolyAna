@@ -1,0 +1,164 @@
+#include "GePrimaryGeneratorAction.hh"
+#include "GeUserDetectorConstruction.hh"
+
+#include "G4Event.hh"
+#include "G4ParticleGun.hh"
+#include "G4ParticleTable.hh"
+#include "G4ParticleDefinition.hh"
+#include "globals.hh"
+
+#include "Randomize.hh"
+//Add
+#include "G4UnitsTable.hh"
+
+#include <iostream>
+#include <cmath>
+#include <utility>
+#include <limits>
+#include "G4INCLIRandomGenerator.hh"
+#include "G4INCLThreeVector.hh"
+#include "G4INCLGlobals.hh"
+#include "G4INCLConfig.hh"
+#include "G4INCLRandom.hh"
+#include "G4RandomDirection.hh"
+using namespace G4INCL;
+
+GePrimaryGeneratorAction::GePrimaryGeneratorAction( GeUserDetectorConstruction* myDC) :
+  myDetector(myDC)
+{
+  G4cout<<"GePrimaryGeneratorAction: creating photon "<<G4endl;
+  /*  G4int n_particle = 1;
+  particleGun = new G4ParticleGun(n_particle);
+
+  // default particle
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  //G4ParticleDefinition* particle = particleTable->FindParticle("e-");
+  G4ParticleDefinition* particle = particleTable->FindParticle("gamma"); 
+  //G4ParticleDefinition* particle = particleTable->FindParticle("neutron");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("alpha");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("proton");
+
+  particleGun->SetParticleDefinition(particle);
+  //particleGun->SetParticlePosition(G4ThreeVector(0,0,0));
+  //particleGun->SetParticlePosition(G4ThreeVector(0.56*CLHEP::m,0,0));
+  */
+}
+
+GePrimaryGeneratorAction::~GePrimaryGeneratorAction()
+{
+  delete particleGun;
+}
+
+void GePrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
+{   
+
+  G4int n_particle = 1;
+  particleGun = new G4ParticleGun(n_particle);
+
+  // default particle
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+
+  particleGun->SetParticleDefinition(particle);
+
+  G4cout<<"GePrimaryGeneratorAction: setting position "<<G4endl;
+
+  //Generate particles in a cylinder at origin
+  /*
+  G4double cyl_radius = (6.35/2)*CLHEP::cm;//cm
+  G4double h = 13.97*CLHEP::cm;//cm 
+  G4double phi = G4UniformRand() * CLHEP::twopi;
+  G4double rho = G4UniformRand() * cyl_radius;
+  double x_center = 0*CLHEP::cm;
+  double y_center = 0*CLHEP::cm;
+  double z_center = 0*CLHEP::cm;
+  G4double x = x_center+rho * cos(phi);
+  G4double y = y_center+(G4UniformRand() * h) - (h/2);
+  G4double z = z_center+rho * sin(phi);
+  particleGun->SetParticlePosition(G4ThreeVector(x,y,z));
+  */
+
+  //Generate particles in a fixed position
+  /*G4double x = -5*CLHEP::cm;
+  G4double y = 0;
+  G4double z = 0;   
+  particleGun->SetParticlePosition(G4ThreeVector(x,y,z)); 
+  */
+
+
+  double prob = G4UniformRand();
+  G4double x,y,z;
+  //centre of the disk and radius inside plane
+  double _xc = 5.4*CLHEP::cm;
+  double _yc = 0;
+  double _zc = 0;
+  double _rmax = 5*CLHEP::cm;
+  //Centre of plane and size
+  double _x = 0;
+  double _y = 0;
+  double _z = 0;
+  double x_half = 10.5*CLHEP::cm;
+  double y_half = 20.3*CLHEP::cm;
+  if(prob<0.7){
+    //Generate particles in a disk
+    double rho = sqrt(G4UniformRand());
+    double theta = G4UniformRand() * CLHEP::twopi;
+    x = _xc + _rmax * rho * cos(theta);
+    y = _yc + _rmax * rho * sin(theta);
+    z = _zc;
+    while((abs(x)>(x_half-_x))||(abs(y)>(y_half-_y))){
+      rho = sqrt(G4UniformRand());
+      theta = G4UniformRand() * CLHEP::twopi;
+      x = _xc + _rmax * rho * cos(theta);
+      y = _yc + _rmax * rho * sin(theta);
+    }
+    particleGun->SetParticlePosition(G4ThreeVector(x,y,z));
+  }
+  else{
+    x = _x + 2*x_half*G4UniformRand() - x_half;
+    y = _y + 2*y_half*G4UniformRand() - y_half;
+    z = _z;
+    while(sqrt((x-_xc)*(x-_xc) + (y-_yc)*(y-_yc))< _rmax){
+      x = _x + 2*x_half*G4UniformRand() - x_half;
+      y = _y + 2*y_half*G4UniformRand() - y_half;
+    }
+    particleGun->SetParticlePosition(G4ThreeVector(x,y,z));
+  }
+
+  
+  particleGun->SetParticleEnergy(694*CLHEP::keV);
+  G4double energy=particleGun->GetParticleEnergy();
+
+  //Momentum in a fixed direction
+  //particleGun->SetParticleMomentumDirection(G4ThreeVector(0,0,1));
+ 
+  //Creating a sphere in the initial configuration
+  /*G4ThreeVector momentumUnitVector = G4RandomDirection();
+  particleGun->SetParticleMomentumDirection(momentumUnitVector);
+  */
+
+  //Specify range of costheta in the sphere [min_cos_theta,1]
+  double min_cos_theta = 0.99999;
+  //Copied from G4RandomDirection.hh
+  G4double cosTheta  = G4UniformRand();
+  while(cosTheta < min_cos_theta){ cosTheta = G4UniformRand(); }
+  std::cout<<"cosTheta: "<<cosTheta<<std::endl;
+  G4double sinTheta2 = 1. - cosTheta*cosTheta;
+  if( sinTheta2 < 0.)  sinTheta2 = 0.;
+  G4double sinTheta  = std::sqrt(sinTheta2); 
+  G4double phi       = CLHEP::twopi*G4UniformRand();
+  particleGun->SetParticleMomentumDirection(G4ThreeVector(sinTheta*std::cos(phi),sinTheta*std::sin(phi), cosTheta).unit()); 
+  
+  
+  particleGun->GeneratePrimaryVertex(anEvent);
+  
+
+  std::cout<<"  "<<std::endl;
+  std::cout<<"----------------------------Event: "<<anEvent->GetEventID() <<"-------------------------------------"<<std::endl;
+  std::cout<<"Generated Pos= "<<G4ThreeVector(x,y,z)/CLHEP::cm<<" cm"<<std::endl;
+  std::cout<< "Initial Energy: " << G4BestUnit(energy,"Energy")<<std::endl;
+  std::cout<<"Initial Momentum Vector: "<<particleGun->GetParticleMomentumDirection()<<" Initial Momentum Mag: "<<anEvent->GetPrimaryVertex()->GetPrimary()->GetTotalMomentum()/CLHEP::keV<<" keV"<<std::endl;
+  std::cout<<"Number of particle generated: "<<particleGun->GetNumberOfParticles()<<std::endl; 
+ //std::cout<<"Energy: "<<(particleGun->GetParticleEnergy())/CLHEP::keV<<" keV"<<std::endl;
+  std::cout<<"  "<<std::endl;
+}

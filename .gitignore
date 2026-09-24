@@ -20,8 +20,11 @@ setupARTDAQOTS
 *.vcxproj*
 *.tmp
 *.bk
-*.tmp
+tmp/*
 CMakePresets.json
 build-linux-*
+spack-build-* 
+Mu2e-STMDAQ/log/*
+UserWebGUI/json/*
 spack-build-*
 _codeql_*

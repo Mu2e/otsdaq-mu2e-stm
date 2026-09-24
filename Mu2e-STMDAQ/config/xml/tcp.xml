@@ -1,0 +1,16 @@
+<!-- TCP Parameters -->
+<tcp>
+  <reconnect_period_ms>250</reconnect_period_ms> <!-- Server connection attempt period (ms) -->
+  <disconnected_log_period>5</disconnected_log_period> <!-- Disconnected log period (s) -->
+  <poll_timeout_ms>500</poll_timeout_ms> <!-- TCP poll timeout (ms) -->
+  <!-- HPGe TCP parameters -->
+  <hpge> 
+    <ip>127.0.0.10</ip>
+    <port>10010</port>
+  </hpge>
+  <!-- LaBr TCP parameters -->
+  <labr> 
+    <ip>127.0.0.11</ip>
+    <port>10011</port>      
+  </labr>
+</tcp>

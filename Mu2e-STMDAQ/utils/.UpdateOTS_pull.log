@@ -1,0 +1,100 @@
+UpdateOTS.sh:562  	 log start:
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e
+On branch develop
+Your branch is behind 'origin/develop' by 27 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-calorimeter
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-dqm
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-trigger
+On branch develop
+Your branch is up to date with 'origin/develop'.
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq
+On branch develop
+Your branch is behind 'origin/develop' by 72 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-crv
+On branch develop
+Your branch is behind 'origin/develop' by 12 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-epics
+On branch develop
+Your branch is behind 'origin/develop' by 1 commit, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-utilities
+On branch develop
+Your branch is behind 'origin/develop' by 33 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-extmon
+On branch develop
+Your branch is behind 'origin/develop' by 3 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-tracker
+On branch develop
+Your branch is behind 'origin/develop' by 142 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-mu2e-stm
+On branch stmdaq-develop
+Your branch is up to date with 'origin/stmdaq-develop'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/Generators/.UpdateOTS_pull.log
+	modified:   otsdaq-mu2e-stm/Generators/CMakeLists.txt
+	modified:   otsdaq-mu2e-stm/Generators/STMTCPReceiver.hh
+	modified:   otsdaq-mu2e-stm/Generators/STMTCPReceiver_generator.cc
+	modified:   otsdaq-mu2e-stm/Generators/tcp_utils.hh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	Mu2e-STMDAQ/
+	otsdaq-mu2e-stm/Generators/bk_2/
+	otsdaq-mu2e-stm/Generators/gsim/new_hdr/
+	otsdaq-mu2e-stm/Generators/tcp_event_header.hh
+	otsdaq-mu2e-stm/Supervisor/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+UpdateOTS.sh:619  	 ==================
+/home/mu2estm/sweetmor/build_2025_09_08_06_42_44/spack_build/srcs/otsdaq-components
+On branch develop
+Your branch is behind 'origin/develop' by 1 commit, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean

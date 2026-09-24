@@ -1,0 +1,36 @@
+adc_init 1 ADC initialised?
+dtc_link_up 1 DTC Link Up?
+dtc_comma_char 1 DTC comma character errors
+daq_running 1 DAQ running?
+receiving_data 1 Receiving data?
+evm_hb_seq_err_count 1 No HB before event marker
+hb_evm_int_err_count 1 HB < 850 ns before event marker
+hb_crc_err_count 1 HB CRC errors
+event_tag_skipped_count 1 Skipped EWTs
+dtc_clk_marker_sync_off 1 Clock marker bin sync errors
+data_dir 100 Data directory
+tot_data_size 2 Data size written to disk (Gb)
+tot_data_rate 2 Total data write rate (Gbit/s)
+run_num 4 Run Number
+subrun_num 4 Subrun Number
+ewt 4 Latest Event Window Tag
+pulse_rate_0 2 Pulse Rate (kHz)
+b_mean_0 1 ADC Baseline (ADC counts)
+b_rms_0 1 ADC Baseline (ADC counts)
+zs_factor_0 2 Zero-supression rate (%)
+prescale_0 1 Prescale value
+data_rate_0 2 Data write rate (Gbit/s)
+packets_0 4 Dropped UDP packets
+events_0 4 Number of events
+on_0 4 Number of on-spill events
+off_0 4 Number of off-spill events
+pulse_rate_1 2 Pulse Rate (kHz)
+b_mean_1 1 ADC Baseline (ADC counts)
+b_rms_1 1 ADC Baseline (ADC counts)
+zs_factor_1 2 Zero-supression rate (%)
+prescale_1 1 Prescale value
+data_rate_1 2 Data write rate (Gbit/s)
+packets_1 4 Dropped UDP packets
+events_1 4 Number of events
+on_1 4 Number of on-spill events
+off_1 4 Number of off-spill events

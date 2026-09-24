@@ -1,0 +1,74 @@
+//  Hello World server
+#include <iostream>
+#include </work/zmq/include/zmq.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <assert.h>
+#include <vector>
+
+//#include </work/root/include/TH1F.h>
+//#include </work/root/include/TCanvas.h>
+//#include </work/root/include/TRandom.h>
+
+//#include "TF1.h"
+int main (void)
+{
+  
+  //  Socket to talk to clients
+  void *context = zmq_ctx_new ();
+  void *responder = zmq_socket (context, ZMQ_REP);
+  int rc = zmq_bind (responder, "tcp://*:5555");
+  assert (rc == 0);
+
+   int16_t r1[512];
+  for(int16_t i=0; i<512; i++){
+    //r1[i]=f1->GetRandom();
+    r1[i]=i;
+   }
+
+  int16_t r2[512];
+  for(int16_t i=0; i<512; i++){
+    //r2[i]=f2->GetRandom();
+    r2[i]=i+1;
+  }
+  //char c[2];
+  //c[0]=number & 0xFF;
+  //c[1]=(number >> 8) & 0xFF;
+  //char *r1=&(c[0]);
+
+  //char p []= { 'a', 'b', 'c', 'd', 'e' };
+  //char *r1=&(p[0]);
+
+  //while we have a request
+  int i=0;
+  while (1) {
+    //char buffer [800];
+    int16_t buffer[512];
+    if(i==0){
+ 
+        //(socket,buffer,size of buffer, 0)
+	zmq_recv (responder, buffer, 1024, 0);
+	printf ("Received data\n");
+	sleep (1);
+        
+      
+        int rc1= zmq_send (responder,  &r1 , 1024, 0);
+	std::cout<<rc1<<std::endl; 
+    
+     }
+   else if(i==1){
+	zmq_recv (responder, buffer, 1024, 0);
+        printf ("Received data\n");
+        sleep (1);
+
+ 
+        int rc2=zmq_send (responder,  &r2, 1024, 0);
+	std::cout<<rc2<<std::endl;
+ 
+   }
+    i++;
+
+  }
+  return 0;
+}

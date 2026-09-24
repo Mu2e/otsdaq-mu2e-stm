@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+	<ROOT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="TableInfo.xsd">
+		<TABLE Name="DTCInterfaceTable">
+			<VIEW Name="DTC_INTERFACE_TABLE" Type="File,Database,DatabaseTest" Description="Modified%20the%20data%20type%20in%20the%20new%20tables">
+				<COLUMN Type="UID" 	 Name="UID" 	 StorageName="UID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="TrueFalse" 	 Name="EmulatorMode" 	 StorageName="EMULATOR_MODE" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Data" 	 Name="LocationInChain" 	 StorageName="LOCATION_IN_CHAIN" 		DataType="NUMBER" 		DataChoices=""/>
+				<COLUMN Type="Data" 	 Name="DeviceIndex" 	 StorageName="DEVICE_INDEX" 		DataType="NUMBER" 		DataChoices=""/>
+				<COLUMN Type="YesNo" 	 Name="EmulateCFO" 	 StorageName="EMULATE_CFO" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="YesNo" 	 Name="ConfigureClock" 	 StorageName="CONFIGURE_CLOCK" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="FixedChoiceData" 	 Name="JitterAttenuatorInputSource" 	 StorageName="JITTER_ATTENUATOR_INPUT_SOURCE" 		DataType="STRING" 		DefaultValue="Clock%20from%20CFO" 		DataChoices="arbitraryBool=0,Clock%20from%20RJ45,Timing%20Card%20Selectable%20(SFP%2B%20or%20FPGA)%20Input%20Clock"/>
+				<COLUMN Type="YesNo" 	 Name="EnableROCConfigureStep" 	 StorageName="ENABLE_ROC_CONFIGURE_STEP" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="ChildLink-ROC" 	 Name="LinkToROCGroupTable" 	 StorageName="LINK_TO_ROC_GROUP_TABLE" 		DataType="STRING" 		DataChoices="arbitraryBool=0,ROCInterfaceTable,NO_LINK"/>
+				<COLUMN Type="ChildLinkGroupID-ROC" 	 Name="LinkToROCGroupID" 	 StorageName="LINK_TO_ROC_GROUP_ID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Data" 	 Name="EventBuilderDTCID" 	 StorageName="EVENT_BUILDER_DTCID" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="255"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderMode" 	 StorageName="EVENT_BUILDER_MODE" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="255"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderPartitionID" 	 StorageName="EVENT_BUILDER_PARTITION_ID" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="255"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderMACIndex" 	 StorageName="EVENT_BUILDER_MAC_INDEX" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="255"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderNumBuff" 	 StorageName="EVENT_BUILDER_NUM_BUFF" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="127"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderStartNode" 	 StorageName="EVENT_BUILDER_START_NODE" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="127"/>
+				<COLUMN Type="Data" 	 Name="EventBuilderNumNodes" 	 StorageName="EVENT_BUILDER_NUM_NODES" 		DataType="NUMBER" 		DataChoices="" 		MinValue="0" 		MaxValue="127"/>
+				<COLUMN Type="Comment" 	 Name="CommentDescription" 	 StorageName="COMMENT_DESCRIPTION" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Author" 	 Name="Author" 	 StorageName="AUTHOR" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Timestamp" 	 Name="RecordInsertionTime" 	 StorageName="RECORD_INSERTION_TIME" 		DataType="TIMESTAMP WITH TIMEZONE" 		DataChoices=""/>
+			</VIEW>
+		</TABLE>
+	</ROOT>

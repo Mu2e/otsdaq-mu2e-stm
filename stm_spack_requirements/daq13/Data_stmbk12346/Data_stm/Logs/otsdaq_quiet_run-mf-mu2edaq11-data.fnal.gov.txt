@@ -1,0 +1,14 @@
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [117 |	Starting...
+
+
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [125 |	port parameter file:/home/mu2eshift/ots_gr3/Data_stm/MessageFacilityConfigurations/QuietForwarder.cfg
+
+
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [146 |	port parameter file failed to open: /home/mu2eshift/ots_gr3/Data_stm/MessageFacilityConfigurations/QuietForwarder.cfg
+
+
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [149 |	Forwarding from: 3000 to: 127.0.0.1:3001
+
+
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [221 |	set socket receive size to 0x1400000.
+LogDebug:mfReceiveAndForward:otsdaq-utilities/otsdaq-utilities/Console/MF_ReceiveAndForward.cpp [231 |	set socket receive size verified at 0x2800000.
