@@ -8,45 +8,46 @@
 #include "trace.h"
 #define TRACE_NAME "Mu2eEventReceiver"
 
-namespace mu2e {
+namespace mu2e
+{
 class Mu2eEventReceiver : public mu2e::Mu2eEventReceiverBase
 {
-public:
+  public:
 	explicit Mu2eEventReceiver(fhicl::ParameterSet const& ps);
 	virtual ~Mu2eEventReceiver();
 
-private:
+  private:
 	// The "getNext_" function is used to implement user-specific
 	// functionality; it's a mandatory override of the pure virtual
 	// getNext_ function declared in CommandableFragmentGenerator
 
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+	bool                       getNext_(artdaq::FragmentPtrs& output) override;
 	DTCLib::DTC_EventWindowTag getCurrentEventWindowTag();
 };
 }  // namespace mu2e
 
 mu2e::Mu2eEventReceiver::Mu2eEventReceiver(fhicl::ParameterSet const& ps)
-	: Mu2eEventReceiverBase(ps)
+    : Mu2eEventReceiverBase(ps)
 {
 	TLOG(TLVL_DEBUG) << "Mu2eEventReceiver Initialized with mode " << mode_;
 }
 
-mu2e::Mu2eEventReceiver::~Mu2eEventReceiver()
-{
-}
+mu2e::Mu2eEventReceiver::~Mu2eEventReceiver() {}
 
 bool mu2e::Mu2eEventReceiver::getNext_(artdaq::FragmentPtrs& frags)
 {
-	while (!simFileRead_ && !should_stop())
+	while(!simFileRead_ && !should_stop())
 	{
 		usleep(5000);
 	}
 
 	std::unique_lock<std::mutex> throttle_lock(throttle_mutex_);
-	auto throttle_usecs = 1000000 / request_rate_;
-	TLOG(TLVL_INFO) << "[mu2e::Mu2eEventReceiver::getNext_] request_rate= " << request_rate_
-					<< " wait_time= " << throttle_usecs;
-	throttle_cv_.wait_for(throttle_lock, std::chrono::microseconds(static_cast<int>(throttle_usecs)), [&]() { return should_stop(); });
+	auto                         throttle_usecs = 1000000 / request_rate_;
+	TLOG(TLVL_INFO) << "[mu2e::Mu2eEventReceiver::getNext_] request_rate= "
+	                << request_rate_ << " wait_time= " << throttle_usecs;
+	throttle_cv_.wait_for(throttle_lock,
+	                      std::chrono::microseconds(static_cast<int>(throttle_usecs)),
+	                      [&]() { return should_stop(); });
 
 	// if (frag_sent_ == 0)
 	// {
@@ -60,17 +61,18 @@ bool mu2e::Mu2eEventReceiver::getNext_(artdaq::FragmentPtrs& frags)
 	//         std::this_thread::sleep_until(target);
 	// }
 
-	if (should_stop())
+	if(should_stop())
 	{
 		return false;
 	}
 
-	uint64_t z = 0;
+	uint64_t                   z = 0;
 	DTCLib::DTC_EventWindowTag zero(z);
 
-	if (mode_ != 0)
+	if(mode_ != 0)
 	{
-		TLOG_DEBUG(2) << "Sending request for timestamp " << getCurrentEventWindowTag().GetEventWindowTag(true);
+		TLOG_DEBUG(2) << "Sending request for timestamp "
+		              << getCurrentEventWindowTag().GetEventWindowTag(true);
 		theCFO_->SendRequestForTimestamp(getCurrentEventWindowTag(), heartbeats_after_);
 	}
 
@@ -80,7 +82,7 @@ bool mu2e::Mu2eEventReceiver::getNext_(artdaq::FragmentPtrs& frags)
 
 DTCLib::DTC_EventWindowTag mu2e::Mu2eEventReceiver::getCurrentEventWindowTag()
 {
-	if (first_timestamp_seen_ > 0)
+	if(first_timestamp_seen_ > 0)
 	{
 		return DTCLib::DTC_EventWindowTag(getCurrentSequenceID() + first_timestamp_seen_);
 	}

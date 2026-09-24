@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////////
-// This module creates a UDP socket for 10G readout (main).  
-/////////////////////////////////////////////////////////////////////////////////// 
+// This module creates a UDP socket for 10G readout (main).
+///////////////////////////////////////////////////////////////////////////////////
 
 /********************************************************************/
 
@@ -14,24 +14,24 @@
 // Hex reader
 //#include "STMDAQ-TestBeam/utils/Hex.hh"
 
-#include<iostream>
-#include<fstream>
+#include <fstream>
+#include <iostream>
 #include <vector>
 
-#include<string.h> //memset 
-#include<arpa/inet.h>
+#include <arpa/inet.h>
+#include <string.h>  //memset
+#include <sys/socket.h>
 #include <sys/types.h>
-#include<sys/socket.h>
 
-#include<time.h> 
+#include <time.h>
 
-#include <fcntl.h> // for open
-#include <unistd.h> // for close 
+#include <fcntl.h>   // for open
+#include <unistd.h>  // for close
 
 using namespace std;
 
-int recv_len;
-int ret[2];
+int            recv_len;
+int            ret[2];
 struct timeval read_timeout;
 
 /*-- UDP Socket Init -------------------------------------------------*/
@@ -91,43 +91,44 @@ UDPsocket::UDPsocket() {}
 
 // }
 
+int UDPsocket::createSocket(int CHANNEL)
+{
+	int sock;
 
-int UDPsocket::createSocket(int CHANNEL){
+	// Creating socket file descriptor
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{  //IPPROTO_UDP
+		die((char*)"socket");
+	}
 
-  int sock;
+	close(sock);
 
-  // Creating socket file descriptor
-  sock=socket(AF_INET, SOCK_DGRAM,0 );
-  if ((sock=socket(AF_INET, SOCK_DGRAM,0 )) == -1){ //IPPROTO_UDP           
-    die((char*)"socket");
-  }
+	// Creating socket file descriptor
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+	{  //IPPROTO_UDP
+		die((char*)"socket");
+	}
 
-  close(sock);
+	// zero out the structure
+	memset((char*)&servaddr, 0, sizeof(servaddr));
 
-  // Creating socket file descriptor
-  sock=socket(AF_INET, SOCK_DGRAM,0 );
-  if ((sock=socket(AF_INET, SOCK_DGRAM,0 )) == -1){ //IPPROTO_UDP           
-    die((char*)"socket");
-  }
-  
-  // zero out the structure                                             
-  memset((char *) &servaddr, 0, sizeof(servaddr));
+	// Filling server information
+	servaddr.sin_family = AF_INET;
+	//  servaddr.sin_port = htons(getPort(READWRITE));
+	servaddr.sin_port = htons(getPORT(CHANNEL));
+	//  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(READWRITE));
+	servaddr.sin_addr.s_addr = inet_addr(getIPaddress(CHANNEL));
 
-  // Filling server information
-  servaddr.sin_family = AF_INET;
-  //  servaddr.sin_port = htons(getPort(READWRITE));  
-  servaddr.sin_port = htons(getPORT(CHANNEL));  
-  //  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(READWRITE));
-  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(CHANNEL));
+	cout << "SERVER: Channel = " << CHANNEL << ": IP = " << getIPaddress(CHANNEL)
+	     << ", PORT = " << getPORT(CHANNEL) << ", socket = " << sock << endl;
 
-  cout << "SERVER: Channel = " << CHANNEL << ": IP = " << getIPaddress(CHANNEL) << ", PORT = " << getPORT(CHANNEL) << ", socket = " << sock << endl;
+	// Set socket to allow port re-use / to reuse port
+	int optval = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
-  // Set socket to allow port re-use / to reuse port
-  int optval = 1;
-  setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
-
-  return sock;
-
+	return sock;
 }
 
 // int UDPsocket::closeSocket(int sock){
@@ -136,175 +137,180 @@ int UDPsocket::createSocket(int CHANNEL){
 
 // }
 
+int UDPsocket::createClient(int CHANNEL)
+{
+	int sock;
 
-int UDPsocket::createClient(int CHANNEL){
+	// Creating UDP socket file descriptor
+	if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
+		perror("socket creation failed");
+		exit(EXIT_FAILURE);
+	}
 
-  int sock;
+	// Zero UDP server address structure
+	memset(&servaddr, 0, sizeof(servaddr));
 
-  // Creating UDP socket file descriptor                                                       
-  if ( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {                                         
-    perror("socket creation failed");                                                          
-    exit(EXIT_FAILURE);                                                                        
-  }                                                                                            
-  
-  // Zero UDP server address structure                                                         
-  memset(&servaddr, 0, sizeof(servaddr));                                                      
-  
-  // Fill UDP server information                                                               
-  servaddr.sin_family = AF_INET;                                                               
-  //  servaddr.sin_port = htons(getPort(READWRITE));   
-  servaddr.sin_port = htons(getPORT(CHANNEL));   
-  //  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(READWRITE));
-  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(CHANNEL));
+	// Fill UDP server information
+	servaddr.sin_family = AF_INET;
+	//  servaddr.sin_port = htons(getPort(READWRITE));
+	servaddr.sin_port = htons(getPORT(CHANNEL));
+	//  servaddr.sin_addr.s_addr = inet_addr(getIPaddress(READWRITE));
+	servaddr.sin_addr.s_addr = inet_addr(getIPaddress(CHANNEL));
 
-  cout << "CLIENT: Channel = " << CHANNEL << ": IP = " << getIPaddress(CHANNEL) << ", PORT = " << getPORT(CHANNEL) << ", socket = " << sock << endl;
+	cout << "CLIENT: Channel = " << CHANNEL << ": IP = " << getIPaddress(CHANNEL)
+	     << ", PORT = " << getPORT(CHANNEL) << ", socket = " << sock << endl;
 
-  return sock;
-
+	return sock;
 }
 
-
 // Bind socket to port
-int UDPsocket::bindSocket(int socket){
+int UDPsocket::bindSocket(int socket)
+{
+	if(bind(socket, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
+	{
+		die((char*)"bind");
+	}
 
-  if( bind(socket , (struct sockaddr*)&servaddr, sizeof(servaddr) ) == -1){
-    die((char*)"bind");
-  }
+	// Zero out the client address structure
+	memset((char*)&cliaddr, 0, sizeof(cliaddr));
 
-  // Zero out the client address structure                                             
-  memset((char *) &cliaddr, 0, sizeof(cliaddr));
+	fflush(stdout);
 
-  fflush(stdout);
-
-  return socket;
-
-}  
+	return socket;
+}
 
 // Set SO_RCVBUF size
-int UDPsocket::set_SO_RCVBUF(int socket, uint32_t size){
-  
-  cout << "SO_RCVBUF, size = " << size << endl;
+int UDPsocket::set_SO_RCVBUF(int socket, uint32_t size)
+{
+	cout << "SO_RCVBUF, size = " << size << endl;
 
-  int returnVal = setsockopt(socket,SOL_SOCKET,SO_RCVBUF,(char*)&size,sizeof\
-			     (size));
+	int returnVal = setsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size));
 
-  socklen_t xx = sizeof(xx);
-  getsockopt(socket,SOL_SOCKET,SO_RCVBUF,(char*)&size,&xx);
+	socklen_t xx = sizeof(xx);
+	getsockopt(socket, SOL_SOCKET, SO_RCVBUF, (char*)&size, &xx);
 
-  cout << "SO_RCVBUF = " << size << endl;
+	cout << "SO_RCVBUF = " << size << endl;
 
-  return returnVal;
-  
-}  
+	return returnVal;
+}
 
 // Set SO_SNDBUF size
-int UDPsocket::set_SO_SNDBUF(int socket, uint32_t size){
-  
-  cout << "SO_SNDBUF, size = " << size << endl;
+int UDPsocket::set_SO_SNDBUF(int socket, uint32_t size)
+{
+	cout << "SO_SNDBUF, size = " << size << endl;
 
-  int returnVal = setsockopt(socket,SOL_SOCKET,SO_SNDBUF,(char*)&size,sizeof\
-			     (size));
+	int returnVal = setsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(size));
 
-  socklen_t xx = sizeof(xx);
-  getsockopt(socket,SOL_SOCKET,SO_SNDBUF,(char*)&size,&xx);
+	socklen_t xx = sizeof(xx);
+	getsockopt(socket, SOL_SOCKET, SO_SNDBUF, (char*)&size, &xx);
 
-  cout << "SO_SNDBUF = " << size << endl;
+	cout << "SO_SNDBUF = " << size << endl;
 
-  return returnVal;
-  
-}  
+	return returnVal;
+}
 
+// Set recvfrom non-blocking timeout
+int UDPsocket::setTimeout(int secs, double usecs)
+{
+	read_timeout.tv_sec  = secs;
+	read_timeout.tv_usec = usecs;
 
-// Set recvfrom non-blocking timeout    
-int UDPsocket::setTimeout(int secs, double usecs){
+	return 1;
+}
 
-  read_timeout.tv_sec = secs;
-  read_timeout.tv_usec = usecs;
+// Send packet to socket
+int UDPsocket::sendPacket(struct packet& p, int socket)
+{
+	sendto(socket,
+	       p.data,
+	       p.size,
+	       MSG_CONFIRM,
+	       (const struct sockaddr*)&servaddr,
+	       sizeof(servaddr));
 
-  return 1;
-
-}  
-
-// Send packet to socket 
-int UDPsocket::sendPacket(struct packet& p, int socket){
-  
-  sendto(socket, p.data, p.size,
-	 MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-	 sizeof(servaddr));
-  
-  return 1;
-
+	return 1;
 }
 
 // Request packet from socket and return as vector of 16-bit words
-int UDPsocket::getPacket(packet &p, int socket, int chan){
+int UDPsocket::getPacket(packet& p, int socket, int chan)
+{
+	if(0)
+	{
+		FD_ZERO(&readfds);
+		FD_SET(socket, &readfds);
+		ret[chan] = select(socket + 1, &readfds, NULL, NULL, &read_timeout);
+		if(ret[chan] > 0)
+		{
+			// socket has pending data to read
+			if((p.size = recvfrom(socket,
+			                      p.data,
+			                      rcvbufsize,
+			                      0,
+			                      (struct sockaddr*)&cliaddr,
+			                      (socklen_t*)&slen)) < 0)
+			{
+				die((char*)"recvfrom()");
+			}
+		}
+		else if(ret[chan] == 0)
+		{
+			return 0;
+			// todo: resend the same packet again, or abort the transfer
+		}
+		else
+		{
+			cout << "error selecting: ret = " << ret[chan] << endl;
+		}
+		return ret[chan];
+	}
+	else
+	{
+		struct mmsghdr  msgvec[1];
+		struct timespec timeout   = {read_timeout.tv_sec, read_timeout.tv_usec * 1000};
+		struct iovec    msg_iovec = {p.data, p.size};
+		struct msghdr   msg       = {NULL, 0, &msg_iovec, 1, NULL, 0, 0};
+		msgvec[0].msg_hdr         = msg;
+		int recv                  = recvmmsg(
+            socket, msgvec, sizeof(msgvec) / sizeof(msgvec[0]), MSG_DONTWAIT, &timeout);
 
-  if (0){
-    FD_ZERO(&readfds);
-    FD_SET(socket, &readfds);
-    ret[chan] = select(socket+1, &readfds, NULL, NULL, &read_timeout);
-    if (ret[chan] > 0){
-      // socket has pending data to read
-      if ((p.size = recvfrom(socket, p.data, rcvbufsize, 0,
-			     (struct sockaddr*) &cliaddr,
-			     (socklen_t *) &slen)) < 0){
-	die((char*)"recvfrom()");
-      }
-    }
-    else if (ret[chan] == 0){
-      return 0;
-      // todo: resend the same packet again, or abort the transfer
-    }
-    else{
-      cout << "error selecting: ret = " << ret[chan] << endl;
-    }
-    return ret[chan];
+		return recv;
 
-  }
-  else{
-    struct mmsghdr msgvec[1];
-    struct timespec timeout = {read_timeout.tv_sec,read_timeout.tv_usec*1000};
-    struct iovec msg_iovec = {p.data,p.size};
-    struct msghdr msg = {NULL,0,&msg_iovec,1,NULL,0,0};
-    msgvec[0].msg_hdr = msg;
-    int recv = recvmmsg(socket,msgvec,sizeof(msgvec)/sizeof(msgvec[0]),MSG_DONTWAIT,&timeout);
-
-    return recv;
-    
-  //  cout << "recv = " << recv << endl;
-  }
-  
-
-  
+		//  cout << "recv = " << recv << endl;
+	}
 }
 
 // Flush queueds packet from socket and return 0 when no bytes left to receive
-int UDPsocket::flushPackets(int socket){
+int UDPsocket::flushPackets(int socket)
+{
+	uint16_t length = getBufferLength();
+	buffer          = new int16_t[length];
+	int recv_len    = 1;
 
-  uint16_t length = getBufferLength();
-  buffer = new int16_t [length];
-  int recv_len = 1;
+	// Zero out the client address structure
+	memset((char*)&cliaddr, 0, sizeof(cliaddr));
 
-  // Zero out the client address structure                                             
-  memset((char *) &cliaddr, 0, sizeof(cliaddr));
+	fflush(stdout);
 
-  fflush(stdout);
+	cout << "Flushing previous packets..." << endl;
 
-  cout << "Flushing previous packets..." << endl;
+	while(1)
+	{
+		if((recv_len = recvfrom(socket,
+		                        buffer,
+		                        rcvbufsize,
+		                        MSG_DONTWAIT,
+		                        (struct sockaddr*)&cliaddr,
+		                        (socklen_t*)&slen)) == -1)
+		{
+			cout << "No packets in queue!" << endl;
+			break;
+		}
+		else
+		{
+			cout << "Flushed packet with size " << recv_len << " bytes." << endl;
+		}
+	}
 
-  while (1){
-    if ((recv_len = recvfrom(socket, buffer, rcvbufsize, MSG_DONTWAIT, 
-			     (struct sockaddr*) &cliaddr, 
-			     (socklen_t *) &slen)) == -1){
-      cout << "No packets in queue!" << endl;
-      break;
-    }
-    else{
-      cout << "Flushed packet with size " << recv_len << " bytes." << endl;
-    }
-  }
-
-  return recv_len;
-
+	return recv_len;
 }
-
