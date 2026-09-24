@@ -150,7 +150,7 @@ def initialise_plots():
     empty_hist = go.Figure(layout=dict(
         title=dict(
             #text=f"Baseline histogram and fit using {window_s:.1f} us window",
-            text=f"Baseline histogram and fit since start of run",
+            text=f"Histogram of all ADC counts with fit to baseline",
             font=dict(size=20, family="Arial", color="black"),
             x=0.5,  # Center title (optional)
             xanchor="center"
@@ -168,9 +168,9 @@ def initialise_plots():
                 text="Number per bin",
                 font=dict(size=18),
             ),
-            #range = [0,1e9]
-            type="log",
-            range = [0, 9],
+            range = [0,1e9],
+            #type="log",
+            #range = [0, 9],
             minor = dict(dtick="D1")
         ),
         margin={"l": 40, "r": 10, "t": 100, "b": 40},
@@ -347,12 +347,12 @@ def draw_baseline(history):
         x = gauss_x,
         y = gauss_all_scaled,
         mode = 'lines',
-        name = 'Window fit'
+        name = 'Baseline fit'
     ))
     baseline_figure.add_trace(go.Bar(
         x = bin_centres,
         y = baseline_hist,
-        name = "Window histogram"
+        name = "All ADCs histogram"
     ))
     baseline_figure.update_layout(
             yaxis=dict(

@@ -63,6 +63,19 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer){
 
       // Get event mode
       uint64_t EM = stm->get_event_mode(data_ptr,hdr_start_loc);      
+      /*if (EWT != current_EWT) {
+	uint16_t EM2_raw = static_cast<uint16_t>(data_ptr[hdr_start_loc + fw_eHdr.EM_2_DRTDC]);
+	uint8_t  dr_tdc   = (EM2_raw >> 8) & 0xFF;
+	uint8_t  em_byte4 = EM & 0xFF;
+	logger->log("Event number = " + std::to_string(EWT)
+		    + " Event mode = " + std::to_string(EM)
+		    + " EM2 = " + std::to_string(dr_tdc)
+		    + "  byte4=0x" + std::to_string(static_cast<int>(em_byte4))
+		  + "  onspill=" + std::to_string((em_byte4 & 0x1))
+		  + "  subrun_handling=" + std::to_string(((em_byte4 >> 1) & 0x7))
+		  + "  stm=" + std::to_string(((em_byte4 >> 4) & 0x3))
+		  +  "  tem=" + std::to_string(((em_byte4 >> 6) & 0x3)),1);
+      }*/
               
       // The start index of the adc data
       size_t data_start = hdr_start_loc + fw_eHdr_len;

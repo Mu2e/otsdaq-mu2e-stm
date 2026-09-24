@@ -1,9 +1,6 @@
 <!-- Pulse Height -->
 <ph>
 
-  <!-- Length of SPSC queue for pulses -->
-  <queue_len>1024</queue_len>
-
   <!-- Baseline calculation -->
   <baselineWindow>20</baselineWindow>
   <baselineLookback>50</baselineLookback>
@@ -25,11 +22,11 @@
   <Nsharp>3</Nsharp>
 
   <!-- Maximum local minimum search region -->
-  <localWindowMax>50</localWindowMax>
+  <localWindowMax>32</localWindowMax>
 
   <!-- Persistence parameters -->
-  <persistenceWindow>5</persistenceWindow>
-  <persistenceFraction>0.5</persistenceFraction>
+  <persistenceWindow>8</persistenceWindow>
+  <persistenceFraction>0.35</persistenceFraction>
   <persistenceCount>3</persistenceCount>
   
   <!-- Parabola fit goodness threshold -->
@@ -48,5 +45,7 @@
     <c5>0.1428571429</c5>
     <c6>-0.0952380952</c6>
   </sg7>
+
+  <queue_len>10</queue_len>
 
 </ph>
