@@ -1,0 +1,45 @@
+# First, you need to load the bitfile onto the firmware. The files to load using Vivado_Lab are:
+
+       erdem_fw_scripts/top_level.bit
+       erdem_fw_scripts/top_level.ltx
+
+# Once this is done, you need to load the binary files onto the FPGA. You do this via:
+
+     cd erdem_fw_scripts
+     python binary_file_load.py ZCU102-FMC120 channel0_mockdata.bin channel1_mockdata.bin
+
+# This will load channel0_mockdata.bin onto channel0 and channel1_mockdata.bin onto channel1.
+
+# Next, you need to compile the software to receive data and write it to file:
+
+      cd ../ 
+      source compile.sh
+
+# This will create the executable recv.exe.
+
+# There are now two steps that you need to be prepared to run in quick succesion in separate terminals:
+
+# 1) Run the data receving software (run this first!):
+
+   ./recv.exe
+
+# 2) In the directory erdem_fw_scripts, run the software to send the data (run this as soon as you can after running ./recv.exe in the other terminal):
+
+   python dtc_sim_test.py ZCU102-FMC120
+
+# Step 1) should tell you that you've received 242 packets and written them to disk. It should have created the file data/channel0_subrun0.bin (ignore any channel1 files that have been created for now).
+
+# Now you can try and compare the input and output files and plot them:
+
+  cd plotting
+  python readBF.py ../erdem_fw_scripts/channel0_mockdata.bin ../data/channel0_subrun0.bin
+
+# This process should have created the directory plotting/plots full of pdf files.
+
+# # # # Extra notes # # # # 
+
+# - In the erdem_fw_scripts directory there are also Claudia's files that you can load, e.g. genData662keV_30kHz.bin.
+# - The software as it currently is will only receive and write data for one channel. To change this you need to open testUDP_recvOnly.cc and set static const uint chNum = 2;
+# - dtc_sim_test.py is currently set to only send data to the first channel via hw.getNode("Buffers.Readout_regs.10g_readout_chan1_chan2").write(0x1). To write to only the second chanel you should write 0x2 to this register and to send data to both channels you should write 0x3 to that register.
+# - To change the number of triggers sent you need to adjust the value written to the register hw.getNode("Buffers.dtc_sim_params.numberhb")
+.# - To change the length of each trigger sent you need to adjust the value written to the register hw.getNode("Buffers.dtc_sim_params.deltahb").

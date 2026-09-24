@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<stm>
+  <!---->
+  <!-- Master Switches -->
+  <!---->
+  <!-- The data channel host servers -->
+  <ch0_host>mu2e-stm-01.fnal.gov</ch0_host> <!-- 0=HPGe -->
+  <ch1_host>mu2e-stm-02.fnal.gov</ch1_host> <!-- 1=LaBr -->
+  <!-- Use software sim sata source? -->
+  <use_sw_sim>0</use_sw_sim> <!-- 0=Firmware,1=Software -->
+  <!-- Starting STMDAQ CPU core ID (for CPU utils) -->
+  <stmdaq_starting_core>2</stmdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <!-- Starting ARTDAQ CPU core ID (for CPU utils) -->
+  <artdaq_starting_core>2</artdaq_starting_core> <!-- Core ID will wrap around from max -->
+  <!---->
+  <!-- Seperate Modules -->
+  <!---->
+  <!-- Firmware Register Parameters -->
+  <include file="firmware.xml"/>
+  <!-- Mu2e event parameters -->
+  <include file="mu2e.xml"/>
+  <!-- Paramaters for data buffers and memory allocation -->  
+  <include file="buffers.xml"/>
+  <!-- Parameters for file writing -->
+  <include file="write_data.xml"/>
+  <!-- Operations: booleans to perform operation -->
+  <include file="operations.xml"/>
+  <!-- UDP parameters -->
+  <include file="udp.xml"/>
+  <!-- ADC baseline -->
+  <include file="baseline.xml"/>
+  <!-- Zero Suppression -->
+  <include file="zs.xml"/>
+  <!-- MWD -->
+  <include file="mwd.xml"/> 
+  <!-- Pulse height -->
+  <include file="ph.xml"/> 
+  <!-- Prescale -->
+  <include file="prescale.xml"/>
+  <!-- TCP Parameters -->
+  <include file="tcp.xml"/>
+  <!-- DQM -->
+  <include file="dqm.xml"/>
+</stm>

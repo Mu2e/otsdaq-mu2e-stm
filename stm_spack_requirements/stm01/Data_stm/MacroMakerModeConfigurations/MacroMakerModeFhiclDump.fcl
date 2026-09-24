@@ -1,0 +1,42 @@
+stmDTC: {
+	FEInterfacePluginName: 	"DTCFrontEndInterface"
+	LinkToFETypeTable_DTCInterfaceTable: 	{
+		stmDTC: 	{
+			EmulatorMode: 				"False"
+			LocationInChain: 				0
+			DeviceIndex: 				0
+			EmulateCFO: 				"No"
+			ConfigureClock: 				"Yes"
+			JitterAttenuatorInputSource: 				"Clock from RJ45"
+			EnableROCConfigureStep: 				"No"
+			LinkToROCGroupTable_ROCInterfaceTable: 	{
+				stmROC: 	{
+					Status: 						"On"
+					ROCGroupID: 						"stmDTC"
+					ROCInterfacePluginName: 						"ROCStoppingTargetMonitorInterface"
+					linkID: 						0
+					EventWindowDelayOffset: 						0
+					EmulateInDTCHardware: 						"False"
+					ROCTypeLinkTable_SubsystemSTMParametersTable: 	{
+						stmROC: 	{
+							tempColumn2: 								"DEFAULT"
+							tempColumn1: 								"DEFAULT"
+							NumberParam1: 								"0"
+							TrueFalseParam2: 								"False"
+							MustBeUniqueParam3: 								"DEFAULT"
+						} //end stmROC record
+					} //end SubsystemSTMParametersTable link record
+				} //end stmROC record
+			} //end ROCInterfaceTable group link record
+			EnableSoftwareDataRequestMode: 				"True"
+			EventBuilderDTCID: 				22
+			EventBuilderMode: 				0
+			EventBuilderPartitionID: 				0
+			EventBuilderMACIndex: 				0
+			EventBuilderNumBuff: 				0
+			EventBuilderStartNode: 				0
+			EventBuilderNumNodes: 				0
+		} //end stmDTC record
+	} //end DTCInterfaceTable link record
+} //end stmDTC
+

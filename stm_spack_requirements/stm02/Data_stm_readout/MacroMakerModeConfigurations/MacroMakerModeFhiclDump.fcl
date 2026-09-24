@@ -1,0 +1,39 @@
+trackerDTC1: {
+	FEInterfacePluginName: 	"DTCFrontEndInterface"
+	LinkToFETypeTable_DTCInterfaceTable: 	{
+		trackerDTC1: 	{
+			EmulatorMode: 				"False"
+			LocationInChain: 				0
+			DeviceIndex: 				1
+			EmulateCFO: 				"Yes"
+			ConfigureClock: 				"No"
+			JitterAttenuatorInputSource: 				"Clock from RJ45"
+			EnableROCConfigureStep: 				"No"
+			LinkToROCGroupTable_ROCInterfaceTable: 	{
+				trackerROC0: 	{
+					Status: 						"On"
+					ROCGroupID: 						"trackerDTC0ROCs"
+					ROCInterfacePluginName: 						"ROCTrackerInterface"
+					linkID: 						0
+					EventWindowDelayOffset: 						0
+					EmulateInDTCHardware: 						"False"
+					ROCTypeLinkTable_SubsystemTrackerParametersTable: 	{
+						trackerROC0: 	{
+							NumberParam1: 								0
+							TrueFalseParam2: 								"False"
+							MustBeUniqueParam3: 								"DEFAULT"
+						} //end trackerROC0 record
+					} //end SubsystemTrackerParametersTable link record
+				} //end trackerROC0 record
+			} //end ROCInterfaceTable group link record
+			EventBuilderDTCID: 				0
+			EventBuilderMode: 				0
+			EventBuilderPartitionID: 				0
+			EventBuilderMACIndex: 				0
+			EventBuilderNumBuff: 				0
+			EventBuilderStartNode: 				0
+			EventBuilderNumNodes: 				0
+		} //end trackerDTC1 record
+	} //end DTCInterfaceTable link record
+} //end trackerDTC1
+

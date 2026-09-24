@@ -1,0 +1,8 @@
+<?xml version = \"1.0\" encoding = \"utf-8\"?>
+<stm>
+    <max_binary_file_size> 2000 </max_binary_file_size> <!-- in Mb and needs to be less than 2000 -->
+    <binary_file_directory> ./data </binary_file_directory>
+    <default_baseline_value> -100 </default_baseline_value>
+    <test_float_value> 99.99 </test_float_value>
+    <!--- put rest here eg # adc samples. trigger offset, etc etc etc --> 
+</stm>

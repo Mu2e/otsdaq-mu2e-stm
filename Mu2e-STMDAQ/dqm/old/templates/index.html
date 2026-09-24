@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Quality Monitoring</title>
+
+    <!-- Import Bootstrap and Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+      }
+      .container {
+          max-width: 1200px;
+          margin: auto;
+          padding: 20px;
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+      .status-message {
+          font-size: 1.2em;
+          font-weight: bold;
+          color: red;
+          text-align: center;
+      }
+      .notification {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          background-color: green;
+          color: white;
+          padding: 10px;
+          border-radius: 5px;
+          display: none;
+          font-weight: bold;
+      }
+      .error-log {
+          max-height: 200px;
+          overflow-y: auto;
+          background: #222;
+          color: #fff;
+          padding: 10px;
+          border-radius: 5px;
+          font-size: 0.9em;
+          white-space: pre-wrap;
+      }
+      canvas {
+          max-width: 100%;
+          height: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">Data Quality Monitoring</h1>
+      <p id="statusMessage" class="status-message">Waiting for shared memory data...</p>
+      <div id="notification" class="notification">Shared memory reconnected!</div>
+
+      <h2>System Status</h2>
+      <table class="table table-bordered">
+        <tr><th>Total Bytes Processed</th><td id="totalBytes">0</td></tr>
+        <tr><th>Active Threads</th><td id="activeThreads">0</td></tr>
+      </table>
+
+      <h2>Bytes Processed Per Thread</h2>
+      <table class="table table-bordered" id="threadStats">
+        <tr><th>Thread</th><th>Bytes Processed</th></tr>
+      </table>
+
+      <h2>Buffer Data</h2>
+      <div id="bufferGraphs"></div>
+
+      <h2>Error Log</h2>
+      <div id="errorLog" class="error-log">No errors reported.</div>
+    </div>
+
+    <script>
+      let bufferCharts = {};
+
+      function fetchDQMData() {
+          fetch('/dqm_data')
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error(`Server Error ${response.status}`);
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  console.log("Received Data:", data);
+
+                  document.getElementById("statusMessage").innerText = data.status;
+                  document.getElementById("totalBytes").innerText = data.totalBytesProcessed || 0;
+                  document.getElementById("activeThreads").innerText = data.activeThreads || 0;
+
+                  if (data.reconnected) {
+                      showNotification("Shared memory reconnected!");
+                  }
+
+                  updateThreadStats(data.threadBytesProcessed);
+                  updateBufferGraphs(data.bufferData, data.bufferAverages, data.bufferCount);
+              })
+              .catch(error => {
+                  console.error("Error fetching data:", error);
+                  document.getElementById("statusMessage").innerText = "Error: " + error.message;
+                  setTimeout(fetchDQMData, 5000);  // Retry in 5 seconds if fetch fails
+              });
+
+          fetch('/error_log')
+              .then(response => response.json())
+              .then(data => {
+                  document.getElementById("errorLog").innerHTML = data.errors.join("<br>");
+              });
+
+          setTimeout(fetchDQMData, 2000);
+      }
+
+      function showNotification(message) {
+          let notification = document.getElementById("notification");
+          notification.innerText = message;
+          notification.style.display = "block";
+          setTimeout(() => notification.style.display = "none", 5000);
+      }
+
+      function updateThreadStats(threadData) {
+          let table = document.getElementById("threadStats");
+          table.innerHTML = "<tr><th>Thread</th><th>Bytes Processed</th></tr>";
+
+          for (let i = 0; i < threadData.length; i++) {
+              let row = table.insertRow();
+              row.insertCell(0).innerText = "Thread " + i;
+              row.insertCell(1).innerText = threadData[i];
+          }
+      }
+
+      function updateBufferGraphs(bufferData, bufferAverages, bufferCount) {
+          let container = document.getElementById("bufferGraphs");
+
+          if (bufferCount === 0 || bufferData.length === 0) {
+              console.warn("No buffer data available.");
+              return;  // Prevent rendering if no data exists
+          }
+
+	  //          for (let i = 0; i < bufferCount; i++) {
+	  for (let i = 0; i < 1; i++) {
+              let canvasId = "bufferChart" + i;
+              let canvas = document.getElementById(canvasId);
+
+              if (!canvas) {
+                  // Create canvas if it doesn't exist
+                  canvas = document.createElement("canvas");
+                  canvas.id = canvasId;
+                  container.appendChild(canvas);
+              }
+
+              let ctx = canvas.getContext("2d");
+
+              if (!bufferCharts[canvasId]) {
+                  // Create new chart if it doesn't exist
+                  bufferCharts[canvasId] = new Chart(ctx, {
+                      type: 'line',
+                      data: {
+                          labels: [...Array(100).keys()],
+                          datasets: [{
+                              label: `Buffer ${i} Data`,
+                              borderColor: 'rgb(75, 192, 192)',
+                              data: bufferData.slice(i * 100, (i + 1) * 100),
+                              fill: false
+                          }, {
+                              label: `Buffer ${i} Average`,
+                              borderColor: 'red',
+                              borderDash: [5, 5],
+                              data: Array(100).fill(bufferAverages[i] || 0),
+                              fill: false
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          animation: { duration: 0 },
+                          scales: {
+                              x: { title: { display: true, text: 'Data Point Index' } },
+                              y: { title: { display: true, text: 'Value' } }
+                          }
+                      }
+                  });
+              } else {
+                  // Update existing chart instead of recreating
+                  bufferCharts[canvasId].data.datasets[0].data = bufferData.slice(i * 100, (i + 1) * 100);
+                  bufferCharts[canvasId].data.datasets[1].data = Array(100).fill(bufferAverages[i] || 0);
+                  bufferCharts[canvasId].update();
+              }
+          }
+      }
+
+      fetchDQMData();
+      </script>
+  </body>
+</html>

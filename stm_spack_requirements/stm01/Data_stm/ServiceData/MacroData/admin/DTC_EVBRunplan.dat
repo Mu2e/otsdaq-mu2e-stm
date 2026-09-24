@@ -1,0 +1,7 @@
+{
+"name":"DTC_EVBRunplan",
+"sequence":"0:w:9100:800404,1:d:1,2:w:92c0:0,3:d:1,4:w:9114:c1c1,6:w:96C8:555555D5,8:w:96CC:78555555",
+"time":"Thu Apr 06 2023 12:20:55 GMT-0500 (Central Daylight Time)",
+"notes":"[Modified 12:23 4/6/2023] ",
+"LSBF":"false"
+}@

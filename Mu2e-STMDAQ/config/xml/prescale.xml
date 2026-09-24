@@ -1,0 +1,23 @@
+<!-- Prescale -->
+<prescale>
+  <raw>
+    <on_spill>
+      <prescale_num>97</prescale_num>
+      <store_consecutive>3</store_consecutive>
+    </on_spill>
+    <off_spill>
+      <prescale_num>97</prescale_num>
+      <store_consecutive>1</store_consecutive>
+    </off_spill>
+  </raw>
+  <zs>
+    <on_spill>
+      <prescale_num>1</prescale_num>
+      <store_consecutive>1</store_consecutive>
+    </on_spill>
+    <off_spill>
+      <prescale_num>1</prescale_num>
+      <store_consecutive>1</store_consecutive>
+    </off_spill>
+  </zs>
+</prescale>

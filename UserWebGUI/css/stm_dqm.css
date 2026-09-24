@@ -1,0 +1,406 @@
+/* === stm_dqm.css === */
+
+/* ===== Cards ===== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 15px;
+    transition: all 0.15s ease;
+}
+
+/* Titles inside cards */
+.card h3 {
+    margin-top: 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Values */
+.value {
+    font-size: 18px;
+    font-family: Inconsolata, monospace;
+    color: var(--text-accent);
+}
+
+/* Status */
+.status-box {
+    margin-bottom: 15px;
+    padding: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    border-radius: 6px;
+    font-family: Inconsolata, monospace;
+    font-size: 14px;
+
+    border: 1px solid #333;
+    background: #1a1a1a;
+
+    transition: all 0.2s ease;
+}
+
+.status-box.ok {
+    color: #4caf50;
+    border-color: #2e7d32;
+}
+
+.status-box.bad {
+    color: #f44336;
+    border-color: #b71c1c;
+}
+
+.status-box.warn {
+    color: #ff9800;
+    border-color: #e65100;
+}
+
+/* ===== Alarm box ===== */
+.alarm-box {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+}
+
+/* ===== Alarm text ===== */
+.ok {
+    color: #4caf50;
+}
+
+.warn {
+    color: #ff9800;
+}
+
+.bad {
+    color: #f44336;
+}
+
+/* ===== Lucide Icons ===== */
+i[data-lucide] {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* ===== Banner ===== */
+.banner {
+    position: fixed;
+    top: 0;
+    left: 220px;
+    right: 0;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 1000;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+
+}
+
+/* Banner states */
+/* ===== OK (green) ===== */
+.banner.ok {
+    background: linear-gradient(90deg, #1f6f2a, #2e8b3c);
+    color: #d0ffd6;
+}
+
+/* ===== WARN (orange) ===== */
+.banner.warn {
+    background: linear-gradient(90deg, #b35a00, #e07a00);
+    color: #ffe0b2;
+}
+
+/* ===== BAD (red) ===== */
+.banner.bad {
+    background: linear-gradient(90deg, #8b1a1a, #c62828);
+    color: #ffd6d6;
+}
+
+/* ===== Section titles ===== */
+.section-title {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* ===== Alarm list (NEW) ===== */
+#alarms div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+/* Icon coloring follows state */
+#alarms .ok i {
+    color: #4caf50;
+}
+
+#alarms .warn i {
+    color: #ff9800;
+}
+
+#alarms .bad i {
+    color: #f44336;
+}
+
+/* ===== Light mode tweaks ===== */
+body.light .value {
+    color: var(--text-accent);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+body.light .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+body.light .card h3 {
+    opacity: 0.9;
+    color: #333;
+}
+
+/* Light mode banner colors (stronger contrast) */
+body.light .banner.ok {
+    background: #c8e6c9;
+    color: #1b5e20;
+}
+
+body.light .banner.warn {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+body.light .banner.bad {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+/* ===== Toggle buttons ===== */
+.theme-toggle {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    transition: all 0.2s ease;
+}
+
+.theme-toggle.active {
+    border: 1px solid #00ffaa;
+    color: #00ffaa;
+}
+
+.theme-toggle.muted {
+    border: 1px solid #666;
+    color: #888;
+}
+
+.spill-on,
+.spill-off {
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* ===== DARK MODE (default) ===== */
+.spill-on {
+    color: #ff2bd6; /* neon pink */
+    background: rgba(0, 191, 255, 0.08);
+    box-shadow: 0 0 6px rgba(0, 191, 255, 0.6);
+    text-shadow: 0 0 6px black;    
+}
+
+.spill-off {
+    color: #00ffff; /* electric aqua */
+    background: rgba(255, 47, 213, 0.08);
+    box-shadow: 0 0 6px rgba(255, 47, 213, 0.6);
+    text-shadow: 0 0 6px black;    
+}
+
+
+/* ===== LIGHT MODE ===== */
+body.light .spill-on {
+    color: #c2188b; /* darker pink */
+    text-shadow: none;
+    font-weight: 700;
+}
+
+body.light .spill-off {
+    color: #1565c0; /* strong blue */
+    text-shadow: none;
+    font-weight: 700;
+}
+
+/* ===== Alarm table ===== */
+#alarmTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+#alarmTable th {
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    opacity: 0.9;
+    border-bottom: 2px solid #444;
+}
+
+#alarmTable td {
+    padding: 12px;
+    font-size: 16px;
+    font-family: Inconsolata, monospace;
+    border-bottom: 1px solid #222;
+}
+
+/* Zebra striping */
+#alarmTable tr:nth-child(even) {
+    background: rgba(255,255,255,0.03);
+}
+
+/* Time column */
+#alarmTable td:first-child {
+    font-size: 15px;
+    opacity: 0.8;
+}
+
+/* Alarm column */
+#alarmTable td:last-child {
+    font-size: 17px;
+    color: #ff5252;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.sec-label {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.6;
+    text-align: center; 
+}
+
+/* ===== Alarm table severity override ===== */
+
+/* OK rows */
+#alarmTable tr.ok {
+    background: rgba(76, 175, 80, 0.12);
+}
+
+/* WARN rows */
+#alarmTable tr.warn {
+    background: rgba(255, 152, 0, 0.15);
+}
+
+/* BAD rows */
+#alarmTable tr.bad {
+    background: rgba(244, 67, 54, 0.18);
+}
+
+/* Make severity clearly visible */
+#alarmTable tr.bad td {
+    color: #ff5252;
+    font-weight: 700;
+}
+
+#alarmTable tr.warn td {
+    color: #ffb300;
+    font-weight: 600;
+}
+
+#alarmTable tr.ok td {
+    color: #66bb6a;
+}
+
+/* Override your current "last column always red" rule */
+#alarmTable tr.ok td:last-child {
+    color: #66bb6a;
+}
+
+#alarmTable tr.warn td:last-child {
+    color: #ffb300;
+}
+
+#alarmTable tr.bad td:last-child {
+    color: #ff5252;
+}
+
+/* ===== Optional: subtle animation for BAD rows ===== */
+@keyframes alarmBlink {
+    0%   { background: rgba(244, 67, 54, 0.18); }
+    50%  { background: rgba(244, 67, 54, 0.32); }
+    100% { background: rgba(244, 67, 54, 0.18); }
+}
+
+#alarmTable tr.bad {
+    animation: alarmBlink 3s infinite;
+}
+
+.clear-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: white;
+    cursor: pointer;
+    font-family: Inconsolata, monospace;
+    transition: 0.2s;
+}
+
+.clear-btn:hover {
+    background: #333;
+    border-color: #00ffaa;
+    color: #00ffaa;
+}
+
+body.light .clear-btn {
+    background: #fff;
+    color: #111;
+    border-color: #ccc;
+}
+
+#peakTable table {
+    font-family: Inconsolata, monospace;
+    border: 1px solid var(--border);
+}
+
+#peakTable th {
+    padding: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+#peakTable td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+#peakTable tr:nth-child(even) {
+    background: rgba(255,255,255,0.03);
+}
+
+body.light #peakTable tr:nth-child(even) {
+    background: rgba(0,0,0,0.03);
+}

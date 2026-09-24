@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Mu2e STM ELBE Beamtest Online DQM</title>
+<meta charset="utf-8"/>
+</head>	
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='navigation.css') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='mu2e_logo.ico') }}">
+<div class="header">
+  <img src="static/mu2e_logo.png" alt="logo" height="30" />
+  <h1> Mu2e STM ELBE Beamtest Online DQM</h1>
+</div>
+
+<div class="navigation">
+  <ul>
+    <li> <a href="/simple_plot"> Test </a></li>    
+  </ul>
+</div>
+
+<div class="page">
+
+   {{ user_text | safe }}
+
+</div>    
+</html>

@@ -1,0 +1,10 @@
+*.o
+*.png
+*.pdf
+*.root
+*.bin
+run00*
+*.so
+*.pcm
+*.d
+*~

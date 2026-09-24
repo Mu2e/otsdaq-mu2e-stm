@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>STM FFT</title>
+
+    <!-- Fonts -->
+    <link href="/WebPath/css/fonts.css?family=Inconsolata:400" rel="stylesheet">
+    <link href="/WebPath/css/fonts.css?family=Comfortaa:400" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="/WebPath/css/ConfigurationAPI.css">
+
+    <!-- OTS JS -->
+    <script src="/WebPath/js/Globals.js"></script>
+    <script src="/WebPath/js/Debug.js"></script>
+    <script src="/WebPath/js/DesktopContent.js"></script>
+    <script src="/WebPath/js/js_lib/ConfigurationAPI.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            color: white;
+        }
+
+        #topBar {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 10px;
+            font-family: Inconsolata;
+            font-size: 12px;
+            border-radius: 4px;
+            z-index: 20;
+        }
+
+        #topBar button {
+            margin-right: 6px;
+        }
+
+        #fftContainer {
+            position: absolute;
+            inset: 0;
+            padding-top: 40px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="topBar">
+    <button onclick="goMain()">Main</button>
+    <button onclick="goStatus()">Status</button>
+    <button onclick="togglePolling()">Pause</button>
+    <span id="fftStatus">Starting...</span>
+</div>
+
+<div id="fftContainer">
+    <canvas id="fftCanvas"></canvas>
+</div>
+
+<script type="module">
+import {
+    httpRequest,
+    decodeUrl
+} from 'https://root.cern/js/latest/modules/main.mjs';
+
+/* ===============================
+   Navigation
+   =============================== */
+
+window.goMain = function () {
+    window.location.href = 'STMMain.html';
+};
+
+window.goStatus = function () {
+    window.location.href = 'STMStatus.html';
+};
+
+/* ===============================
+   Configuration
+   =============================== */
+
+const cfg = (function () {
+    const d = decodeUrl();
+    return {
+        monitor: parseInt(d.get('monitoring') || '500'),
+        addr: d.get('addr') || '/WebPath/UserWebPath/json_dqm/c_stmdqm.json',
+        signalKey: d.get('signal') || 'samples'
+    };
+})();
+
+let polling = true;
+let lastUpdate = 0;
+
+/* ===============================
+   UI helpers
+   =============================== */
+
+function updateStatus(text, color) {
+    const el = document.getElementById('fftStatus');
+    el.textContent = text;
+    el.style.color = color || 'white';
+}
+
+window.togglePolling = function () {
+    polling = !polling;
+    updateStatus(polling ? 'Running' : 'Paused');
+};
+
+/* ===============================
+   FFT utilities
+   =============================== */
+
+function computeFFT(samples) {
+    const N = samples.length;
+    const re = new Array(N).fill(0);
+    const im = new Array(N).fill(0);
+
+    for (let k = 0; k < N; k++) {
+        for (let n = 0; n < N; n++) {
+            const phi = 2 * Math.PI * k * n / N;
+            re[k] += samples[n] * Math.cos(phi);
+            im[k] -= samples[n] * Math.sin(phi);
+        }
+    }
+
+    const mag = new Array(N / 2);
+    for (let i = 0; i < mag.length; i++) {
+        mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+    }
+    return mag;
+}
+
+/* ===============================
+   Drawing
+   =============================== */
+
+const canvas = document.getElementById('fftCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawFFT(mag) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!mag || mag.length === 0)
+        return;
+
+    const max = Math.max.apply(null, mag);
+    const w = canvas.width / mag.length;
+
+    ctx.strokeStyle = 'lime';
+    ctx.beginPath();
+
+    for (let i = 0; i < mag.length; i++) {
+        const x = i * w;
+        const y = canvas.height * (1 - mag[i] / max);
+
+        if (i === 0)
+            ctx.moveTo(x, y);
+        else
+            ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+}
+
+/* ===============================
+   Main loop
+   =============================== */
+
+function updateFFT() {
+    if (!polling)
+        return;
+
+    httpRequest(cfg.addr, 'object')
+        .then(function (json) {
+            const samples = json[cfg.signalKey];
+            if (!Array.isArray(samples) || samples.length < 8) {
+                updateStatus('No signal data', 'orange');
+                return;
+            }
+
+            lastUpdate = Date.now();
+            const mag = computeFFT(samples);
+            drawFFT(mag);
+
+            updateStatus(
+                'OK ' + new Date(lastUpdate).toLocaleTimeString(),
+                'lightgreen'
+            );
+        })
+        .catch(function () {
+            updateStatus('Error loading JSON', 'red');
+        });
+}
+
+setInterval(updateFFT, cfg.monitor);
+
+</script>
+
+</body>
+</html>

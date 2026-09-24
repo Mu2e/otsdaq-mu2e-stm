@@ -1,0 +1,19 @@
+# Configuration file for ZS processing
+
+# Time to store before and after peak (us)
+before_peak_time = 1
+after_peak_time = 2
+
+# HPGe Decay time
+tau = 50000 # Decay time constant (ns)
+
+# ADC parameters
+fADC = 300 # ADC sampling frequency (MHz)
+
+# Gradient calculation parameters for HPGe
+threshold = -100 # The gradient threshold
+window = 100 # The gradient window
+n_average = 100 # Number of points to average
+
+
+

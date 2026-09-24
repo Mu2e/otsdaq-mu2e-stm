@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+	<ROOT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="TableInfo.xsd">
+		<TABLE Name="CFOInterfaceTable">
+			<VIEW Name="CFO_INTERFACE_TABLE" Type="File,Database,DatabaseTest" Description="No%20description.">
+				<COLUMN Type="UID" 	 Name="UID" 	 StorageName="UID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Data" 	 Name="DeviceIndex" 	 StorageName="DEVICE_INDEX" 		DataType="NUMBER" 		DataChoices=""/>
+				<COLUMN Type="YesNo" 	 Name="ConfigureClock" 	 StorageName="CONFIGURE_CLOCK" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="FixedChoiceData" 	 Name="JitterAttenuatorInputSource" 	 StorageName="JITTER_ATTENUATOR_INPUT_SOURCE" 		DataType="STRING" 	DefaultValue="Local%20oscillator"	DataChoices="arbitraryBool=0,Clock%20from%20RJ45"/>
+				<COLUMN Type="Comment" 	 Name="CommentDescription" 	 StorageName="COMMENT_DESCRIPTION" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Author" 	 Name="Author" 	 StorageName="AUTHOR" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Timestamp" 	 Name="RecordInsertionTime" 	 StorageName="RECORD_INSERTION_TIME" 		DataType="TIMESTAMP WITH TIMEZONE" 		DataChoices=""/>
+			</VIEW>
+		</TABLE>
+	</ROOT>

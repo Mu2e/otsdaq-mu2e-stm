@@ -1,0 +1,954 @@
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),0;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),0;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),250000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),250000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),Default;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),Default;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),Default",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),Default",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),1;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),1000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),1000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,test.dat;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),1000",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,test.dat;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),1000",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),0;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),16",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),0;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),16",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),500",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),500",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),2;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),500",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,test.dat;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),500",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),2;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),1;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,test.dat;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),1;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Buffer Test Detached",
+"inputArgs":"Command%20to%200%2FStatus%20(to%20read%20counters%2C%20etc.)%2C%201%2FStart%2C%20or%202%2FHalt%20(Default%3A%20Status),Default;Data%20are%20SubEvents%20(Default%3A%20true),Default;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Match%20Event%20Tags%20(Default%3A%20false),Default;Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;Save%20Binary%20Data%20Filename,Default;Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),2;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),0;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),1;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),0;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),0;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),300",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),0;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),0;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),1;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),Default;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),Default;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),Default",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),1;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),Default;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),Default;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),Default",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),1;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),0;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"DTC Soft Reset",
+"inputArgs":"",
+"outputArgs":"",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10000;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"CFOFrontEndInterface",
+"feUID":"CFO0",
+"macroType":"fe",
+"macroName":"Compile, Set, and Launch Fixed-width Event Window Template Run Plan",
+"inputArgs":"Enable%20CFO%20Run%20Plan%20Execution%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),16;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),0;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get Firmware Version",
+"inputArgs":"",
+"outputArgs":"Firmware%20Version%20Date",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"DTC Hard Reset",
+"inputArgs":"",
+"outputArgs":"",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Jitter Attenuator Setup",
+"inputArgs":"Source%20Clock%20(0%20is%20from%20CFO%2C%201%20is%20from%20RJ45),1;DoNotSet,0;AlsoResetJA,1",
+"outputArgs":"Register%20Write%20Results",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Jitter Attenuator Setup",
+"inputArgs":"Source%20Clock%20(0%20is%20from%20CFO%2C%201%20is%20from%20RJ45),1;DoNotSet,1;AlsoResetJA,0",
+"outputArgs":"Register%20Write%20Results",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),Default;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"DTC Soft Reset",
+"inputArgs":"",
+"outputArgs":"",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get DTC Counters",
+"inputArgs":"",
+"outputArgs":"Packet%20Counters,Link%20Counters,Performance%20Counters",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"DTC Soft Reset",
+"inputArgs":"",
+"outputArgs":"",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"ROC Setup",
+"inputArgs":"Target%20ROC%20(Default%20%3D%20-1%20%3A%3D%20all%20ROCs),0;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Set%20Link%20Timing%20Enable%20(Default%20%3A%3D%20false),Default;Set%20ROC%20Emulation%20Enable%20(Default%20%3A%3D%20false),Default;ROC%20Emulation%20Type%20(Default%20%3D%200%3A%20Internal%2C%201%3A%20Fiber-Loopback%2C%202%3A%20External),Default;ROC%20generated%20Data%20Payload%20fragment%20packet%20count%20(11-bits%2C%20Default%20%3A%3D%2016),Default",
+"outputArgs":"Result",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Interface (Emulation) Setup",
+"inputArgs":"Put%20DTC%20in%20CFO%20Emulation%20Mode%20(Default%20%3A%3D%20false),1;Also%20setup%20Jitter%20Attenuator%20(Default%20%3A%3D%20false),1;Set%20Link%20RX%2FTX%20Enable%20(Default%20%3A%3D%20false),1;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Force%20External%20CFO%20Sample%20Clock%20Edge%20(0%20for%20rising-edge%2C%201%20for%20falling-edge%2C%202%20for%20auto-find%2C%20Default%20%3A%3D%202),0",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"DTCFrontEndInterface",
+"feUID":"DTC7",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),100;Starting%20Event%20Window%20Tag,1;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),1;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"*",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),1001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Get Simple Status",
+"inputArgs":"",
+"outputArgs":"Status",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"Configure DTC for HWDevmode",
+"inputArgs":"",
+"outputArgs":"Setting%20the%20CFO%20emulated%2C%20DCS%20enabled%20and%20the%20retransmission%20off",
+"saveOutputs":"0"
+}#
+{
+"feClass":"*",
+"feUID":"stmDTC",
+"macroType":"fe",
+"macroName":"CFO Emulator Fixed-width Event Window Emulation Setup",
+"inputArgs":"Enable%20CFO%20Emulator%20(Default%20%3A%3D%20false),1;Fixed-width%20Event%20Window%20Duration%20(s%2C%20ms%2C%20us%2C%20ns%2C%20and%20clocks%20allowed)%20%5Bclocks%20%3A%3D%2025ns%5D,100us;Number%20of%20Event%20Window%20Markers%20to%20generate%20(0%20%3A%3D%20infinite),10001;Starting%20Event%20Window%20Tag%20(Default%3A%200),Default;Event%20Window%20Mode%20(Default%20%3A%3D%201),Default;Enable%20Auto-generation%20of%20Data%20Request%20Packets%20(Default%20%3A%3D%20false),Default;Enable%20Clock%20Markers%20(Default%20%3A%3D%20false),Default;Use%20Detached%20Buffer%20Test%20(Default%20%3A%3D%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20to%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Save%20Binary%20Data%20Filename,Default;For%20Detached%20Buffer%20Test%2C%20Save%20Subevent%20Header%20to%20Binary%20File%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Do%20NOT%20Reset%20Counters%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Skip-by-32%20to%20Emulate%20Event%20Building%20(Default%3A%20false),Default;For%20Detached%20Buffer%20Test%2C%20Payload%20Packet%20Threshold%20for%20Saving%20Event%20(Default%3A%200),Default",
+"outputArgs":"response",
+"saveOutputs":"0"
+}#

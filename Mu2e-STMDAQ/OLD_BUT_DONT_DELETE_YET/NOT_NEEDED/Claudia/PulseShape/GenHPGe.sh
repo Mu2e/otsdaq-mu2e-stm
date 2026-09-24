@@ -1,0 +1,14 @@
+#!/bin/bash
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "01" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile1kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "05" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile5kHz.log 
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "10" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile10kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "20" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile20kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "30" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile30kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "40" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile40kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "50" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile50kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "80" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile80kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "100" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile100kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "120" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile120kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "150" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile150kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "180" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile180kHz.log
+/work/cgarcia/STMDAQ-TestBeam/build/bin/HPGe_ehModelSim.exe "200" 1836 0.32 50000 /work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV >/work/cgarcia/DATA/Claudia/GenDataehHPGeSim/1836keV_0.32mV/logfile200kHz.log

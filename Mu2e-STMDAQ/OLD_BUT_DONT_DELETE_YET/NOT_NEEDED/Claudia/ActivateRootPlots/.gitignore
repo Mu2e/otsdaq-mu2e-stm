@@ -1,0 +1,13 @@
+*.o
+*.png
+*.pdf
+*.root
+*.bin
+*.exe
+*.so
+*.pcm
+*.d
+*~
+*.csv
+*.txt
+*.mid.gz

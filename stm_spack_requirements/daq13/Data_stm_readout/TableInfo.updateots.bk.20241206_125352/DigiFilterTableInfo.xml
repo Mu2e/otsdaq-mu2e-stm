@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+	<ROOT xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="TableInfo.xsd">
+		<TABLE Name="DigiFilterTable">
+			<VIEW Name="DIGI_FILTER_TABLE" Type="File,Database,DatabaseTest" Description="No%20description.">
+				<COLUMN Type="UID" 	 Name="UID" 	 StorageName="UID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="ChildLink-Digi ParameterGroup" 	 Name="LinkToDigiFilterParameterTable" 	 StorageName="LINK_TO_DIGI_FILTER_PARAMETER_TABLE" 		DataType="STRING" 		DataChoices="arbitraryBool=0,TriggerParameterTable"/>
+				<COLUMN Type="ChildLinkGroupID-Digi ParameterGroup" 	 Name="LinkToDigiFilterParameterGroupID" 	 StorageName="LINK_TO_DIGI_FILTER_PARAMETER_GROUP_ID" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Comment" 	 Name="CommentDescription" 	 StorageName="COMMENT_DESCRIPTION" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Author" 	 Name="Author" 	 StorageName="AUTHOR" 		DataType="STRING" 		DataChoices=""/>
+				<COLUMN Type="Timestamp" 	 Name="RecordInsertionTime" 	 StorageName="RECORD_INSERTION_TIME" 		DataType="TIMESTAMP WITH TIMEZONE" 		DataChoices=""/>
+			</VIEW>
+		</TABLE>
+	</ROOT>

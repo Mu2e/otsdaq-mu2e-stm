@@ -1,0 +1,391 @@
+  562  scp -r stm_mu2e@mu2e-stm-01.fnal.gov:/work /work
+  563  emacs -nw ~/.k5login 
+  564  emacs -nw ~/.bashrc 
+  565  emacs -nw ~/.bash_profile 
+  566  emacs -nw /etc/bashrc 
+  567  emacs -nw ~/.bashrc 
+  568  emacs -nw ~/.bash
+  569  emacs -nw ~/.bashrc
+  570  emacs -nw ~/.k5login
+  571  exit
+  572  ls /work/
+  573  exit
+  574  cat .k5login
+  575  exit
+  576  cat /root/.k5login
+  577  exit
+  578  . ~ron/.profile
+  579  source /home/xilinx/Vivado_Lab/2021.2/settings64.as
+  580  source /home/xilinx/Vivado_Lab/2021.2/settings64.sh 
+  581  vivado_lab &
+  582  cd /home/
+  583  ls
+  584  cd xilinx/
+  585  ls
+  586  scp -r stm_mu2e@mu2e-stm-01.fnal.gov:/data1/Xilinx_Vitis/Vitis .
+  587  ls
+  588  ls Vitis/
+  589  ls
+  590  rm -r Vitis
+  591  rm -fr Vitis
+  592  ifconfig
+  593  if config
+  594  ifconfig
+  595  ping 192.168.42.210
+  596  ping 192.168.42.211
+  597  ping 192.168.42.110
+  598  tcpdump -i eno2
+  599  tcpdump -i eno2 -n 
+  600  ping 192.168.42.110
+  601  ping 192.168.42.210
+  602  ls
+  603  ifconfig
+  604  tcpdump -i eno2-n net 192.168
+  605  tcpdump -i eno2 -n net 192.168
+  606  exit
+  607  ifcnonfig
+  608  ifconfig
+  609  ethtool
+  610  ifconfig
+  611  iplink
+  612  ip limk
+  613  ip link show
+  614  exit
+  615  ll
+  616  uname -a
+  617  whoami
+  618  date
+  619  df -h
+  620  cat .bash_profile
+  621  cat .bashrc
+  622  ls /usr/local
+  623  ls /usr/local/go
+  624  echo $PATH
+  625  ls $HOME/bin
+  626  set -x
+  627  . /etc/bashrc
+  628  exit
+  629  pwd
+  630  exit
+  631  emacs -nw /etc/default/grub
+  632  %
+  633  grub-mkconfig -o /boot/grub/grub.cfg
+  634  emacs -nw /etc/default/grub
+  635  grub-mkconfig -o /boot/grub/grub.cfg
+  636  emacs -nw /etc/modprobe.d/ixgbe.conf
+  637  rmmod ixgbe; modprobe ixgbe
+  638  echo ~ron
+  639  ls /home
+  640  pidof glusterd
+  641  df
+  642  mount -a
+  643  df
+  644  ls /home
+  645  umount /home
+  646  df
+  647  exit
+  648  ps aux
+  649  w
+  650  ls -a
+  651  alias ls=ls\ -l
+  652  ls -a
+  653  set +x
+  654  cat .prof
+  655  cat .bash_profile 
+  656  ls $HOME/bin
+  657  cat .bashrc
+  658  cat /etc/bashrc
+  659  vi .bash_profile 
+  660  mv .bash_profile{,.orig}
+  661  mv .bash_profile{.orig,}
+  662  cp -p .bash_profile{,.orig}
+  663  vi .bash_profile
+  664  cp .bashrc{,.orig} -p
+  665  vi .bashrc
+  666  vi .bash_profile
+  667  ls -a
+  668  echo $SHELL
+  669  pwd
+  670  vi .bash_profile
+  671  vi .bashrc
+  672  w
+  673  ps -alx | less
+  674  df
+  675  uptime
+  676  ifconfig
+  677  ifconfig -a
+  678  h
+  679  history
+  680  lsmod
+  681  lsmod | grep ixgbe
+  682  modprobe ixgbe
+  683  lsmod | grep ixgbe
+  684  ifonfig
+  685  ifconfig
+  686  ifconfig -a
+  687  ifup eno1
+  688  ifup eno2
+  689  ifconfig
+  690  pwd
+  691  systemctl restart nfs
+  692  cat /etc/fstab 
+  693  nslooup mu2edaq13-ctrl.fnal.gov
+  694  nslookup mu2edaq13-ctrl.fnal.gov
+  695  ifconfig
+  696  nslookup mu2edaq13-ctrl.fnal.gov
+  697  ping 192.168.157.13
+  698  cat /etc/resolv.conf 
+  699  ping 131.225.0.254
+  700  route -n
+  701  ifconfig
+  702  route -n
+  703  route add default gw 131.225.237.97
+  704  route -n
+  705  route del default gw 192.168.157.91
+  706  route -n
+  707  df
+  708  ifconfig
+  709  ifconfig eno2:0 192.168.42.211 netmask 255.255.255.0
+  710  ifconfig
+  711  shutdown -h now
+  712  ifconfig
+  713  ifconfig -a
+  714  exit
+  715  less /etc/profile
+  716  ls /etc/profile.d/
+  717  grep HOME.*profile /etc/profile.d/*.sh
+  718  grep HOME.*profile /etc/profile.d/sh.local 
+  719  cat  /etc/profile.d/sh.local
+  720  grep HOME.*profile /etc/profile
+  721  vi .bashrc
+  722  vi .bash_profile
+  723  . ~ron/.profile
+  724  history 
+  725  vivado &
+  726  source /home/xilinx/Vivado_Lab/2021.2/settings64.sh 
+  727  vivado &
+  728  vivado_lab &
+  729  dmesg | grep *USB*
+  730  dmesg
+  731  scp stm_mu2e@mu2e-stm-01.fnal.gov:/etc/udev/rules.d/*xilinx* .
+  732  ls
+  733  mv *xilinx* /etc/udev/rules.d/
+  734  ls /etc/udev/rules.d/
+  735  scp stm_mu2e@mu2e-stm-01.fnal.gov:/etc/slam-firewall/services.d/mu2e_51872-51874_udp /etc/slam-firewall/services.d/
+  736  cd /etc/slam-firewall/services.d/
+  737  ls
+  738  emacs -nw mu2e_51872-51874_udp
+  739  ls
+  740  rm mu2e_51872-51874_udp~ 
+  741  ls
+  742  emacs -nw mu2e_51872-51874_udp 
+  743  emacs -nw /etc/slam-firewall/zone.d/FNAL.d/INPUT/mu2e_51872-51874_udp 
+  744  ls /etc/slam-firewall/zone.d/FNAL.d/INPUT/mu2e_51872-51874_udp 
+  745  more /etc/slam-firewall/zone.d/FNAL.d/INPUT/mu2e_51872-51874_udp 
+  746  ls /etc/udev/rules.d/
+  747  history
+  748  ls
+  749  ifconfig
+  750  ifconfig -a
+  751  sudo ifconfig ens1f0 192.168.34.12 up
+  752  ifconfig -a
+  753  sudo ifconfig ens1f0 mtu 9000
+  754  ifconfig -a
+  755  ping 192.168.43.10
+  756  ping 192.168.34.10
+  757  ping 192.168.43.10
+  758  sudo ifconfig ens1f1 mtu 9000
+  759  sudo ifconfig ens1f1 192.168.36.12 up
+  760  ifconfig -a
+  761  ethtool
+  762  ip link show
+  763  history
+  764  ifconfig -a
+  765  ping 192.168.34.10
+  766  ifconfig -a
+  767  emacs -nw /etc/sysconfig/network-scripts/ifcfg-ens1f0
+  768  cp /etc/sysconfig/network-scripts/ifcfg-ens1f0 /etc/sysconfig/network-scripts/ifcfg-ens1f1
+  769  emacs -nw /etc/sysconfig/network-scripts/ifcfg-ens1f1
+  770  ls /etc/sysconfig/network-scripts/
+  771  ifconfig -a
+  772  ping 192.168.34.10
+  773  history
+  774  top
+  775  history
+  776  reboot
+  777  ls
+  778  history
+  779  sudo ifconfig ens1f1 192.168.36.12 up
+  780  ip link show
+  781  ifconfig -a
+  782  ip link show
+  783  uname -r
+  784  . ~ron/.profile
+  785  ifconfig -a
+  786  iptables --list
+  787  history
+  788  systemctl restart n
+  789  more /etc/slam-firewall/zone.d/FNAL.d/INPUT/mu2e_51872-51874_udp 
+  790  iptables --list
+  791  more /etc/slam-firewall/zone.d/FNAL.d/INPUT/mu2e_51872-51874_udp 
+  792  history
+  793  ifconfig -a
+  794  tcpdump -i eno2:0
+  795  tcpdump -i -n eno2:0
+  796  tcpdump -n -i eno2:0
+  797  ifconfig -a
+  798  history | grep xilinx
+  799  exit
+  800  history
+  801  history | grep xilinx
+  802  emacs -nw /etc/udev/rules.d/52-xilinx-digilent-usb.rules 
+  803  emacs -nw /etc/udev/rules.d/52-xilinx-ftdi-usb.rules 
+  804  exit
+  805  ifconfig
+  806  ping  192.168.36.10
+  807  lspci | grep -i xilin
+  808  lspci | grep -i xilin -C4
+  809  ls /dev/ | less
+  810  ls -l /dev/ | less
+  811  cd /etc/udev/
+  812  ls
+  813  find . -type f | xargs grep 188
+  814  lsmod | grep -i usb
+  815  ifconfig
+  816  ping  192.168.36.10
+  817  ping  192.168.34.10
+  818  ifconfig
+  819  tcdump -interface ens1f0 greater  100
+  820  tcpdump -interface ens1f0 greater  100
+  821  tcpdump --interface ens1f0 greater  100
+  822  ls /home/products/Xilinx/Vitis/2019.2/
+  823  source /home/products/Xilinx/Vitis/2019.2/settings64.sh 
+  824  vitis &
+  825  exit
+  826  source /home/products/Xilinx/Vitis/2019.2/settings64.sh 
+  827  vitis &
+  828  exit
+  829  sourcee /home/products/Xilinx/Vivado/2019.2/settings64.sh 
+  830  source /home/products/Xilinx/Vivado/2019.2/settings64.sh 
+  831  vivado &
+  832  vivado_lab &
+  833  exit
+  834  chmod 777 -r /home/products/Xilinx 
+  835  chmod -rwx -r /home/products/Xilinx 
+  836  ls /home/products/Xilinx
+  837  ls -lst /home/products/Xilinx
+  838  ls -lst /home/products/Xilinx/Vitis/
+  839  ls /home/
+  840  ls
+  841  cd bitfiles/
+  842  ls
+  843  scp stm_mu2e@mu2e-stm-01.fnal.gov:/home/stm_mu2e/Erdem_work_0723/bitfiles/*top_level_dtc_adc_jan24_1link_2_4Kila_evmdebug_3* .
+  844  cd ../vitis_workspace/
+  845  ls
+  846  chmod 777 *
+  847  ls -lt
+  848  exit
+  849  vitis &
+  850  source /home/products/Xilinx/Vitis/2019.2/settings64.sh 
+  851  vitis &
+  852  chmod 777 STMDAQ-TestBeam/STM_firmware/vitis_workspace
+  853  ls
+  854  ls -la  STMDAQ-TestBeam/STM_firmware/
+  855  vitis &
+  856  exit
+  857  ifconfig
+  858  tcpdump --interface ens1f0 greater 100
+  859  exit
+  860  tcpdump --interface ens1f1 greater 100
+  861  source /home/products/Xilinx/Vitis/2019.2/settings64.sh 
+  862  vitis &
+  863  exit
+  864  source /home/products/Xilinx/Vitis/2019.2/settings64.sh 
+  865  vitis
+  866  cd
+  867  ls
+  868  mdadm --misc -D /dev/md125
+  869  mdadm --misc -D /dev/md126
+  870  df
+  871  ls /dev
+  872  ssh mu2edaq14
+  873  ssh mu2edaq13
+  874  cd
+  875  cd /etc/slam-firewall/
+  876  ls
+  877  cd services.d/
+  878  ls
+  879  less mu2e_51872-51874_udp 
+  880  scp mu2egateway01:~eflumerf/mu2e_* .
+  881  ls
+  882  cd ..
+  883  cd zone.d/
+  884  ls
+  885  cd FNAL.d
+  886  ls
+  887  cd INPUT/
+  888  ls
+  889  ls -l
+  890  ln -s /etc/slam-firewall/services.d/mu2e_10000to11000_tcp 
+  891  systemctl restart slam-firewall
+  892  exit
+  893  emacs -nw ~/.ssh/config 
+  894  exit
+  895  id
+  896  lsmod | grep mu2e4
+  897  lsmod | grep mu2e
+  898  rmmod mu2e
+  899  tcntl info
+  900  exit
+  901  rmmod mu2e
+  902  rmmod TRACE
+  903  modprode mu2e
+  904  /sbin/modprode mu2e
+  905  modprobe mu2e
+  906  exit
+  907  rmmod mu2e
+  908  . /mu2e/ups/setup
+  909  setup TRACE v3_17_09
+  910  setup TRACE v3_17_07
+  911  tinfo -q
+  912  unsetup TRACE
+  913  setup TRACE v3_17_09
+  914  tinfo -q
+  915  tenv
+  916  modprobe mu2e
+  917  exit
+  918  lsof|grep /dev/mu2e
+  919  kill 42024
+  920  lsof|grep /dev/mu2e
+  921  rm -rf /home/mu2ehwdev/RTF_Firmware/RTF2024Mar08_13_23.1b
+  922  exit
+  923  rm -rf *
+  924  ls
+  925  rm -r STM_firmware/
+  926  reboot
+  927  pip install scipy
+  928  pip install --upgrade pip
+  929  exit
+  930  python app.py 
+  931  ource ../setup.sh 
+  932  source ../setup.sh 
+  933  python app.py 
+  934  emacs -nw app.py 
+  935  ls
+  936  exit
+  937  emacs -nw /etc/sysctl.conf
+  938  sysctl -p
+  939  sysctl --system
+  940  exit
+  941  ll
+  942  source read_dtc_temps.sh 
+  943  exit
+  944  crontab -l
+  945  exit
+  946  emacs -nw /etc/sysctl.conf
+  947  exit
+  948  hsitory
+  949  history
+  950  emacs -nw /etc/sysctl.conf
+  951  exit
+  952  tcpdump --interface ens1f1 greater 100

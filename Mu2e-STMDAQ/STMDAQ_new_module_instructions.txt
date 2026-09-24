@@ -1,0 +1,128 @@
+# Adding a New Module/Class and Functions to the STMDAQ Processing Data Stream
+
+In Mu2e-STMDAQ/processing, there are two template module scripts:
+
+template_module.cc
+template_module.hh
+
+These files define a template class with three functions:
+
+TemplateClass::temp_func_1
+TemplateClass::temp_func_1_inner
+TemplateClass::temp_func_2
+
+temp_func_1 and temp_func_2 are threaded functions that can be enabled in Mu2e-STMDAQ/config/stmdaq.xml. temp_func_1_inner is a helper function called inside temp_func_1 to operate on the buffer within the same thread.
+
+Execution order:
+
+1. temp_func_1 receives a buffer from the previous queue in the chain, processes it, calls temp_func_1_inner for additional processing, then pushes the buffer to another queue.
+2. temp_func_2 pulls the buffer from that queue, processes it, and pushes it to the next stage in the chain.
+
+When these functions are enabled in stmdaq.xml and the DAQ is run via:
+
+./build/bin/main.exe
+
+…the log output changes from:
+
+[2025-08-14 04:00:55] TemplateClass class is OFF.
+
+to:
+
+[2025-08-14 04:01:13] TemplateClass class is ON.
+[2025-08-14 04:01:13] TemplateClass::temp_func_1 is ON.
+[2025-08-14 04:01:13] TemplateClass::temp_func_2 is ON.
+
+---
+
+## Steps to Create a New Module
+
+Below, "new_module" is a placeholder - choose an appropriate name.
+
+### 1. Copy the Template Files
+
+cp processing/template_module.cc processing/new_module.cc
+cp processing/template_module.hh processing/new_module.hh
+
+### 2. Rename References in the New Files
+
+In both .cc and .hh files, replace:
+
+Module name: TEMPLATE_MODULE → [NEW_MODULE], template_module → [new_module]
+Class name: TemplateClass → [NewClass]
+Function names: Change to suit your new functionality.
+
+Do not remove or modify existing includes or pre-instantiated variables in the constructor.
+
+### 3. Update the Makefile
+
+In processing/Makefile, add new_module.cc to LIB_CC.
+
+### 4. Register in operation_manager.hh
+
+In class_map, copy the TemplateClass entry and adjust:
+
+{"TemplateClass",
+  { [this]() { return std::make_shared<TemplateClass>(cfg, logger, stm, CHAN); },
+    {"temp_func_1", "temp_func_2"} }},
+
+Rename to your class and functions from step 2.
+
+- Note: The order in class_map doesn’t determine execution order, but placing it logically helps readability.
+
+### 5. Add to stmdaq.xml
+
+In config/stmdaq.xml under stm.operations, copy:
+
+<TemplateClass>0 <!-- Template class -->
+  <temp_func_1>0</temp_func_1>
+  <temp_func_2>0</temp_func_2>
+</TemplateClass>
+
+… and change all names to match your module.
+
+>   Ordering here matters — placement in the XML defines the execution stage.
+>   If your module depends on another having run first, either:
+>
+>   (a) Check prerequisites inside your code, or
+>   (b) Adjust the execution order in the XML.
+>   Contact Alex Keshavarzi if unsure.
+
+### 6. Compile and Test
+
+  Build the code.
+  Run with your new module disabled — verify the log shows it as OFF  .
+  Enable functions individually in stmdaq.xml and confirm ON/OFF behaviour matches expectations.
+
+### 7. Implement Your Module’s Functionality
+
+Follow these rules:
+
+Declare variables in the constructor so they are cleaned up properly.
+
+Function definitions require:
+
+    Edits to .cc, .hh, operation_manager.hh, and stmdaq.xml as described above.
+    Adding them to the functionMap in your class constructor, e.g.:
+
+    functionMap["temp_func_1"] = [this](std::shared_ptr<DataStruct>& buffer) {
+      temp_func_1(buffer);
+    };
+    functionMap["temp_func_2"] = [this](std::shared_ptr<DataStruct>& buffer) {
+      temp_func_2(buffer);
+    };
+    
+Memory management:  
+
+    Avoid allocating persistent arrays as class members unless essential.
+    Prefer stack allocation; if heap allocation is unavoidable, free memory in the destructor.
+    Any new variables in DataStruct must be properly added and cleaned up.
+
+Performance:  
+
+    Target ≥5 Gbps processing speed before integrating into the DAQ.
+    Optimise and multi-thread if slower.
+
+Validation:  
+
+    Compare against a standalone reference implementation with known output.
+    Write DAQ output to file and confirm results match expectations.

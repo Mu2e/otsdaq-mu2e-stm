@@ -1,0 +1,204 @@
+<node id="fmc120_top" description="data sink control" fwinfo="endpoint">
+    <node id="Buffers" address="0x00001000">
+       <node id="Host2FPGA_buf_reg" address="0x0"/>
+       <node id="Host2FPGA_buf_reg_select" address="0x1"/>
+       <node id="Host2FPGA_buf_stat" address="0x2">
+          <node id="Full" mask="0x1"/>
+          <node id="Count" mask="0xFFFF0000"/>
+       </node>
+       <node id="Host2FPGA_buf_reg_reset" address="0x3"/>
+       <node id="FPGA2Host_buf_reg" address="0x10" mode="port" size="256"/>
+       <node id="FPGA2Host_buf_stat" address="0x12">
+          <node id="Empty" mask="0x2" description="read only "/>
+          <node id="Full" mask="0x4" description="read only "/>
+          <node id="trigs_enable" mask="0x10" description="r/w level"/>
+          <node id="Count" mask="0xFFFF0000"/>
+       </node>
+       <node id="Debug_controls_pulse" address="0x14">
+          <node id="spill_patt_emu_start" mask="0x0001" description="write only pulse"/>
+          <node id="spill_patt_emu_stop" mask="0x0002" description="write only pulse"/>
+       </node>
+       <node id="allow_cont_data_in_spill_patt" address="0x16"  description="r/w level"/>
+       <node id="stop_overwrite" address="0x18"  description="r/w level"/>
+       <node id="10g_readout" address="0x20" >
+           <node id="8kbyte_read" address="0x0" />
+           <node id="cont_readout_8K_chunks" address="0x1" />
+       </node>
+       <node id="Debug_controls_pulse_2" address="0x22">
+          <node id="cont_data_on_debug" mask="0x0001" description="write only pulse"/>
+          <node id="cont_data_off_debug" mask="0x0002" description="write only pulse"/>
+       </node>
+       <node id="Debug_controls_pulse_3" address="0x24">
+          <node id="1K_read_start" mask="0x0001" description="write only pulse"/>
+       </node>
+       <node id="Debug_controls_pulse_4" address="0x26">
+          <node id="DDR_read_addr_reset" mask="0x0001" description="write only pulse"/>
+          <node id="DDR_wr_addr_reset" mask="0x0002" description="write only pulse"/>
+       </node>
+       <node id="Debug_RAM_Status" address="0x28">
+           <node id="Status_trig_and_wr_address_return" address="0x0" description="first write 1 to this addr then read from this addr and read from the next address"/>
+           <node id="Read_address_return" address="0x1"/>
+       </node>
+       <node id="10g_readout_2" address="0x30">
+           <node id="reset_readout" address="0x0"/>
+           <node id="disable_reset_memory_readout" address="0x1"/>
+       </node>
+       <node id="Controls_misc" address="0x32">
+           <node id="adc_emulation_enable" address="0x0"/>
+           <node id="reset_trig_fifos" address="0x1"/>
+       </node>
+       <node id="Debug_RAM_Status_10g" address="0x34">
+           <node id="Status_trig_and_wr_address_return" address="0x0" description="first write 1 to this addr then read from this addr and read from the next address"/>
+           <node id="Read_address_return" address="0x1"/>
+       </node>
+       <node id="Readout_regs" address="0x40">
+           <node id="prescale_hpge_raw_on" address="0x0"/>
+           <node id="prescale_hpge_raw_off" address="0x1"/>
+           <node id="prescale_labr_raw_on" address="0x2"/>
+           <node id="prescale_labr_raw_off" address="0x3"/>
+           <node id="ext_trig_timeout" address="0x4"/>
+           <node id="prescale_hpge_zp_on" address="0x5"/>
+           <node id="prescale_hpge_zp_off" address="0x6"/>
+           <node id="reset_trig_count" address="0x7"/>
+           <node id="prescale_labr_zp_on" address="0x8"/>
+           <node id="prescale_labr_zp_off" address="0x9"/>
+           <node id="reset_40MHz_75MHz_timers" address="0xA"/>
+           <node id="10g_readout_chan1_chan2" address="0xB"/> 
+           <node id="Mem_rollover_stat" address="0xc"/>
+           <node id="teng_interpacket_pause" address="0xD"/>
+           <node id="stat_timeout_occured" address="0xE"/>
+           <node id="stat_first_hb_received" address="0xF"/>
+       </node>
+       <node id="pmu_access" address="0x50">
+           <node id="address" address="0x0"/>
+           <node id="wr_data" address="0x1"/>
+           <node id="command" address="0x2"/>
+       </node>
+       <node id="dtc_sim_params" address="0x60">
+           <node id="deltahb" address="0x0"/>
+           <node id="numberhb" address="0x1"/>
+           <node id="offsethb" address="0x2"/>
+           <node id="dtc_sim_start" address="0x3"/>
+           <node id="dtc_sim_reset" address="0x4"/>
+       </node>
+       <node id="dtc_ctrl_stat_regs" address="0x70">
+           <node id="comma_detect_start" address="0x0"/>
+           <node id="comma_detect_stats" address="0x1"/>
+           <node id="evm_hb_seq_err_count" address="0x2"/>
+           <node id="hb_evm_int_err_count" address="0x3"/>
+           <node id="hb_crc_err_count" address="0x4"/>
+           <node id="event_tag_skipped_count" address="0x5"/>
+           <node id="dtc_link_rst" address="0x6"/>
+           <node id="dtc_link_up" address="0x7"/>
+           <node id="dtc_clk_marker_sync_off" address="0x8"/>
+       </node>
+       <node id="dtc_link_reset" address="0x80"/>
+    </node> 
+    <node id="General_reset" address="0x00002100"/>
+    
+    <node id="Captures" description="ADC capture buffer ctrl">
+      <node id="capture_0" address="0x00002400">
+	<node id="command" address="0x8"/>
+	<node id="ctrl" address="0x9"/>
+	<node id="nb_of_bursts" address="0xA"/>
+	<node id="burst_length" address="0xB"/>
+	<node id="status" address="0xC"/>
+      </node>
+      <node id="capture_1" address="0x00002420">
+	<node id="command" address="0x8"/>
+	<node id="ctrl" address="0x9"/>
+	<node id="nb_of_bursts" address="0xA"/>
+	<node id="burst_length" address="0xB"/>
+	<node id="status" address="0xC"/>
+      </node>
+      <node id="capture_2" address="0x00002410">
+	<node id="command" address="0x8"/>
+	<node id="ctrl" address="0x9"/>
+	<node id="nb_of_bursts" address="0xA"/>
+	<node id="burst_length" address="0xB"/>
+	<node id="status" address="0xC"/>
+      </node>
+      <node id="capture_3" address="0x00002430">
+	<node id="command" address="0x8"/>
+	<node id="ctrl" address="0x9"/>
+	<node id="nb_of_bursts" address="0xA"/>
+	<node id="burst_length" address="0xB"/>
+	<node id="status" address="0xC"/>
+      </node>
+    </node>
+    <node id="Repeats" description="DAC repeat buffer ctrl">
+      <node id="repeat_0" address="0x00002450">
+	<node id="ctrl" address="0x8"/>
+	<node id="burst_size" address="0x9"/>
+	<node id="status" address="0xA"/>
+      </node>
+      <node id="repeat_1" address="0x00002440">
+	<node id="ctrl" address="0x8"/>
+	<node id="burst_size" address="0x9"/>
+	<node id="status" address="0xA"/>
+      </node>
+      <node id="repeat_2" address="0x00002460">
+	<node id="ctrl" address="0x8"/>
+	<node id="burst_size" address="0x9"/>
+	<node id="status" address="0xA"/>
+      </node>
+      <node id="repeat_3" address="0x00002470">
+	<node id="ctrl" address="0x8"/>
+	<node id="burst_size" address="0x9"/>
+	<node id="status" address="0xA"/>
+      </node>
+    </node>
+    <node id="FIFO_64K" address = "0x000024C0">
+        <node id="Storage_size" address = "0x2" />
+        <node id="Data_count" address = "0x8" />
+        <node id="Wr_data_count" address = "0x9" />
+        <node id="Rd_data_count" address = "0xA" />
+    </node>
+    <node id="Router_ctrl" address = "0x000024CB">
+        <node id="Output_0_select" address = "0x8" />
+        <node id="Output_1_select" address = "0x9" />
+        <node id="Output_2_select" address = "0xA" />
+        <node id="Output_3_select" address = "0xB" />
+        <node id="Output_4_select" address = "0xC" />
+        <node id="Output_5_select" address = "0xD" />
+        <node id="Output_6_select" address = "0xE" />
+        <node id="Output_7_select" address = "0xF" />
+        <node id="Output_status" address = "0x10" />
+        <node id="Input_status" address = "0x11" />
+    </node>    
+    <node id="CID_registers" address="0x00002000">
+        <node id="constellation_id" address="0x0"/>
+        <node id="sw_build" address="0x1"/>
+        <node id="hw_build" address="0x2"/>
+        <node id="version" address="0x3"/>
+    </node>    
+    <node id="axi_fmc120_8lane" address="0x000024DB" fwinfo="endpoint">
+        <node id="FMC120_ctrl" address="0x10" description="Specific FMC144 related ctrl">
+            <node id="fmc_info" address="0x0"/>
+            <node id="status" address="0x1"/>
+            <node id="transceiver" address="0x2"/>
+            <node id="pin_ctrl" address="0x03"/>
+            <node id="dac_ctrl" address="0x04"/>
+            <node id="adc_over" address="0x05"/>
+            <node id="adc0_stat" address="0x06"/>
+            <node id="adc1_stat" address="0x07"/>
+            <node id="sw_trigger" address="0x08"/>
+            <node id="adc_valid" address="0x09"/>
+        </node>
+        <node id="Freq_ctr" address="0x20" description="Frequency Counter">
+            <node id="clk_sel" address="0x0"/>
+            <node id="clk_cnt" address="0x1"/>
+        </node> 
+    </node>
+    <node id="i2c_master" address="0x0000259B" fwinfo="endpoint">
+        <node id="i2c" address="0x08" fwinfo="endpoint">
+                <node id="address" address="0x0"/>
+                <node id="wdat" address="0x1"/>
+                <node id="cmd" address="0x2"/>
+                <node id="read" address="0x03"/>
+                <node id="prer" address="0x4"/>
+                <node id="byte" address="0x5"/>
+                <node id="ctrl" address="0x6"/>
+        </node>
+    </node>
+</node>
