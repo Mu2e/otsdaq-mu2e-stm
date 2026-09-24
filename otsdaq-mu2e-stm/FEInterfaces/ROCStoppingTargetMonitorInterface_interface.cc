@@ -18,7 +18,7 @@ ROCStoppingTargetMonitorInterface::ROCStoppingTargetMonitorInterface(
 	INIT_MF("." /*directory used is USER_DATA/LOG/.*/);
 
 	__COUT_INFO__ << "ROCStoppingTargetMonitorInterface instantiated with link: "
-	               << linkID_ << " and EventWindowDelayOffset = " << delay_ << __E__;
+	              << linkID_ << " and EventWindowDelayOffset = " << delay_ << __E__;
 
 	/*ConfigurationTree rocTypeLink =
 	    Configurable::getSelfNode().getNode("ROCTypeLinkTable");
@@ -33,8 +33,7 @@ ROCStoppingTargetMonitorInterface::ROCStoppingTargetMonitorInterface(
         
         __FE_COUTV__(STMParameter_1_);
         __FE_COUTV__(STMParameter_2_);
-	__FE_COUTV__(STMParameter_3);*/                                
-                 
+	__FE_COUTV__(STMParameter_3);*/
 
 	// std::string STMParameter_3 =
 	// rocTypeLink.getNode("STMMustBeUniqueParam1").getValue<std::string>();
@@ -73,42 +72,36 @@ uint16_t ROCStoppingTargetMonitorInterface::readEmulatorRegister(uint16_t addres
 }
 
 //==================================================================================================
-void ROCStoppingTargetMonitorInterface::configure(void){
-  return;
-}
+void ROCStoppingTargetMonitorInterface::configure(void) { return; }
 
 //==============================================================================
-void ROCStoppingTargetMonitorInterface::halt(void) {
-  __COUT_INFO__ << "In ::halt()"<<event_number_ << __E__;
-  return;
-}
-
-//==============================================================================
-void ROCStoppingTargetMonitorInterface::pause(void) {
-  __COUT_INFO__ << "In ::pause()"<<event_number_ << __E__;
-  return;
-}
-
-//==============================================================================
-void ROCStoppingTargetMonitorInterface::resume(void) {
-  __COUT_INFO__ << "In ::resume()"<<event_number_ << __E__;
-  return;
-}
-
-//==============================================================================
-void ROCStoppingTargetMonitorInterface::start(std::string runNumber)
+void ROCStoppingTargetMonitorInterface::halt(void)
 {
-  return;
+	__COUT_INFO__ << "In ::halt()" << event_number_ << __E__;
+	return;
 }
 
 //==============================================================================
-void ROCStoppingTargetMonitorInterface::stop(void) {
-  return;
+void ROCStoppingTargetMonitorInterface::pause(void)
+{
+	__COUT_INFO__ << "In ::pause()" << event_number_ << __E__;
+	return;
 }
 
 //==============================================================================
-bool ROCStoppingTargetMonitorInterface::running(void) { 
-  return false;
+void ROCStoppingTargetMonitorInterface::resume(void)
+{
+	__COUT_INFO__ << "In ::resume()" << event_number_ << __E__;
+	return;
 }
+
+//==============================================================================
+void ROCStoppingTargetMonitorInterface::start(std::string runNumber) { return; }
+
+//==============================================================================
+void ROCStoppingTargetMonitorInterface::stop(void) { return; }
+
+//==============================================================================
+bool ROCStoppingTargetMonitorInterface::running(void) { return false; }
 
 DEFINE_OTS_INTERFACE(ROCStoppingTargetMonitorInterface)

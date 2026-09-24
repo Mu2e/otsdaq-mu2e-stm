@@ -8,13 +8,10 @@ IPBusManager* hw = new IPBusManager();
 initHW initHW_;
 
 // Main function
-int main(){
+int main()
+{
+	// Initialise all hardware
+	initHW_.init(hw);
 
-  // Initialise all hardware
-  initHW_.init(hw);
-  
-  return 0;
-  
+	return 0;
 }
-
- 
