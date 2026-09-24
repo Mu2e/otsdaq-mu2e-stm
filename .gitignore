@@ -25,3 +25,5 @@ CMakePresets.json
 build-linux-*
 spack-build-* 
 Mu2e-STMDAQ/log/*
+spack-build-*
+_codeql_*
