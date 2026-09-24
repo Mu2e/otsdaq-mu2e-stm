@@ -77,7 +77,10 @@ def update_baseline(pathname, n, history):
     This callback only runs when the user is on this specific page.
     """
     if pathname != "/adc-baseline":
-        return "", *([dash.no_update] * 4), history
+        if n%3 == 0:
+            pass #keep some record even while we are not on the page
+        else:
+            return "", *([dash.no_update] * 4), history
 
     baseline_task_queue, baseline_result_queue = manager.get_queues("baseline")
     poll_time = datetime.datetime.now()
