@@ -1,7 +1,7 @@
 #include "otsdaq-mu2e-stm/FEInterfaces/ROCStoppingTargetMonitorInterface.h"
 
+#include <unistd.h>  //used for usleep(microseconds)
 #include "otsdaq/Macros/InterfacePluginMacros.h"
-#include <unistd.h>//used for usleep(microseconds)
 
 using namespace ots;
 
@@ -36,6 +36,12 @@ ROCStoppingTargetMonitorInterface::ROCStoppingTargetMonitorInterface(
 	__FE_COUTV__(STMParameter_3);*/                                
                  
 
+	// std::string STMParameter_3 =
+	// rocTypeLink.getNode("STMMustBeUniqueParam1").getValue<std::string>();
+
+	__FE_COUTV__(STMParameter_1_);
+	__FE_COUTV__(STMParameter_2_);
+	//    __FE_COUTV__(STMParameter_3);
 }
 
 //==========================================================================================
