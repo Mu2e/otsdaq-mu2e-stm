@@ -9,14 +9,14 @@ cet_make_library(LIBRARY_NAME STMDAQSupervisor
   STMDAQSupervisor.cc
   LIBRARIES PRIVATE
   otsdaq::CoreSupervisors
-  otsdaq_mu2e_stm::Utils
-  otsdaq_mu2e_stm::Config
-  otsdaq_mu2e_stm::Hardware
-  otsdaq_mu2e_stm::Buffers
-  otsdaq_mu2e_stm::Debug
-  otsdaq_mu2e_stm::Processing
-  otsdaq_mu2e_stm::Sim
-  otsdaq_mu2e_stm::FE
+  otsdaq-mu2e-stm::Utils
+  otsdaq-mu2e-stm::Config
+  otsdaq-mu2e-stm::Hardware
+  otsdaq-mu2e-stm::Buffers
+  otsdaq-mu2e-stm::Debug
+  otsdaq-mu2e-stm::Processing
+  otsdaq-mu2e-stm::Sim
+  otsdaq-mu2e-stm::FE
   stmdaq_all_deps
   stmdaq_uhal_deps
 )

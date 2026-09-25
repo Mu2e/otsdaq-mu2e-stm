@@ -5,7 +5,7 @@ cet_build_plugin(SubsystemSTMDAQTable otsdaq::table
   otsdaq::SlowControlsTableBase
   otsdaq::XDAQContextTable
   LIBRARIES PRIVATE
-  otsdaq_mu2e_stm::Config
+  otsdaq-mu2e-stm::Config
   stmdaq_all_deps
 )
 
