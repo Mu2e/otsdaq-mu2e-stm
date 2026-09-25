@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(STMDAQ LANGUAGES C CXX)
 
-if(NOT DEFINED ENV{OTSDAQ_DATA}) # Check for integrated build
+if(NOT DEFINED ENV{SPACK_ENV}) # Check for integrated build
   # -----------------------------------------------------------------------------
   # Require environment setup (setup.sh)
   # -----------------------------------------------------------------------------
@@ -10,8 +10,10 @@ if(NOT DEFINED ENV{OTSDAQ_DATA}) # Check for integrated build
     message(FATAL_ERROR "STMDAQ_ROOT not set. You must source setup.sh before configuring.")
   endif()
   set(STMDAQ_ROOT "$ENV{STMDAQ_ROOT}")
-  set(STM_INC "${STMDAQ_ROOT}/include")
+else()
+  set(STMDAQ_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
+set(STM_INC "${STMDAQ_ROOT}/include")
 
 # Optional
 if(DEFINED ENV{CACTUS_ROOT})
