@@ -2,18 +2,26 @@ cmake_minimum_required(VERSION 3.20)
 
 project(STMDAQ LANGUAGES C CXX)
 
-# -----------------------------------------------------------------------------
-# Require environment setup (setup.sh)
-# -----------------------------------------------------------------------------
-if(NOT DEFINED ENV{STMDAQ_ROOT})
-  message(FATAL_ERROR "STMDAQ_ROOT not set. You must source setup.sh before configuring.")
+if(NOT DEFINED ENV{OTSDAQ_DATA}) # Check for integrated build
+  # -----------------------------------------------------------------------------
+  # Require environment setup (setup.sh)
+  # -----------------------------------------------------------------------------
+  if(NOT DEFINED ENV{STMDAQ_ROOT})
+    message(FATAL_ERROR "STMDAQ_ROOT not set. You must source setup.sh before configuring.")
+  endif()
+  set(STMDAQ_ROOT "$ENV{STMDAQ_ROOT}")
+  set(STM_INC "${STMDAQ_ROOT}/include")
 endif()
-set(STMDAQ_ROOT "$ENV{STMDAQ_ROOT}")
-set(STM_INC "${STMDAQ_ROOT}/include")
 
 # Optional
 if(DEFINED ENV{CACTUS_ROOT})
   set(CACTUS_ROOT "$ENV{CACTUS_ROOT}")
+else()
+  message(STATUS "CACTUS_ROOT not set. Attempting to use Spack environment if available. $ENV{SPACK_ENV}")
+  # If there is a Spack environment with a view, use it as the CACTUS_ROOT
+  if(DEFINED ENV{SPACK_ENV} AND EXISTS "$ENV{SPACK_ENV}/.spack-env/view/include/uhal")
+    set(CACTUS_ROOT "$ENV{SPACK_ENV}/.spack-env/view")
+  endif()
 endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
