@@ -84,12 +84,6 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer)
 			// If null hb detected
 			if(EM == 0)
 			{
-				// Notify user of null hb
-				logger->log(
-				    "FormEvents::get_events: Null heartbeat detected after event " +
-				        std::to_string(current_EWT) + ".",
-				    2);
-
 				// Check rest of packet for deadbeef
 				leftInPacket = stm->check_dead_beef(
 				    data_ptr, packet_start, leftInPacket - fw_eHdr_len);
@@ -102,6 +96,13 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer)
 				if(store_event(buffer, adc_count) != 0)
 					return;
 
+				// Notify user of null hb
+				logger->log(
+				    "FormEvents::get_events: Null heartbeat detected after EWT " +
+				        std::to_string(current_EWT) + ", events this run " +
+					std::to_string(EWT_count) + ".",
+				    2);
+
 				// Set first event is true for more data
 				first_event = true;
 
@@ -113,14 +114,15 @@ void FormEvents::get_events(std::shared_ptr<DataStruct>& buffer)
 			if(static_cast<uint16_t>(data_ptr[hdr_start_loc]) == BEEF &&
 			   static_cast<uint16_t>(data_ptr[hdr_start_loc + 1]) == DEAD)
 			{
-				logger->log(
-				    "FormEvents::get_events: DEADBEEFs after firmware timeout event " +
-				        std::to_string(current_EWT) + ".",
-				    2);
-
 				// Store last event
 				if(store_event(buffer, adc_count) != 0)
 					return;
+
+				logger->log(
+				    "FormEvents::get_events: DEADBEEFs after firmware timeout, EWT " +
+				        std::to_string(current_EWT) + ", events this run " + 
+					std::to_string(EWT_count) + ".",
+				    2);
 
 				// Set first event is true for more data
 				first_event = true;
