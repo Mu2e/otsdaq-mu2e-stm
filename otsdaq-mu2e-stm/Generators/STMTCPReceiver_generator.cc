@@ -157,6 +157,7 @@ void STMTCPReceiver::start()
 	builder_done_.store(false);
 
 	subrun_number_ = 1;
+	event_count_ = 0;
 	prev_flag_.reset();
 
 	// Start receiver thread (handles accept + recv)
