@@ -24,7 +24,7 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>&   logger_,
 
 {
 	// Create a UDP socket
-	socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	socket_fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	// Handle socket creation failure
 	if(socket_fd < 0)
 	{
@@ -46,9 +46,6 @@ UDP::UDP(const std::shared_ptr<AsyncLogger>&   logger_,
 	address.sin_addr.s_addr = inet_addr(ip.c_str());  // Set the IP address
 	address.sin_port        = htons(port);            // Convert and set the port number
 
-	// Set socket to allow port re-use / to reuse port
-	int optval = 1;
-	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 	// Get rmem_max and wmem_max
 	get_mem_max();
 
