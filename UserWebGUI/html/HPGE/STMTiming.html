@@ -64,7 +64,7 @@
     <a href="STMSpectra.html">
       <i data-lucide="activity"></i> Spectrum
     </a>
-    
+
   </div>
 
 </div>
@@ -85,7 +85,7 @@
     Clear Counters
   </button>
 </div>
-  
+
   <div class="grid">
 
     <div class="card">
@@ -135,9 +135,9 @@ function clearTiming() {
     setCard("adcJumps", 0, "ok");
 
     console.log("Timing counters cleared");
-}  
+}
 
-//  Persistent accumulation 
+//  Persistent accumulation
 function getTimingState() {
     return JSON.parse(localStorage.getItem("timingState") || "{}");
 }
@@ -186,7 +186,7 @@ async function update() {
             adc:       data.timing?.adc_jumps ?? 0
         };
 
-        //  only accumulate on new data 
+        //  only accumulate on new data
         if (state.lastTimestamp !== data.timestamp) {
 
             state.ewtSmall  += cur.ewtSmall;
@@ -200,7 +200,7 @@ async function update() {
 
         setTimingState(state);
 
-        //  Display 
+        //  Display
         setCard("ewtSmall", state.ewtSmall,
             getState(cur.ewtSmall, T.ewt_small_warn, T.ewt_small_bad)
         );
