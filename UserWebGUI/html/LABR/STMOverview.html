@@ -204,7 +204,7 @@
 	  try {
               const data = await fetchSTM();
 
-              //  Detector Health 
+              //  Detector Health
               const health = getDetectorHealth(data);
 
               setCard("calA",
@@ -230,7 +230,7 @@
 		      health.states.chi2
 		     );
 
-              //  Data Flow 
+              //  Data Flow
               const events = data.window?.events ?? 0;
               const first  = data.window?.first_ewt ?? 0;
               const last   = data.window?.last_ewt ?? 0;
@@ -248,7 +248,7 @@
 	      const totalEvents = data.total_events ?? 0;
 	      setCard("totalEvents", totalEvents.toLocaleString(), totalEvents > 0 ? "ok" : "warn");
 
-              //  Spill 
+              //  Spill
               const spillEnd = data.spill?.end ?? false;
               const spillText = spillEnd ? "ON" : "OFF";
 
@@ -272,7 +272,7 @@
 
 	      setCard("spillTrans", state.spillTrans, "ok");
 
-              //  Timing 
+              //  Timing
               const T = DQM_THRESHOLDS.timing;
 
               const ewtSmall = data.timing?.ewt_small_jumps ?? 0;
@@ -285,13 +285,13 @@
               setCard("dtcJumps", dtc, getState(dtc, T.dtc_warn, T.dtc_bad));
               setCard("adcJumps", adc, getState(adc, T.adc_warn, T.adc_bad));
 
-              //  Alarms 
+              //  Alarms
               renderAlarms("alarms", data.alarms, Object.keys(data.alarms));
 
-              //  Banner 
+              //  Banner
               updateBanner(data);
 
-              //  Timestamp 
+              //  Timestamp
               document.getElementById("lastUpdate").textContent =
 		  `Run ${data.run} | Subrun ${data.subrun} | ` +
 		  new Date(data.timestamp * 1000).toLocaleTimeString();

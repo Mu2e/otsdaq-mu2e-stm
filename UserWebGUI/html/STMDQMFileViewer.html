@@ -1,35 +1,35 @@
 <!DOCTYPE HTML>
-<html lang="en"> 
+<html lang="en">
 <head>
 	<title>STM DQM File Viewer</title>
 
 	<link href='/WebPath/css/fonts.css?family=Inconsolata:400' rel='stylesheet' type='text/css'>
 	<link href='/WebPath/css/fonts.css?family=Comfortaa:400' rel='stylesheet' type='text/css'>
-		
-	
-	
+
+
+
 	<!-- FTBFWebPath is link (> ln -s linkpath linkname) in otsdaq_utilities/WebPath -->
 	<link rel="stylesheet" type="text/css" href="/WebPath/css/library/pretty-checkbox.min.css">
 	<link rel="stylesheet" type="text/css" href="/WebPath/css/library/MaterialDesign-Webfont-master/css/materialdesignicons.min.css">
-	
-	
-	<script type="text/JavaScript" src="/WebPath/js/Globals.js"></script>	
-	<script type="text/JavaScript" src="/WebPath/js/Debug.js"></script>	
+
+
+	<script type="text/JavaScript" src="/WebPath/js/Globals.js"></script>
+	<script type="text/JavaScript" src="/WebPath/js/Debug.js"></script>
 	<script type="text/JavaScript" src="/WebPath/js/DesktopContent.js"></script>
 
-  
+
   <script type='module'>
     import { draw, httpRequest, redraw, decodeUrl, registerForResize, GridDisplay } from 'https://root.cern/js/latest/modules/main.mjs';
     import { buildGUI } from 'https://root.cern/js/latest/modules/gui.mjs';
 
     window.buildGUI = buildGUI; // export buildGUI so that it can be used later
-   </script>   
+   </script>
 
-	<script>		
+	<script>
 	//=====================================================================================
 	//init ~~
 	//	init called once body has loaded
-	function init() 
+	function init()
 	  {
         // Get a list of file
     const xhr = new XMLHttpRequest();
@@ -59,12 +59,12 @@
         }
     };
 
- 	  }
+    }
 	</script>
 </head>
 
 
-<body onload='//init() called by DesktopContent.js'>		
+<body onload='//init() called by DesktopContent.js'>
 	<h1>STM DQM File Viewer Loading...</h1>
 
   <div id="simpleGUI", path="/WebPath/UserWebPath/dqm_files/", files=""></div>
@@ -72,7 +72,7 @@
   <!-- Run Number:  -->
   <!-- <input type="text" id="run_number" value=""/> -->
   <!-- <button onclick="buildOurGUI()">Get Run</button> -->
-  
+
   <!-- <script> -->
   <!--   function buildOurGUI() { -->
 
@@ -80,11 +80,9 @@
   <!--       var file_name = "stmDQM"+run_number.toString()+".root"; -->
   <!--       document.getElementById("simpleGUI").setAttribute('files', file_name); -->
   <!--       buildGUI('simpleGUI'); -->
-    
+
   <!--   } -->
   <!-- </script> -->
 </body>
-	
-</html>
 
-	
+</html>

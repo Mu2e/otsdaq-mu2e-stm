@@ -9,9 +9,9 @@
 
   <link href="../../css/stm_layout.css" rel="stylesheet">
   <link href="../../css/stm_dqm.css" rel="stylesheet">
-  
+
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="../../js/stm_dqm.js"></script> 
+  <script src="../../js/stm_dqm.js"></script>
 
   <script>
   (function() {
@@ -37,7 +37,7 @@
       <i id="themeIcon" data-lucide="moon"></i>
       <span id="themeText">Dark Mode</span>
     </div>
-    
+
     <div id="soundToggle" class="theme-toggle" onclick="toggleMute()">
       <i id="soundIcon" data-lucide="volume-2"></i>
       <span id="soundText">Sound ON</span>
@@ -106,7 +106,7 @@
 
 localStorage.setItem("lastPage", window.location.pathname + window.location.search);
 
-//  Buffer 
+//  Buffer
 const slopeBuffer = [];
 const MAX_POINTS = 20;
 
@@ -117,21 +117,21 @@ async function update() {
         const events = data.window?.events ?? 0;
         const dtc    = data.timing?.dtc_jumps ?? 0;
 
-        //  Instant slope 
+        //  Instant slope
         let slope = 0;
         if (events > 0) slope = dtc / events;
 
-        //  Buffer 
+        //  Buffer
         slopeBuffer.push(slope);
         if (slopeBuffer.length > MAX_POINTS) slopeBuffer.shift();
 
-        //  Mean + stability 
+        //  Mean + stability
         const mean = slopeBuffer.reduce((a,b)=>a+b,0) / slopeBuffer.length;
 
         const variance = slopeBuffer.reduce((a,b)=>a+(b-mean)*(b-mean),0) / slopeBuffer.length;
         const sigma = Math.sqrt(variance);
 
-        //  State 
+        //  State
         let slopeState = "ok";
 
         if (mean < 0 || mean > 7000) slopeState = "bad";
@@ -139,12 +139,12 @@ async function update() {
 
         let stabilityState = sigma > 500 ? "warn" : "ok";
 
-        //  Cards 
+        //  Cards
         setCard("slope", mean.toFixed(2), slopeState);
         setCard("stability", sigma.toFixed(2), stabilityState);
         setCard("window", events, events === 0 ? "warn" : "ok");
 
-        //  Alarms 
+        //  Alarms
         renderAlarms("alarms", data.alarms, [
             "correlation_error"
         ]);
