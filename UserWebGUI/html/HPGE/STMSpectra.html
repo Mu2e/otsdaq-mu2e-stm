@@ -90,7 +90,7 @@
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
         <div class="card">
-	  <h3>Residuals vs ADC Counts</h3>  
+	  <h3>Residuals vs ADC Counts</h3>
           <canvas id="residualChart"></canvas></div>
         <div class="card">
 	  <h3>FFT of Residuals</h3>
@@ -313,7 +313,7 @@
 
 	  const bins = hist.map(
 	      (_, i) => i * adcPerBin
-	  ); 
+	  );
 
 	  chart.data.labels = bins;
 	  chart.data.datasets[0].data = hist;
@@ -325,7 +325,7 @@
 	      const amp = p.height || hist[Math.round(meanBin)] || 1;
 	      for (let x = Math.round(meanBin - 60);
 		   x < Math.round(meanBin + 60);
-		   ++x) {		  
+		   ++x) {
 		  if (x < 0 || x >= hist.length) continue;
 		  fit[x] += gaussian(x, meanBin, sigmaBin, amp);
 	      }
@@ -345,7 +345,7 @@
 
           calibChart.update();
 
-          //  Residuals + moving average 
+          //  Residuals + moving average
           residualChart.data.labels = bins;
           residualChart.data.datasets[0].data = spec.residuals;
 
@@ -354,19 +354,19 @@
 
           residualChart.update();
 
-          //  FFT 
+          //  FFT
           const fftBins = spec.fft_power.map((_,i)=>i);
           fftChart.data.labels = fftBins;
           fftChart.data.datasets[0].data = spec.fft_power;
           fftChart.update();
 
-          //  Standard Residuals 
+          //  Standard Residuals
           const h = buildResidualHistogram(spec.residuals);
 
 	  resHistChart.data.labels = h.labels;
 	  resHistChart.data.datasets[0].data = h.hist;
 
-	  //  Gaussian overlay 
+	  //  Gaussian overlay
 	  const total = h.hist.reduce((a,b)=>a+b,0);
 	  const xs = h.labels.map(x => parseFloat(x));
 	  const binWidth = xs[1] - xs[0];
@@ -376,7 +376,7 @@
 
 	  resHistChart.update();
 
-          //  Resolution 
+          //  Resolution
           const pts = spec.peaks.map(p=>{
               const a = spec.calibration.a;
               const sigmaE = a * p.sigma;

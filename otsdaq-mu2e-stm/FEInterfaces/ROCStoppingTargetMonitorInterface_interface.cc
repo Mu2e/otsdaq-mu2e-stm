@@ -28,9 +28,9 @@ ROCStoppingTargetMonitorInterface::ROCStoppingTargetMonitorInterface(
 	STMParameter_2_ = rocTypeLink.getNode("TrueFalseParam2").getValue<bool>();
 
 	STMParameter_3_ = rocTypeLink.getNode("tempColumn1").getValueAsString();
-				
+
 	std::string STMParameter_3 = rocTypeLink.getNode("STMMustBeUniqueParam1").getValue<std::string>();
-        
+
         __FE_COUTV__(STMParameter_1_);
         __FE_COUTV__(STMParameter_2_);
 	__FE_COUTV__(STMParameter_3);*/

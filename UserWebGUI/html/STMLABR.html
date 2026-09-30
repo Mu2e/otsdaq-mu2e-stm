@@ -8,7 +8,7 @@
     <link href="../css/stm_main.css" rel="stylesheet">
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="../js/stm_dqm.js"></script>  
+    <script src="../js/stm_dqm.js"></script>
 
     <script>
       (function() {
@@ -88,7 +88,7 @@
           <i data-lucide="activity"></i> Spectrum
         </a>
       </div>
-      
+
       <div class="hint">
         LaBr real-time monitoring
       </div>
@@ -101,7 +101,7 @@
       const BASE_PATH = window.location.pathname.includes("/labr/") ? "../../" : "../";
       const JSON_PATH = `${BASE_PATH}json/stm_${DETECTOR}.json`;
 
-      //  Status updater 
+      //  Status updater
       async function updateStatus() {
           try {
               const data = await fetch(JSON_PATH + "?_=" + Date.now())
@@ -168,7 +168,7 @@
           }
       }
 
-      //  DQM updater 
+      //  DQM updater
       async function updateDQM() {
           try {
               const res = await fetch("http://127.0.0.1:8060/status");
@@ -197,7 +197,7 @@
           }
       }
 
-      //  Init 
+      //  Init
       window.addEventListener("load", () => {
           lucide.createIcons();
           updateStatus();

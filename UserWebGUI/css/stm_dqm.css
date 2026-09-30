@@ -198,7 +198,7 @@ body.light .banner.bad {
     border-radius: 5px;
     text-align: center;
 
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -229,14 +229,14 @@ body.light .banner.bad {
     color: #ff2bd6; /* neon pink */
     background: rgba(0, 191, 255, 0.08);
     box-shadow: 0 0 6px rgba(0, 191, 255, 0.6);
-    text-shadow: 0 0 6px black;    
+    text-shadow: 0 0 6px black;
 }
 
 .spill-off {
     color: #00ffff; /* electric aqua */
     background: rgba(255, 47, 213, 0.08);
     box-shadow: 0 0 6px rgba(255, 47, 213, 0.6);
-    text-shadow: 0 0 6px black;    
+    text-shadow: 0 0 6px black;
 }
 
 
@@ -298,7 +298,7 @@ body.light .spill-off {
     margin-top: 15px;
     font-size: 12px;
     opacity: 0.6;
-    text-align: center; 
+    text-align: center;
 }
 
 /* ===== Alarm table severity override ===== */
