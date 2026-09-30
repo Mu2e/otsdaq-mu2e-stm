@@ -90,7 +90,7 @@
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:15px;">
         <div class="card">
-	  <h3>Residuals vs ADC Counts</h3>  
+	  <h3>Residuals vs ADC Counts</h3>
           <canvas id="residualChart"></canvas></div>
         <div class="card">
 	  <h3>FFT of Residuals</h3>
@@ -311,10 +311,10 @@
 
 	  const hist = spec.histogram;
 	  const adcPerBin = spec.adc_per_bin;
-	  
+
 	  const bins = hist.map(
 	      (_, i) => i * adcPerBin
-	  ); 
+	  );
 
 	  console.log(spec.adc_per_bin);
 	  console.log(hist.length);
@@ -330,7 +330,7 @@
 	      const amp = p.height || hist[Math.round(meanBin)] || 1;
 	      for (let x = Math.round(meanBin - 60);
 		   x < Math.round(meanBin + 60);
-		   ++x) {		  
+		   ++x) {
 		  if (x < 0 || x >= hist.length) continue;
 		  fit[x] += gaussian(x, meanBin, sigmaBin, amp);
 	      }
@@ -347,7 +347,7 @@
               const x = i * calibMax / 200;
               return {x,y: spec.calibration.a * x + spec.calibration.b};
 	  });
-	  
+
           calibChart.update();
 
           // ===== Residuals + moving average =====

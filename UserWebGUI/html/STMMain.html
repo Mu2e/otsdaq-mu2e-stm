@@ -8,7 +8,7 @@
     <link href="../css/stm_main.css" rel="stylesheet">
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="../js/stm_dqm.js"></script>    
+    <script src="../js/stm_dqm.js"></script>
   </head>
 
   <body>
@@ -42,21 +42,21 @@
 
       <!--  PORT STATUS  -->
       <div class="section-label">PORT STATUS</div>
-      
+
       <div class="status-container">
-	
+
 	<div id="status_ports" class="status-box">
 	  <div class="status-header">
 	    <span class="detector-title">DQM Ports</span>
 	  </div>
-	  
+
 	  <div class="status-content">
 	    <span id="ports_text" class="status-text">Loading...</span>
 	  </div>
 	</div>
-	
+
       </div>
-      
+
       <!--  DETECTORS  -->
       <div class="section-label">DETECTORS</div>
 
@@ -100,7 +100,7 @@
 
       applyTheme(localStorage.getItem("theme") || "dark");
 
-      //  Restore last page 
+      //  Restore last page
       const last = localStorage.getItem("lastPage");
       if (last && !window.location.pathname.includes("STMMain.html")) {
           window.location.href = last;
@@ -192,8 +192,8 @@
 
 	  box.classList.add(allUp ? "ok" : "bad");
       }
-      
-      //  Core updater 
+
+      //  Core updater
       async function updateDetector(jsonPath, elementId, label) {
           try {
 	      const data = await fetch(jsonPath + "?_=" + Date.now())
@@ -213,7 +213,7 @@
               const run = data.run ?? "N/A";
               const subrun = data.subrun ?? "N/A";
 
-              //  STALE CHECK 
+              //  STALE CHECK
               const now = Date.now() / 1000;
               const age = now - (data.timestamp ?? 0);
               const isStale = age > 3;
@@ -249,7 +249,7 @@
 	      subText.innerHTML = `
     ${spillText} &nbsp; | &nbsp; ${time} ${isStale ? "(stale)" : ""}
 `;
-	      
+
               lucide.createIcons();
 
           } catch (err) {
@@ -272,14 +272,14 @@
           }
       }
 
-      //  Update both 
+      //  Update both
       function updateAll() {
           updateDetector("../json/stm_hpge.json", "status_hpge", "HPGe");
           updateDetector("../json/stm_labr.json", "status_labr", "LaBr");
 	  updatePorts();
       }
 
-      //  Init 
+      //  Init
       window.addEventListener("load", () => {
           lucide.createIcons();
           updateAll();

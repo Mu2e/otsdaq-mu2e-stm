@@ -4,10 +4,6 @@ cet_build_plugin(STMDQMJsonProducer art::module
   LIBRARIES REG
   art_root_io::TFileService_service
   artdaq-core-mu2e::Data
-  Offline::Mu2eUtilities
-  Offline::ProditionsService
-  Offline::DataProducts
-  Offline::RecoDataProducts  
 )
 
 install_headers()
