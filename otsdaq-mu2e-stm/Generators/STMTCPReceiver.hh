@@ -291,9 +291,10 @@ class STMTCPReceiver : public artdaq::CommandableFragmentGenerator
 			                                ? evt.event_rb_head_bytes - offset_bytes
 			                                : 0;
 
-			    if(size_bytes <= head_available)
+			    if(size_bytes <= head_available || head_available == 0)
 			    {
 				    // Dataset fully in head region
+				    // or fully in the wrap region (starts at/after the wrap point)
 				    ds.ptr        = reinterpret_cast<const int16_t*>(start_ptr);
 				    ds.size       = size_words;
 				    ds.wrap_ptr   = nullptr;
