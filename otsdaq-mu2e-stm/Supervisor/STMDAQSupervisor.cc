@@ -84,6 +84,7 @@ void STMDAQSupervisor::transitionStarting(toolbox::Event::Reference e)
 
 	stop::reset_stops();
 	// Start STMDAQ
+	stmFE_->run_reset_readout();
 	stmFE_->start_stmdaq();
 }
 
@@ -131,7 +132,6 @@ void STMDAQSupervisor::transitionStopping(toolbox::Event::Reference e)
 	if(stmFE_)
 	{
 		stmFE_->close_threads();
-		stmFE_->run_reset_readout();
 	}
 
 	stop::reset_stops();
