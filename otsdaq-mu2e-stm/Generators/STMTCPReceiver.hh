@@ -217,22 +217,18 @@ class STMTCPReceiver : public artdaq::CommandableFragmentGenerator
 		}
 
 		// ------------------------------------------------
-		// Decode prescale flags
+		// Decode prescale flags and header lengths
 		// ------------------------------------------------
 
-		uint16_t ps = hdr_words[stm::RawHeader::PRESCALE];
+		auto hdr_s = reinterpret_cast<int16_t const*>(hdr_words);
 
-		bool raw_prescaled = (ps >> 15) & 0x1;
-		bool zs_prescaled  = (ps >> 7) & 0x1;
+		bool raw_prescaled = stm::RawHeader::rawPrescaled(hdr_s);
+		bool zs_prescaled  = stm::RawHeader::zsPrescaled(hdr_s);
 
-		// ------------------------------------------------
-		// Read header lengths
-		// ------------------------------------------------
-
-		uint16_t raw_len = hdr_words[stm::RawHeader::RAW_LEN];
-		uint16_t zs_regs = hdr_words[stm::RawHeader::ZS_REGIONS];
-		uint16_t zs_len  = hdr_words[stm::RawHeader::ZS_LEN] + zs_regs * 2;
-		uint16_t ph_num  = hdr_words[stm::RawHeader::PH_NUM];
+		uint16_t raw_len = stm::RawHeader::rawLength(hdr_s);
+		uint16_t zs_regs = stm::RawHeader::zsRegions(hdr_s);
+		uint16_t zs_len  = stm::RawHeader::zsLength(hdr_s) + zs_regs * 2;
+		uint16_t ph_num  = stm::RawHeader::phCount(hdr_s);
 		uint16_t ph_len  = ph_num * 2;
 
 		// ------------------------------------------------
