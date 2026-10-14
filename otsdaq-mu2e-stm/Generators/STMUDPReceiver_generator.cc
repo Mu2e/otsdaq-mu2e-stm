@@ -88,12 +88,7 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs& frags)  //getNext_pack
 				int event_size = event_len * sizeof(int16_t);
 
 				// Get event window tag
-				int16_t  ewt[4] = {rcv_buffer[stm::RawHeader::EWT_0],
-				                   rcv_buffer[stm::RawHeader::EWT_1],
-				                   rcv_buffer[stm::RawHeader::EWT_2],
-				                   0};
-				uint64_t EWT;
-				memcpy(&EWT, ewt, sizeof(EWT));
+				uint64_t EWT = stm::RawHeader::eventWindowTag(rcv_buffer);
 				TLOG(TLVL_DEBUG + 1)
 				    << std::hex << "003: EWT0: " << rcv_buffer[stm::RawHeader::EWT_0]
 				    << " EWT1: " << rcv_buffer[stm::RawHeader::EWT_1]

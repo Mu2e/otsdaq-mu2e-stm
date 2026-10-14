@@ -515,15 +515,15 @@ void mu2e::STMTCPReceiver::parserThread_()
 				continue;
 			}
 
-			uint16_t ps = hdr[stm::RawHeader::PRESCALE];
+			auto hdr_s = reinterpret_cast<int16_t const*>(hdr);
 
-			bool raw_prescaled = (ps >> 15) & 1;
-			bool zs_prescaled  = (ps >> 7) & 1;
+			bool raw_prescaled = stm::RawHeader::rawPrescaled(hdr_s);
+			bool zs_prescaled  = stm::RawHeader::zsPrescaled(hdr_s);
 
-			uint16_t raw_len = hdr[stm::RawHeader::RAW_LEN];
-			uint16_t zs_regs = hdr[stm::RawHeader::ZS_REGIONS];
-			uint16_t zs_len  = hdr[stm::RawHeader::ZS_LEN] + zs_regs * 2;
-			uint16_t ph_num  = hdr[stm::RawHeader::PH_NUM];
+			uint16_t raw_len = stm::RawHeader::rawLength(hdr_s);
+			uint16_t zs_regs = stm::RawHeader::zsRegions(hdr_s);
+			uint16_t zs_len  = stm::RawHeader::zsLength(hdr_s) + zs_regs * 2;
+			uint16_t ph_num  = stm::RawHeader::phCount(hdr_s);
 			uint16_t ph_len  = ph_num * 2;
 
 			if(raw_prescaled)
@@ -606,15 +606,16 @@ void mu2e::STMTCPReceiver::parserThread_()
 
 		evt.header = hdr;
 
-		evt.event_num = int64_t(hdr[stm::RawHeader::EWT_0]) | (int64_t(hdr[stm::RawHeader::EWT_1]) << 16) |
-		                (int64_t(hdr[stm::RawHeader::EWT_2]) << 32);
+		auto hdr_s2 = reinterpret_cast<int16_t const*>(hdr);
+
+		evt.event_num = stm::RawHeader::eventWindowTag(hdr_s2);
 
 		//metricMan->sendMetric("Last event window tag", evt.event_num, "status", 3, artdaq::MetricMode::LastPoint);
 
-		evt.spill_flag = hdr[stm::RawHeader::EM_2_DRTDC] & 0x1;
+		evt.spill_flag = stm::RawHeader::spillFlag(hdr_s2);
 
 		// Subrun transition flag
-		evt.subrun_flag = (hdr[stm::RawHeader::EM_2_DRTDC] >> 1) & 0x1;
+		evt.subrun_flag = stm::RawHeader::subrunFlag(hdr_s2);
 
 		uint16_t em4      = header_words[stm::RawHeader::EM_2_DRTDC];
 		uint8_t  low_byte = em4 & 0xFF;  // Event Mode Byte 4 (per HB packet diagram)
