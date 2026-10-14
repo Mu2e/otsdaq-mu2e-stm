@@ -15,10 +15,14 @@ manager = uhal.ConnectionManager("file://" + xml)
 hw = manager.getDevice(sys.argv[1])
 
 
-psmem=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
+psmem0=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_0_wready").read()
 hw.dispatch()
-if (psmem == 0): success = False
-print("PS Memory Ready =",bool(psmem))
+if (psmem0 == 0): success = False
+
+psmem1=hw.getNode("Buffers.dtc_ctrl_stat_regs.ps_mem_1_wready").read()
+hw.dispatch()
+if (psmem1 == 0): success = False
+print("PS Memory Ready =", bool(psmem0 and psmem1))
 
 timeout=hw.getNode("Buffers.Readout_regs.stat_timeout_occured").read()
 hw.dispatch()
