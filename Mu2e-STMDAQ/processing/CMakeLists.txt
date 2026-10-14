@@ -32,6 +32,7 @@ if(USE_CET)
      ${PROCESSING_SOURCES}
     LIBRARIES PUBLIC
       Utils          
+      artdaq-core-mu2e::Overlays
       Hardware
       Buffers
       Config

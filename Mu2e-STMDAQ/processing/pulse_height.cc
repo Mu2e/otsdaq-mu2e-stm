@@ -199,26 +199,26 @@ void PulseHeight::detectPulseCandidates(std::shared_ptr<DataStruct>& currentBuff
 	currentBuffer->pulseCandidates.clear();
 
 	// Temp logging
-	static bool firstDump = true;
+	//static bool firstDump = true;
 
-	if(firstDump && !ADC.empty())
-	{
-		auto [minIt, maxIt] = std::minmax_element(ADC.begin(), ADC.end());
+	//if(firstDump && !ADC.empty())
+	//{
+	//	auto [minIt, maxIt] = std::minmax_element(ADC.begin(), ADC.end());
 
-		logger->log(
-		    "RAW BUFFER:"
-		    " size=" +
-		        std::to_string(size) + " min=" + std::to_string(*minIt) +
-		        " max=" + std::to_string(*maxIt),
-		    1);
+	//	logger->log(
+	//	    "RAW BUFFER:"
+	//	    " size=" +
+	//	        std::to_string(size) + " min=" + std::to_string(*minIt) +
+	//	        " max=" + std::to_string(*maxIt),
+	//	    1);
 
-		for(int i = 0; i < std::min(50, size); ++i)
-		{
-			logger->log("ADC[" + std::to_string(i) + "]=" + std::to_string(ADC[i]), 1);
-		}
+	//	for(int i = 0; i < std::min(50, size); ++i)
+	//	{
+	//		logger->log("ADC[" + std::to_string(i) + "]=" + std::to_string(ADC[i]), 1);
+	//	}
 
-		firstDump = false;
-	}
+	//	firstDump = false;
+	//}
 	// Temp logging
 
 	if(size <= 0)
@@ -561,7 +561,7 @@ void PulseHeight::processPulseCandidates(std::shared_ptr<DataStruct>& currentBuf
 		// DAQ convention: pulse heights are stored as negative-going
 		// quantities to match MWD and downstream DQM expectations.
 		this_EWT->ph.emplace_back(time16, -amp16);
-		++this_EWT->hdr[sw_eHdr.PH_NUM];
+		++this_EWT->hdr[stm::RawHeader::PH_NUM];
 
 		++pulse_num;
 	}

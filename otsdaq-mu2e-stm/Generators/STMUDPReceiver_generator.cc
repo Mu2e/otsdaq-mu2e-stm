@@ -82,27 +82,27 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs& frags)  //getNext_pack
 				// And set first packet to false
 				first_packet = false;
 			}
-			int event_len = rcv_buffer[sw_eHdr::EvLen];
+			int event_len = rcv_buffer[stm::RawHeader::RAW_LEN];
 			if(event_len != 109 && event_len != 0)
 			{
 				int event_size = event_len * sizeof(int16_t);
 
 				// Get event window tag
-				int16_t  ewt[4] = {rcv_buffer[sw_eHdr::EWT_0],
-				                   rcv_buffer[sw_eHdr::EWT_1],
-				                   rcv_buffer[sw_eHdr::EWT_2],
+				int16_t  ewt[4] = {rcv_buffer[stm::RawHeader::EWT_0],
+				                   rcv_buffer[stm::RawHeader::EWT_1],
+				                   rcv_buffer[stm::RawHeader::EWT_2],
 				                   0};
 				uint64_t EWT;
 				memcpy(&EWT, ewt, sizeof(EWT));
 				TLOG(TLVL_DEBUG + 1)
-				    << std::hex << "003: EWT0: " << rcv_buffer[sw_eHdr::EWT_0]
-				    << " EWT1: " << rcv_buffer[sw_eHdr::EWT_1]
-				    << " EWT2: " << rcv_buffer[sw_eHdr::EWT_2] << "  | EWT= " << EWT;
+				    << std::hex << "003: EWT0: " << rcv_buffer[stm::RawHeader::EWT_0]
+				    << " EWT1: " << rcv_buffer[stm::RawHeader::EWT_1]
+				    << " EWT2: " << rcv_buffer[stm::RawHeader::EWT_2] << "  | EWT= " << EWT;
 
 				// Get event mode
-				int16_t EM2   = rcv_buffer[sw_eHdr::EM_2_DRTDC] & 0xFF;
+				int16_t EM2   = rcv_buffer[stm::RawHeader::EM_2_DRTDC] & 0xFF;
 				int16_t em[4] = {
-				    rcv_buffer[sw_eHdr::EM_0], rcv_buffer[sw_eHdr::EM_1], EM2, 0};
+				    rcv_buffer[stm::RawHeader::EM_0], rcv_buffer[stm::RawHeader::EM_1], EM2, 0};
 				uint64_t EM;
 				memcpy(&EM, em, sizeof(EM));
 				TLOG(TLVL_DEBUG + 1)
@@ -123,12 +123,12 @@ bool mu2e::STMUDPReceiver::getNext_(artdaq::FragmentPtrs& frags)  //getNext_pack
 				frags.emplace_back(
 				    new artdaq::Fragment(EWT, fragment_id(), FragmentType::STM, 0));
 				frags.back()->resizeBytes(
-				    sw_eHdr_Size +
+				    stm::RawHeader::WORDS * sizeof(int16_t) +
 				    event_size);  // very important: caused issues with writing data when this line was missing...
 				auto dataBegin = frags.back()->dataBegin();
 				memcpy(
-				    dataBegin, rcv_buffer, sw_eHdr_Size + event_size);  // copy the data
-				global_data_len += sw_eHdr_Len + event_len;
+				    dataBegin, rcv_buffer, stm::RawHeader::WORDS * sizeof(int16_t) + event_size);  // copy the data
+				global_data_len += stm::RawHeader::WORDS + event_len;
 				TLOG(TLVL_DEBUG)
 				    << "006: n_data_copied at end of loop = " << global_data_len;
 				ev_counter_inc();  // increment event counter

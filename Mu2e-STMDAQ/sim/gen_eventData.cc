@@ -99,7 +99,7 @@ void GenEvents::gen_events(
 
 	// Empty event vector
 	//std::shared_ptr<std::vector<int16_t>> event_data = std::make_shared<std::vector<int16_t>>(event_num*event_len+adcCountsAroundPeakZS*maxpeaks+2*maxpeaks,0);
-	//  std::shared_ptr<std::vector<int16_t>> event_data = std::make_shared<std::vector<int16_t>>(sw_eHdr.len+event_len,0);
+	//  std::shared_ptr<std::vector<int16_t>> event_data = std::make_shared<std::vector<int16_t>>(stm::RawHeader::WORDS+event_len,0);
 
 	//noise distribution, mean 0, rms 20
 	std::normal_distribution<float> d{0, 20};
@@ -113,7 +113,7 @@ void GenEvents::gen_events(
 
 		std::shared_ptr<std::vector<int16_t>> event_data =
 		    std::make_shared<std::vector<int16_t>>(
-		        sw_eHdr.len + event_len + 2 * maxpeaks +
+		        stm::RawHeader::WORDS + event_len + 2 * maxpeaks +
 		            (adcCountsAroundPeakZS + 2) * maxpeaks,
 		        0);
 
@@ -124,15 +124,15 @@ void GenEvents::gen_events(
 		std::copy(hdr_temp.begin(), hdr_temp.end(), event.begin());
 
 		// Event data count
-		int16_t event_data_count = sw_eHdr.len;
+		int16_t event_data_count = stm::RawHeader::WORDS;
 
 		// Get EWT split into 4 int16_ts
 		//std::vector<int16_t> split_EWT = stm->split_uint64_t(EWT);
 
 		// Change EWT in event header (is copy 4 x int16_t - should be 3 x int16_t)
-		//std::copy(split_EWT.begin(), split_EWT.end(), event.begin() + sw_eHdr.EWT_0);
-		event[sw_eHdr.EWT_0] = EWT;
-		//std::cout<<"ewt: "<<EWT<<" written number in header: "<<event[sw_eHdr.EWT_0]<<std::endl;
+		//std::copy(split_EWT.begin(), split_EWT.end(), event.begin() + stm::RawHeader::EWT_0);
+		event[stm::RawHeader::EWT_0] = EWT;
+		//std::cout<<"ewt: "<<EWT<<" written number in header: "<<event[stm::RawHeader::EWT_0]<<std::endl;
 
 		//fix to stop < 10 events defaulting to 10
 		size_t max_events_requested;
@@ -166,8 +166,8 @@ void GenEvents::gen_events(
 		// Loop over all peaks in event and get times
 		for(int i = 0; i < npeaks; i++)
 		{
-			std::uniform_int_distribution<size_t> di{sw_eHdr.len + adc_count,
-			                                         sw_eHdr.len + adc_count + event_len};
+			std::uniform_int_distribution<size_t> di{stm::RawHeader::WORDS + adc_count,
+			                                         stm::RawHeader::WORDS + adc_count + event_len};
 			peakposes[i] = di(gen);
 			//
 
@@ -188,9 +188,9 @@ void GenEvents::gen_events(
 		for(int i = 0; i < event_len; i++)
 		{
 			// Get noise sample
-			event[sw_eHdr.len + i] = std::round(d(gen));  //round to int
-			//  event[sw_eHdr.len+i] = 0;
-			//   std::cout<<"(GenEvents) "<<event[sw_eHdr.len+i]<<std::endl;
+			event[stm::RawHeader::WORDS + i] = std::round(d(gen));  //round to int
+			//  event[stm::RawHeader::WORDS+i] = 0;
+			//   std::cout<<"(GenEvents) "<<event[stm::RawHeader::WORDS+i]<<std::endl;
 		}
 
 		//loop over all peaks
@@ -206,19 +206,19 @@ void GenEvents::gen_events(
 
 				// Get peak sample
 				double peak =
-				    GenEvents::calculate_peak(sw_eHdr.len + i, peakAmp, tshift, 10, 1000);
+				    GenEvents::calculate_peak(stm::RawHeader::WORDS + i, peakAmp, tshift, 10, 1000);
 				int16_t peak_int = std::round(peak);
 				//std::cout<<"calc peak :"<<tshift<<" value: "<<peak<<std::endl;
 
 				//rewrite each point with the old value plus the peak, for every peak
-				//	event[sw_eHdr.len+i] += peak_int;
-				event[sw_eHdr.len + i] += peak;
+				//	event[stm::RawHeader::WORDS+i] += peak_int;
+				event[stm::RawHeader::WORDS + i] += peak;
 				//	std::cout<<"(GenEvents) "<<i<<" : "<<peak<<std::endl;
 			}
 		}
 
 		// Change raw len in header
-		event[sw_eHdr.RAW_LEN] = event_len;
+		event[stm::RawHeader::RAW_LEN] = event_len;
 		//std::cout<<"total event size: "<<event.size()<<std::endl;
 
 		// increase event data count by event_len
@@ -273,17 +273,17 @@ void GenEvents::gen_events(
 			size_t len = adcCountsAroundPeakZS;
 
 			//remove any header elements from the ZS region
-			if(startindex < sw_eHdr.len)
+			if(startindex < stm::RawHeader::WORDS)
 			{
-				len        = len - (sw_eHdr.len - startindex);
-				startindex = sw_eHdr.len;
+				len        = len - (stm::RawHeader::WORDS - startindex);
+				startindex = stm::RawHeader::WORDS;
 			}
 
 			//remove overflow elements
-			if(endindex > sw_eHdr.len + event_len)
+			if(endindex > stm::RawHeader::WORDS + event_len)
 			{
-				len      = len - (endindex - (sw_eHdr.len + event_len));
-				endindex = sw_eHdr.len + event_len;
+				len      = len - (endindex - (stm::RawHeader::WORDS + event_len));
+				endindex = stm::RawHeader::WORDS + event_len;
 			}
 
 			//if this peak overlaps with a previous one in this loop
@@ -345,8 +345,8 @@ void GenEvents::gen_events(
 		}  // End loop over peaks
 
 		// Update header
-		event[sw_eHdr.ZS_REGIONS] = zs_regions;
-		event[sw_eHdr.ZS_LEN]     = tot_zs_len;
+		event[stm::RawHeader::ZS_REGIONS] = zs_regions;
+		event[stm::RawHeader::ZS_LEN]     = tot_zs_len;
 
 		//  ----------
 		// PULSE HEIGHTS
@@ -367,7 +367,7 @@ void GenEvents::gen_events(
 		}
 
 		// Update header
-		event[sw_eHdr.PH_NUM] = npeaks;
+		event[stm::RawHeader::PH_NUM] = npeaks;
 		//    std::cout<<"Should have n peaks: "<<npeaks<<std::endl;
 
 	}  // End for over events
