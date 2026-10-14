@@ -78,6 +78,8 @@ void ROCStoppingTargetMonitorInterface::configure(void) { return; }
 void ROCStoppingTargetMonitorInterface::halt(void)
 {
 	__COUT_INFO__ << "In ::halt()" << event_number_ << __E__;
+	//__COUT_INFO__ << "Disabling DTC link " << linkID_ << " for STM ROC" << __E__;
+        //getDTC()->DisableLink(linkID_);
 	return;
 }
 
@@ -96,10 +98,18 @@ void ROCStoppingTargetMonitorInterface::resume(void)
 }
 
 //==============================================================================
-void ROCStoppingTargetMonitorInterface::start(std::string runNumber) { return; }
+void ROCStoppingTargetMonitorInterface::start(std::string runNumber) { 
+	__FE_COUT_INFO__ << "Enabling DTC link " << linkID_ << " for STM ROC" << __E__;
+        getDTC()->EnableLink(linkID_);
+	return;
+}
 
 //==============================================================================
-void ROCStoppingTargetMonitorInterface::stop(void) { return; }
+void ROCStoppingTargetMonitorInterface::stop(void) {
+	//__FE_COUT_INFO__ << "Disabling DTC link " << linkID_ << " for STM ROC" << __E__;
+        //getDTC()->DisableLink(linkID_);
+	return;
+}
 
 //==============================================================================
 bool ROCStoppingTargetMonitorInterface::running(void) { return false; }
