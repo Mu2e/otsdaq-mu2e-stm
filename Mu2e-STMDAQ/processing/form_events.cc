@@ -282,7 +282,7 @@ int FormEvents::store_event(std::shared_ptr<DataStruct>& buffer, size_t& adc_cou
 	this_EWT.EWT       = current_EWT;  // EWT
 	this_EWT.raw.start = adc_count;    // Buffer index of start of event's ADC data
 	this_EWT.raw.len   = current_event_count;  // Length of event's ADC data in the buffer
-	eHdr_to_copy[sw_eHdr.RAW_LEN] =
+	eHdr_to_copy[stm::RawHeader::RAW_LEN] =
 	    current_event_count;      // Length of event's ADC data in header
 	this_EWT.hdr = eHdr_to_copy;  // The actual header data
 
@@ -365,9 +365,9 @@ void FormEvents::insert_missing_ewts(std::shared_ptr<DataStruct>& buffer)
 			stub.raw.prescale = false;
 
 			// Build header using existing overload: EWT set, everything else zero
-			stub.hdr                     = stm->create_sw_eHdr(missing, 0, 0, 0);
-			stub.hdr[sw_eHdr.RAW_LEN]    = 0;
-			stub.hdr[sw_eHdr.DATA_FLAGS] = static_cast<int16_t>((1 << 0) | (1 << 1));
+			stub.hdr                                  = stm->create_sw_eHdr(missing, 0, 0, 0);
+			stub.hdr[stm::RawHeader::RAW_LEN]    = 0;
+			stub.hdr[stm::RawHeader::DATA_FLAGS] = static_cast<int16_t>((1 << 0) | (1 << 1));
 
 			++buffer->EWT_count;
 			++EWT_count;

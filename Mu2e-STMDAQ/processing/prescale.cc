@@ -115,12 +115,12 @@ void Prescale::prescale_data(std::shared_ptr<DataStruct>& buffer)
 		// Do ZS prescale
 		apply(ZS, zs_prescale, ewt.zs.prescale, hdr);
 
-		//    std::cout << EWT << " " << ewt.hdr[sw_eHdr.PRESCALE] << std::endl;
+		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::PRESCALE] << std::endl;
 
 		// Store EWT header
-		ewt.hdr[sw_eHdr.PRESCALE] = static_cast<int16_t>(hdr);
+		ewt.hdr[stm::RawHeader::PRESCALE] = static_cast<int16_t>(hdr);
 
-		//    std::cout << EWT << " " << ewt.hdr[sw_eHdr.PRESCALE] << std::endl;
+		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::PRESCALE] << std::endl;
 
 		// Increment ONCE per EWT per spill stream (shared for RAW+ZS)
 		++s.count;

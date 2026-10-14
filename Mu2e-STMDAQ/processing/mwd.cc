@@ -351,7 +351,7 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer,
 					// Prev EWT header
 					sw_event_header& prev_header = EWT_to_store->hdr;
 					// Incrememt number of pulse heights in EWT header
-					++prev_header[sw_eHdr.PH_NUM];
+					++prev_header[stm::RawHeader::PH_NUM];
 
 					// Define a pointer to the prev data buffer
 					double* prev_data_ptr = prev_buffer->ph.data();
@@ -373,7 +373,7 @@ void MWD::find_peaks(std::shared_ptr<DataStruct>& buffer,
 					// EWT to store is this EWT
 					EWT_to_store = peak_EWT;
 					// Incrememt number of pulse heights in EWT header
-					++peak_EWT->hdr[sw_eHdr.PH_NUM];
+					++peak_EWT->hdr[stm::RawHeader::PH_NUM];
 					// Increment counters
 					peak_count++;
 				}

@@ -18,6 +18,7 @@ if(USE_CET)
       ${SIM_SOURCES}
     LIBRARIES PUBLIC
       Utils          
+      artdaq-core-mu2e::Overlays
       Config
       Buffers
       Processing

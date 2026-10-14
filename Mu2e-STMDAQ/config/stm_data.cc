@@ -190,39 +190,32 @@ uint64_t STMdata::get_DTCclock(int16_t* data, uint64_t hdr_index)
 	return DTCclock;
 }
 
-// Create software event header form buffer
+// Create software event header from buffer
 sw_event_header STMdata::create_sw_eHdr(int16_t* data, uint64_t hdr_index)
 {
-	// Create empty header
 	sw_event_header hdr{};
 
-	// Starting anchor = 0xCAFE
-	hdr[sw_eHdr.anchor_start] = sw_eHdr.anchor;
+	hdr[stm::RawHeader::ANCHOR_START] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
-	// EWT
-	hdr[sw_eHdr.EWT_0] = data[hdr_index + fw_eHdr.EWT_0];
-	hdr[sw_eHdr.EWT_1] = data[hdr_index + fw_eHdr.EWT_1];
-	hdr[sw_eHdr.EWT_2] = data[hdr_index + fw_eHdr.EWT_2];
+	hdr[stm::RawHeader::EWT_0] = data[hdr_index + fw_eHdr.EWT_0];
+	hdr[stm::RawHeader::EWT_1] = data[hdr_index + fw_eHdr.EWT_1];
+	hdr[stm::RawHeader::EWT_2] = data[hdr_index + fw_eHdr.EWT_2];
 
-	// ADC clock
-	hdr[sw_eHdr.ADCclk_0] = data[hdr_index + fw_eHdr.ADCclk_0];
-	hdr[sw_eHdr.ADCclk_1] = data[hdr_index + fw_eHdr.ADCclk_1];
-	hdr[sw_eHdr.ADCclk_2] = data[hdr_index + fw_eHdr.ADCclk_2];
-	hdr[sw_eHdr.ADCclk_3] = data[hdr_index + fw_eHdr.ADCclk_3];
+	hdr[stm::RawHeader::ADCclk_0] = data[hdr_index + fw_eHdr.ADCclk_0];
+	hdr[stm::RawHeader::ADCclk_1] = data[hdr_index + fw_eHdr.ADCclk_1];
+	hdr[stm::RawHeader::ADCclk_2] = data[hdr_index + fw_eHdr.ADCclk_2];
+	hdr[stm::RawHeader::ADCclk_3] = data[hdr_index + fw_eHdr.ADCclk_3];
 
-	// Channel number and DTC clock
-	hdr[sw_eHdr.Ch_DTCclk_0] = data[hdr_index + fw_eHdr.Ch_DTCclk_0];
-	hdr[sw_eHdr.DTCclk_1]    = data[hdr_index + fw_eHdr.DTCclk_1];
-	hdr[sw_eHdr.DTCclk_2]    = data[hdr_index + fw_eHdr.DTCclk_2];
-	hdr[sw_eHdr.DTCclk_3]    = data[hdr_index + fw_eHdr.DTCclk_3];
+	hdr[stm::RawHeader::Ch_DTCclk_0] = data[hdr_index + fw_eHdr.Ch_DTCclk_0];
+	hdr[stm::RawHeader::DTCclk_1]    = data[hdr_index + fw_eHdr.DTCclk_1];
+	hdr[stm::RawHeader::DTCclk_2]    = data[hdr_index + fw_eHdr.DTCclk_2];
+	hdr[stm::RawHeader::DTCclk_3]    = data[hdr_index + fw_eHdr.DTCclk_3];
 
-	// Event mode
-	hdr[sw_eHdr.EM_0]       = data[hdr_index + fw_eHdr.EM_0];
-	hdr[sw_eHdr.EM_1]       = data[hdr_index + fw_eHdr.EM_1];
-	hdr[sw_eHdr.EM_2_DRTDC] = data[hdr_index + fw_eHdr.EM_2_DRTDC];
+	hdr[stm::RawHeader::EM_0]       = data[hdr_index + fw_eHdr.EM_0];
+	hdr[stm::RawHeader::EM_1]       = data[hdr_index + fw_eHdr.EM_1];
+	hdr[stm::RawHeader::EM_2_DRTDC] = data[hdr_index + fw_eHdr.EM_2_DRTDC];
 
-	// Ending anchor = 0xCAFE
-	hdr[sw_eHdr.anchor_end] = sw_eHdr.anchor;
+	hdr[stm::RawHeader::ANCHOR_END] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
 	return hdr;
 }
@@ -233,35 +226,34 @@ sw_event_header STMdata::create_sw_eHdr(uint64_t EWT,
                                         uint64_t Ch_DTCclk,
                                         uint64_t EM)
 {
-	// Create empty header
 	sw_event_header hdr{};
 
-	hdr[sw_eHdr.anchor_start] = sw_eHdr.anchor;
+	hdr[stm::RawHeader::ANCHOR_START] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
 	auto ewt_words   = split_uint64_t(EWT);
 	auto adc_words   = split_uint64_t(ADCclk);
 	auto chdtc_words = split_uint64_t(Ch_DTCclk);
 	auto em_words    = split_uint64_t(EM);
 
-	hdr[sw_eHdr.EWT_0] = ewt_words[0];
-	hdr[sw_eHdr.EWT_1] = ewt_words[1];
-	hdr[sw_eHdr.EWT_2] = ewt_words[2];
+	hdr[stm::RawHeader::EWT_0] = ewt_words[0];
+	hdr[stm::RawHeader::EWT_1] = ewt_words[1];
+	hdr[stm::RawHeader::EWT_2] = ewt_words[2];
 
-	hdr[sw_eHdr.ADCclk_0] = adc_words[0];
-	hdr[sw_eHdr.ADCclk_1] = adc_words[1];
-	hdr[sw_eHdr.ADCclk_2] = adc_words[2];
-	hdr[sw_eHdr.ADCclk_3] = adc_words[3];
+	hdr[stm::RawHeader::ADCclk_0] = adc_words[0];
+	hdr[stm::RawHeader::ADCclk_1] = adc_words[1];
+	hdr[stm::RawHeader::ADCclk_2] = adc_words[2];
+	hdr[stm::RawHeader::ADCclk_3] = adc_words[3];
 
-	hdr[sw_eHdr.Ch_DTCclk_0] = chdtc_words[0];
-	hdr[sw_eHdr.DTCclk_1]    = chdtc_words[1];
-	hdr[sw_eHdr.DTCclk_2]    = chdtc_words[2];
-	hdr[sw_eHdr.DTCclk_3]    = chdtc_words[3];
+	hdr[stm::RawHeader::Ch_DTCclk_0] = chdtc_words[0];
+	hdr[stm::RawHeader::DTCclk_1]    = chdtc_words[1];
+	hdr[stm::RawHeader::DTCclk_2]    = chdtc_words[2];
+	hdr[stm::RawHeader::DTCclk_3]    = chdtc_words[3];
 
-	hdr[sw_eHdr.EM_0]       = em_words[0];
-	hdr[sw_eHdr.EM_1]       = em_words[1];
-	hdr[sw_eHdr.EM_2_DRTDC] = em_words[2];
+	hdr[stm::RawHeader::EM_0]       = em_words[0];
+	hdr[stm::RawHeader::EM_1]       = em_words[1];
+	hdr[stm::RawHeader::EM_2_DRTDC] = em_words[2];
 
-	hdr[sw_eHdr.anchor_end] = sw_eHdr.anchor;
+	hdr[stm::RawHeader::ANCHOR_END] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
 	return hdr;
 }

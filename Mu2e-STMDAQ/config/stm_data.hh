@@ -6,8 +6,11 @@
 
 // Hex reader
 #include "Mu2e-STMDAQ/utils/Hex.hh"
-// Async Logger code                                                     
+// Async Logger code
 #include "Mu2e-STMDAQ/utils/async_logger.hh"
+
+// Software event header layout (single source of truth in artdaq-core-mu2e)
+#include "artdaq-core-mu2e/Overlays/STMHeaderLayout.hh"
 
 // Config code
 #include "Mu2e-STMDAQ/config/include/master_config.hh" // master
@@ -116,53 +119,8 @@ struct fw_eHdr_info{
 // Static instance of the firmware event header info
 static constexpr fw_eHdr_info fw_eHdr;
 
-// Software event header size in bytes
-static constexpr uint16_t sw_eHdr_size = 44;
-// Software event header length
-static constexpr uint16_t sw_eHdr_len = sw_eHdr_size/sizeof(int16_t);
-
-// Software event header elements
-struct sw_eHdr_info{
-  
-  // Size in bytes of the event header
-  static constexpr uint16_t size = sw_eHdr_size;
-  // Length in int16_t values of the event header
-  static constexpr uint16_t len = sw_eHdr_len;
-
-  // Software event header anchor
-  static constexpr int16_t anchor = static_cast<int16_t>(0xCAFE);
-  
-  // Index positions of event header components
-  static constexpr uint16_t anchor_start = 0; // 0xCAFE
-  static constexpr uint16_t EWT_0 = 1; // DTC Event Window Tag 0
-  static constexpr uint16_t EWT_1 = 2; // DTC Event Window Tag 1
-  static constexpr uint16_t EWT_2 = 3; // DTC Event Window Tag 2
-  static constexpr uint16_t ADCclk_0 = 4; // ADC Clock (75 MHz) 0
-  static constexpr uint16_t ADCclk_1 = 5; // ADC Clock (75 MHz) 1
-  static constexpr uint16_t ADCclk_2 = 6; // ADC Clock (75 MHz) 2
-  static constexpr uint16_t ADCclk_3 = 7; // ADC Clock (75 MHz) 3
-  static constexpr uint16_t Ch_DTCclk_0 = 8; // Channel [0/1] + DTC Clock (200 MHz) 1
-  static constexpr uint16_t DTCclk_1 = 9; // DTC Clock (200 MHz) 1
-  static constexpr uint16_t DTCclk_2 = 10; // DTC Clock (200 MHz) 2
-  static constexpr uint16_t DTCclk_3 = 11; // DTC Clock (200 MHz) 3
-  static constexpr uint16_t EM_0 = 12; // DTC Event Mode 0
-  static constexpr uint16_t EM_1 = 13; // DTC Event Mode 1
-  static constexpr uint16_t EM_2_DRTDC = 14; // DTC Event Mode 2 + Delivery Ring TDC
-  static constexpr uint16_t PRESCALE = 15; // Raw Prescale On/Off + Raw Prescale Num +
-                                           // ZS Prescale On/Off + ZS Prescale Num
-  static constexpr uint16_t RAW_LEN = 16; // Raw Data Len
-  static constexpr uint16_t ZS_REGIONS = 17; // Number of ZS data regions
-  static constexpr uint16_t ZS_LEN = 18; // ZS Data Len
-  static constexpr uint16_t PH_NUM = 19; // Number of pulse height values
-  static constexpr uint16_t DATA_FLAGS = 20; // EWT data bad (dropped packets) + EWT missing
-  static constexpr uint16_t anchor_end = 21; // 0xCAFE
-};
-
-// Static instance of the software event header info
-static constexpr sw_eHdr_info sw_eHdr;
-
-// Define software event header type
-using sw_event_header = std::array<int16_t, sw_eHdr_info::len>;
+// Define software event header type (layout defined in stm::RawHeader)
+using sw_event_header = std::array<int16_t, stm::RawHeader::WORDS>;
 
 class STMdata{
 

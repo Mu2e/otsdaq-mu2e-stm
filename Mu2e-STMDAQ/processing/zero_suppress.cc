@@ -364,10 +364,10 @@ void ZeroSuppress::suppress_data(std::shared_ptr<DataStruct>& buffer)
 		// Get EWT header
 		sw_event_header& header = this_EWT->hdr;
 		// Store number of ZS regions in EWT header
-		header[sw_eHdr.ZS_REGIONS] = zs_regions;
-		//    std::cout << EWT << " " << Athis_EWT->zs.zs_regions.size() << " " << header[sw_eHdr.ZS_REGIONS] << std::endl;
+		header[stm::RawHeader::ZS_REGIONS] = zs_regions;
+		//    std::cout << EWT << " " << Athis_EWT->zs.zs_regions.size() << " " << header[stm::RawHeader::ZS_REGIONS] << std::endl;
 		// Store total ZS length in EWT header
-		header[sw_eHdr.ZS_LEN] = this_EWT->zs.adc_count;
+		header[stm::RawHeader::ZS_LEN] = this_EWT->zs.adc_count;
 		// Calculate total EWT adc data
 		EWT_adc_count += this_EWT->zs.adc_count;
 	}

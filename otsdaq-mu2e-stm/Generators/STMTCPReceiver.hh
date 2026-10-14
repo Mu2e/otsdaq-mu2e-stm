@@ -206,12 +206,12 @@ class STMTCPReceiver : public artdaq::CommandableFragmentGenerator
 			return false;
 		}
 
-		if(hdr_words[anchor_start] != event_anchor_word_ ||
-		   hdr_words[anchor_end] != event_anchor_word_)
+		if(hdr_words[stm::RawHeader::ANCHOR_START] != event_anchor_word_ ||
+		   hdr_words[stm::RawHeader::ANCHOR_END] != event_anchor_word_)
 		{
 			TLOG(TLVL_ERROR) << "[STM_BR][PARSER] Anchor mismatch: start=0x" << std::hex
-			                 << hdr_words[anchor_start] << " end=0x"
-			                 << hdr_words[anchor_end] << " expected=0x"
+			                 << hdr_words[stm::RawHeader::ANCHOR_START] << " end=0x"
+			                 << hdr_words[stm::RawHeader::ANCHOR_END] << " expected=0x"
 			                 << event_anchor_word_;
 			return false;
 		}
@@ -220,7 +220,7 @@ class STMTCPReceiver : public artdaq::CommandableFragmentGenerator
 		// Decode prescale flags
 		// ------------------------------------------------
 
-		uint16_t ps = hdr_words[PRESCALE];
+		uint16_t ps = hdr_words[stm::RawHeader::PRESCALE];
 
 		bool raw_prescaled = (ps >> 15) & 0x1;
 		bool zs_prescaled  = (ps >> 7) & 0x1;
@@ -229,10 +229,10 @@ class STMTCPReceiver : public artdaq::CommandableFragmentGenerator
 		// Read header lengths
 		// ------------------------------------------------
 
-		uint16_t raw_len = hdr_words[RAW_LEN];
-		uint16_t zs_regs = hdr_words[ZS_REGIONS];
-		uint16_t zs_len  = hdr_words[ZS_LEN] + zs_regs * 2;
-		uint16_t ph_num  = hdr_words[PH_NUM];
+		uint16_t raw_len = hdr_words[stm::RawHeader::RAW_LEN];
+		uint16_t zs_regs = hdr_words[stm::RawHeader::ZS_REGIONS];
+		uint16_t zs_len  = hdr_words[stm::RawHeader::ZS_LEN] + zs_regs * 2;
+		uint16_t ph_num  = hdr_words[stm::RawHeader::PH_NUM];
 		uint16_t ph_len  = ph_num * 2;
 
 		// ------------------------------------------------

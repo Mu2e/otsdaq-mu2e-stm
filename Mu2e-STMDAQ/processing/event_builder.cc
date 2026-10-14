@@ -42,7 +42,7 @@ size_t EventBuilder::build_event(std::shared_ptr<DataStruct>& buffer,
 	std::copy(ewt.hdr.begin(), ewt.hdr.end(), event.begin() + data_len);
 
 	// Increase data length
-	data_len += sw_eHdr_info::len;
+	data_len += stm::RawHeader::WORDS;
 
 	// If this EWT's raw data has not been marked as bad
 	if(!ewt.bad_data)

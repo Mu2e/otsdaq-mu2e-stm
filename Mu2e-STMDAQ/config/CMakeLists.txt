@@ -16,6 +16,7 @@ if(USE_CET)
     ${CONFIG_SOURCES}
     LIBRARIES PUBLIC
       Utils          
+      artdaq-core-mu2e::Overlays
     LIBRARIES PRIVATE
       stmdaq_all_deps      
     )                                                                          
