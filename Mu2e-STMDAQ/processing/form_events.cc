@@ -367,7 +367,7 @@ void FormEvents::insert_missing_ewts(std::shared_ptr<DataStruct>& buffer)
 			// Build header using existing overload: EWT set, everything else zero
 			stub.hdr                                  = stm->create_sw_eHdr(missing, 0, 0, 0);
 			stub.hdr[stm::RawHeader::RAW_LEN]    = 0;
-			stub.hdr[stm::RawHeader::DATA_FLAGS] = static_cast<int16_t>((1 << 0) | (1 << 1));
+			stub.hdr[stm::RawHeader::FLAGS] = static_cast<int16_t>((1 << 0) | (1 << 1));
 
 			++buffer->EWT_count;
 			++EWT_count;

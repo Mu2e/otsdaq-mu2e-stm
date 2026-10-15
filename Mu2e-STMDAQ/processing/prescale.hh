@@ -40,11 +40,7 @@ private:
   const int RAW = 0;
   // ZS prescale flag
   const int ZS = 1;
-  
-  // Header base values
-  uint16_t hdr_on_base{0};
-  uint16_t hdr_off_base{0};
-  
+
   // Check for prime number
   bool is_prime(long long n) {
     if (n <= 1) return false;
@@ -57,10 +53,10 @@ private:
     return true;
   }
 
-  // Pack prescale header with values
+  // Pack prescale flags into header
   void pack_hdr(bool data_type, bool ps, uint16_t& h) {
-    if (data_type == RAW) h |= (static_cast<uint16_t>(ps) & 0x1) << 15;
-    if (data_type == ZS) h |= (static_cast<uint16_t>(ps)  & 0x1) << 7;      
+    if (data_type == RAW) h |= (static_cast<uint16_t>(ps) & 0x1) << 2;
+    if (data_type == ZS) h |= (static_cast<uint16_t>(ps)  & 0x1) << 3;
   }
   
 public:

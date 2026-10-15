@@ -28,21 +28,7 @@ Prescale::Prescale(const std::shared_ptr<AsyncLogger>& logger_,
 			            0);
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
-		// Check prescale number are within max values
-		if(val > 0x7F)
-		{
-			logger->log("Prescale: Error! " + ID + " prescale =  " + std::to_string(val) +
-			                ". Prescale numbers must be 0–127!",
-			            0);
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
 	}
-
-	// Set header base values (prescale values don't change during running...)
-	hdr_on_base = (static_cast<uint16_t>(p_cfg.raw.on_spill.prescale) & 0x7F) << 8;
-	hdr_on_base |= (static_cast<uint16_t>(p_cfg.zs.on_spill.prescale) & 0x7F);
-	hdr_off_base = (static_cast<uint16_t>(p_cfg.raw.off_spill.prescale) & 0x7F) << 8;
-	hdr_off_base |= (static_cast<uint16_t>(p_cfg.zs.off_spill.prescale) & 0x7F);
 
 	// Register operations for OperationManager
 	register_operation("prescale_data", [this](auto& b) { prescale_data(b); });
@@ -107,20 +93,21 @@ void Prescale::prescale_data(std::shared_ptr<DataStruct>& buffer)
 
 		};
 
-		// Get header prescale flag
-		uint16_t hdr = on_spill ? hdr_on_base : hdr_off_base;
+		// Get header prescale flags
+		uint16_t hdr = 0;
 
 		// Do Raw prescale
 		apply(RAW, raw_prescale, ewt.raw.prescale, hdr);
 		// Do ZS prescale
 		apply(ZS, zs_prescale, ewt.zs.prescale, hdr);
 
-		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::PRESCALE] << std::endl;
+		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::FLAGS] << std::endl;
 
-		// Store EWT header
-		ewt.hdr[stm::RawHeader::PRESCALE] = static_cast<int16_t>(hdr);
+		// OR prescale flags into the shared flags word (bad-data/missing flags
+		// may already have been set by FormEvents earlier in the pipeline)
+		ewt.hdr[stm::RawHeader::FLAGS] |= static_cast<int16_t>(hdr);
 
-		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::PRESCALE] << std::endl;
+		//    std::cout << EWT << " " << ewt.hdr[stm::RawHeader::FLAGS] << std::endl;
 
 		// Increment ONCE per EWT per spill stream (shared for RAW+ZS)
 		++s.count;
