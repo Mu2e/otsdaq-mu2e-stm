@@ -215,6 +215,9 @@ sw_event_header STMdata::create_sw_eHdr(int16_t* data, uint64_t hdr_index)
 	hdr[stm::RawHeader::EM_1]       = data[hdr_index + fw_eHdr.EM_1];
 	hdr[stm::RawHeader::EM_2_DRTDC] = data[hdr_index + fw_eHdr.EM_2_DRTDC];
 
+	// Stamp header format version (top 4 bit of FLAGS)
+	hdr[stm::RawHeader::FLAGS] = static_cast<int16_t>(stm::RawHeader::makeFlags(false, false, false, false));
+
 	hdr[stm::RawHeader::ANCHOR_END] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
 	return hdr;
@@ -252,6 +255,9 @@ sw_event_header STMdata::create_sw_eHdr(uint64_t EWT,
 	hdr[stm::RawHeader::EM_0]       = em_words[0];
 	hdr[stm::RawHeader::EM_1]       = em_words[1];
 	hdr[stm::RawHeader::EM_2_DRTDC] = em_words[2];
+
+	// Stamp header format version (top 4 bits of FLAGS)
+	hdr[stm::RawHeader::FLAGS] = static_cast<int16_t>(stm::RawHeader::makeFlags(false, false, false, false));
 
 	hdr[stm::RawHeader::ANCHOR_END] = static_cast<int16_t>(stm::RawHeader::ANCHOR_WORD);
 
