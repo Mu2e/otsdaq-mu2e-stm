@@ -82,10 +82,17 @@ void STMDAQSupervisor::transitionStarting(toolbox::Event::Reference e)
 
 	CoreSupervisorBase::transitionStarting(e);
 
+	if(daqStarted_)
+	{
+		__SUP_COUT__ << "STMDAQ already started, skipping start (stop first)" << __E__;
+		return;
+	}
+
 	stop::reset_stops();
 	// Start STMDAQ
 	stmFE_->run_reset_readout();
 	stmFE_->start_stmdaq();
+	daqStarted_ = true;
 }
 
 //==============================================================================
@@ -119,6 +126,8 @@ void STMDAQSupervisor::transitionHalting(toolbox::Event::Reference e)
 
 	std::string commandResponse = StringMacros::exec("pgrep -f app.py | xargs kill -9");
 
+	daqStarted_ = false;
+
 	CoreSupervisorBase::transitionHalting(e);
 }
 
@@ -135,6 +144,8 @@ void STMDAQSupervisor::transitionStopping(toolbox::Event::Reference e)
 	}
 
 	stop::reset_stops();
+
+	daqStarted_ = false;
 
 	CoreSupervisorBase::transitionStopping(e);
 }

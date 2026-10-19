@@ -31,9 +31,15 @@ class STMDAQSupervisor : public CoreSupervisorBase
 	// Core DAQ objects
 	std::shared_ptr<STMfrontend> stmFE_;
 
-	// Bool for first daq config read
+	// Bool for first STMDAQ config read
 	bool configured_      = false;
+
+	// STMDAQ failure received
 	bool failureReported_ = false;
+
+	// True between a successful start and the next stop/halt; prevents
+	// start_stmdaq() being called twice in a row without a stop
+	bool daqStarted_ = false;
 };
 
 }  // namespace ots
