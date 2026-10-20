@@ -48,6 +48,13 @@ void STMDAQSupervisor::transitionConfiguring(toolbox::Event::Reference e)
 	failureReported_ = false;
 	stop::reset_stops();
 
+	if(stmFE_)
+	{
+		__SUP_COUT__ << "STMDAQ already configured, skipping reconfigure (halt first)" << __E__;
+		CoreSupervisorBase::transitionConfiguring(e);
+		return;
+	}
+
 	if(configured_)
 	{
 		Config::getInstance().reinit();
