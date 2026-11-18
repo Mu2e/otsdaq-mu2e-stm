@@ -1,6 +1,11 @@
 #!/bin/sh
-export ARTDAQ_DATABASE_URI=mongodb://admin:***REMOVED***@mu2edaq13-data:27017/teststand_db?authSource=admin
-# export ARTDAQ_DATABASE_URI=mongodb://admin:***REMOVED***@localhost:27017/teststand_db?authSource=admin
+# Credentials are not stored in this repository. Set ARTDAQ_DATABASE_PWD in the
+# environment (e.g. from a mode-600 file outside the repo) before sourcing this script.
+if [ -z "${ARTDAQ_DATABASE_PWD:-}" ]; then
+    echo -e "mongodb_setup.sh:${LINENO} |  \t WARNING: ARTDAQ_DATABASE_PWD is not set; MongoDB authentication will fail."
+fi
+export ARTDAQ_DATABASE_URI=mongodb://admin:${ARTDAQ_DATABASE_PWD}@mu2edaq13-data:27017/teststand_db?authSource=admin
+# export ARTDAQ_DATABASE_URI=mongodb://admin:${ARTDAQ_DATABASE_PWD}@localhost:27017/teststand_db?authSource=admin
                                                                                                                              
 export ARTDAQ_DATABASE_SSH_PORT="27017"
 # export ARTDAQ_DATABASE_SSH_JUMP="-J mu2edaq-gateway.fnal.gov"

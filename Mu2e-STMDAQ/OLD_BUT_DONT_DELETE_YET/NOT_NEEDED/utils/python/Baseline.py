@@ -73,7 +73,7 @@ class Baseline:
 
     def __init__(self):
 # Connect to Postgres DB
-        dsn  = "dbname=stm user=stm_writer password=***REMOVED*** host=localhost port=5432"
+        dsn  = "dbname=stm user=stm_writer host=localhost port=5432"
         self.conn = psycopg2.connect(dsn)
         self.curr = self.conn.cursor()
         self.runTimes = self.getRunTimes(0,100000)  # get times for all runs,subruns
